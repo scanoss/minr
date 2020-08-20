@@ -52,13 +52,22 @@ void url_download(char *target, char *metadata, char *tmp_path, bool all_extensi
 {
 	char *src = calloc(MAX_FILE_SIZE + 1, 1);
 	uint8_t *zsrc = calloc((MAX_FILE_SIZE + 1) * 2, 1);
+	struct mz_cache_item *mz_cache = NULL;
+
+	/* Reserve memory for snippet fingerprinting */
+	if (!exclude_mz)
+	{
+		buffer = malloc(BUFFER_SIZE * 256);
+		hashes = malloc(MAX_FILE_SIZE);
+		lines  = malloc(MAX_FILE_SIZE);
+
+		/* Reserve memory for mz_cache for mined/sources (65536 files) */
+		mz_cache = malloc(MZ_FILES * sizeof(struct mz_cache_item));
+		for (int i = 0; i < MZ_FILES; i++) mz_cache[i].length = 0;
+	}
 
 	/* Open all file handlers in mined/files (256 files) */
 	out_file = open_file();
-
-	/* Reserve memory for mz_cache for mined/sources (65536 files) */
-	struct mz_cache_item *mz_cache = malloc(MZ_FILES * sizeof(struct mz_cache_item));
-	for (int i = 0; i < MZ_FILES; i++) mz_cache[i].length = 0;
 
 	char *tmp = calloc(MAX_PATH_LEN,1);
 	sprintf(tmp, "%s/components.csv", mined_path);
@@ -111,10 +120,17 @@ void url_download(char *target, char *metadata, char *tmp_path, bool all_extensi
 	/* Close files */
 	for (int i=0; i < 256; i++) fclose(out_file[i]);
 
-	/* Flush mz cache */
-	mz_flush(mz_cache);
+	if (!exclude_mz)
+	{
+		/* Flush mz cache */
+		mz_flush(mz_cache);
 
-	free(mz_cache);
+		free(mz_cache);
+		free(buffer);
+		free(hashes);
+		free(lines);
+	}
+
 	free(out_file);
 	free(src);
 	free(zsrc);
@@ -134,78 +150,78 @@ int main(int argc, char *argv[])
 	char mz[MAX_PATH_LEN] = "\0";
 
 	/* Parse arguments */
-    int option;
-    bool invalid_argument = false;
+	int option;
+	bool invalid_argument = false;
 
-    while ((option = getopt(argc, argv, ":o:m:g:w:t:f:T:i:z:u:d:xahv")) != -1)
-    {
-        /* Check valid alpha is entered */
-        if (optarg)
-        {
-            if ((strlen(optarg) > MAX_ARG_LEN))
-            {
-                invalid_argument = true;
-                break;
-            }
-        }
+	while ((option = getopt(argc, argv, ":o:m:g:w:t:f:T:i:z:u:d:xahv")) != -1)
+	{
+		/* Check valid alpha is entered */
+		if (optarg)
+		{
+			if ((strlen(optarg) > MAX_ARG_LEN))
+			{
+				invalid_argument = true;
+				break;
+			}
+		}
 
-        switch (option)
-        {
-            case 'o':
+		switch (option)
+		{
+			case 'o':
 				strcpy(mined_path, optarg);
 				if (!create_dir(mined_path))
 				{
 					invalid_argument = true;
 					printf("Cannot create output directory\n");
 				}
-                break;
+				break;
 
-            case 'm':
+			case 'm':
 				min_file_size = atoi(optarg);
-                break;
+				break;
 
-            case 'g':
+			case 'g':
 				GRAM   = atoi(optarg);
-                break;
+				break;
 
-            case 'w':
+			case 'w':
 				WINDOW = atoi(optarg);
-                break;
+				break;
 
-            case 't':
+			case 't':
 				strcpy(join_to, optarg);
 				break;
 
-            case 'f':
+			case 'f':
 				strcpy(join_from, optarg);
 				break;
 
-            case 'T':
+			case 'T':
 				strcpy(tmp_path, optarg);
 				break;
 
-            case 'i':
+			case 'i':
 				mined_import(optarg);
 				exit(EXIT_SUCCESS);
 				break;
 
-            case 'z':
+			case 'z':
 				strcpy(mz, optarg);
 				break;
 
-            case 'u':
+			case 'u':
 				strcpy(url, optarg);
 				break;
 
-            case 'd':
+			case 'd':
 				strcpy(metadata, optarg);
 				break;
 
-            case 'x':
+			case 'x':
 				exclude_mz = true;
 				break;
 
-            case 'a':
+			case 'a':
 				all_extensions = true;
 				break;
 
@@ -285,6 +301,7 @@ int main(int argc, char *argv[])
 
 		/* Close files */
 		for (int i=0; i < 256; i++) close(out_snippet[i]);
+		free(out_snippet);
 	}
 
 	/* Mine URL */
@@ -297,15 +314,8 @@ int main(int argc, char *argv[])
 			exit(EXIT_FAILURE);
 		}
 
-		buffer = malloc(BUFFER_SIZE * 256);
-		hashes = malloc(MAX_FILE_SIZE);
-		lines  = malloc(MAX_FILE_SIZE);
-
 		url_download(url, metadata, tmp_path, all_extensions, exclude_mz);
 
-		free(buffer);
-		free(hashes);
-		free(lines);
 	}
 	else
 	{
