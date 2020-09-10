@@ -41,16 +41,33 @@
 #include "md5.c"
 #include "mz.c"
 
-#define VERSION "1.04"
-
 void help()
 {
-	printf("unmz-%s\n", VERSION);
 	printf("usage: unmz command mzfile\n");
-	printf("-x extract files\n");
-	printf("-l list files, validating integrity\n");
-	printf("-c check .mz container integrity\n");
-	printf("-h print this help\n");
+	printf("-x MZ   extract all files from MZ file\n");
+	printf("-l MZ   list directory of MZ file, validating integrity\n");
+	printf("-c MZ   check MZ container integrity\n");
+	printf("-k MD5  extracts file with id MD5 and display contents via STDOUT\n");
+	printf("-p PATH specify mined/ directory (default: mined/)\n");
+	printf("-v      print version\n");
+	printf("-h      print this help\n");
+}
+
+bool validate_md5(char *txt)
+{
+    /* Check length */
+    if (strlen(txt) != 32) { printf("f1\n");return false;}
+
+    /* Check digits (and convert to lowercase) */
+    for (int i = 0; i < 32; i++)
+    {
+        txt[i] = tolower(txt[i]);
+        if (txt[i] > 'f') return false;
+        if (txt[i] < '0') return false;
+        if (txt[i] > '9' && txt[i] < 'a')  return false;
+    }
+
+    return true;
 }
 
 int main(int argc, char *argv[])
@@ -60,11 +77,15 @@ int main(int argc, char *argv[])
 	/* Parse arguments */
 	int option;
 	bool invalid_argument = false;
+	char mined[MAX_PATH_LEN] = "\0";
+	strcpy(mined, "mined");
+	char key[33] = "\0";
+	bool key_provided = false;
 
 	char *src = calloc(MAX_FILE_SIZE + 1, 1);
 	uint8_t *zsrc = calloc((MAX_FILE_SIZE + 1) * 2, 1);
 
-	while ((option = getopt(argc, argv, ":x:l:c:h")) != -1)
+	while ((option = getopt(argc, argv, ":x:k:p:l:c:hv")) != -1)
 	{
 		/* Check valid alpha is entered */
 		if (optarg)
@@ -80,6 +101,23 @@ int main(int argc, char *argv[])
 		{
 			case 'h':
 				help();
+				break;
+
+			case 'p':
+				strcpy(mined, optarg);
+				break;
+
+			case 'k':
+				if (validate_md5(optarg))
+				{
+					key_provided = true;
+					strcpy(key, optarg);
+				}
+				else
+				{
+					printf("Invalid key provided\n");
+					exit_status = EXIT_FAILURE;
+				}
 				break;
 
 			case 'x':
@@ -98,6 +136,13 @@ int main(int argc, char *argv[])
 				}
 				break;
 
+			case 'v':
+				printf("unmz is part of scanoss-minr-%s\n", MINR_VERSION);
+				free(src);
+				free(zsrc);
+				exit(EXIT_SUCCESS);
+				break;
+
 			case ':':
 				printf("Missing value for parameter\n");
 				invalid_argument = true;
@@ -108,7 +153,12 @@ int main(int argc, char *argv[])
 				invalid_argument = true;
 				break;
 		}
-		if (invalid_argument) break;
+
+		if (invalid_argument)
+		{
+			exit_status = EXIT_FAILURE;
+			break;
+		}
 	}
 
 	for (;optind < argc-1; optind++)
@@ -117,13 +167,16 @@ int main(int argc, char *argv[])
 		invalid_argument = true;
 	}
 
-	if (invalid_argument)
-	{
-		printf("Error parsing arguments\n");
-		exit(EXIT_FAILURE);
-	}
+	/* Process -k request */
+	if (key_provided) mz_cat(mined, key, zsrc, src);
 
 	free(src);
 	free(zsrc);
+
+	if (invalid_argument)
+	{
+		printf("Error parsing arguments\n");
+	}
+
 	return exit_status;
 }

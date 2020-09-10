@@ -20,6 +20,94 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/* Extract a file and print contents to stdout */
+void mz_cat(char *mined, char *key, uint8_t *zsrc, char *src)
+{
+	int mz = -1;
+	char hex_md5[32 + 1] = "\0";
+	hex_md5[32] = 0;
+
+    /* Calculate mz file path */
+    char mz_file[5] = "\0\0\0\0\0";
+    memcpy(mz_file, key, 4);
+    sprintf(mined + strlen(mined), "/sources/%s.mz", mz_file);
+
+    /* Open mz file */
+    mz = open(mined, O_RDONLY);
+
+    /* Extract first two MD5 bytes from the key */
+    memcpy(hex_md5, key, 4);
+
+    if (mz < 0)
+    {
+        printf("Cannot open mz file %s\n", mined);
+        exit(EXIT_FAILURE);
+    }
+
+    /* Obtain file size */
+    uint64_t size = lseek64(mz, 0, SEEK_END);
+    if (!size)
+    {
+        printf("File %s is empty\n", mined);
+        exit(EXIT_FAILURE);
+    }
+
+    /* Recurse mz contents */
+    char header[MZ_HEAD];
+    uint64_t ptr = 0;
+    while (ptr < size)
+    {
+        /* Read header from ptr */
+        lseek64 (mz, ptr, SEEK_SET);
+        if (!read(mz, header, MZ_HEAD))
+        {
+            printf("[READ_ERROR]\n");
+            exit(EXIT_FAILURE);
+        }
+
+        /* Extract remaining bytes of the MD5 from header */
+        char *tmp = bin_to_hex((uint8_t *)header, MZ_MD5);
+        memcpy(hex_md5 + 4, tmp, 28);
+        free(tmp);
+        ptr += MZ_HEAD;
+
+        /* Extract compressed data size from header */
+        uint64_t zsrc_ln, src_ln;
+        uint32_t tmpln;
+        memcpy((uint8_t*)&tmpln, header + MZ_MD5, MZ_SIZE);
+        zsrc_ln = tmpln;
+        if (!read(mz, zsrc, zsrc_ln)) break; // ERRROR
+        src_ln = MAX_FILE_SIZE;
+
+        /* Uncompress */
+        bool skip = false;
+        if (strcmp(hex_md5, key)) skip = true;
+
+		if (!skip)
+		{
+			if (Z_OK != uncompress((uint8_t *)src, &src_ln, zsrc, zsrc_ln))
+			{
+				printf("ERROR: Corrupted archive\n");
+				exit(EXIT_FAILURE);
+			}
+			else
+			{
+				printf(src);
+				break;
+			}
+		}
+
+		/* Increment ptr */
+		ptr += zsrc_ln;
+
+		if (ptr > size)
+		{
+			printf("%s integrity failed\n", mined);
+			exit(EXIT_FAILURE);
+		}
+	}
+	close(mz);
+}
 
 /* Extracts, lists, checks all files from the given mz file path */
 void mz_extract(char *path, bool extract, uint8_t *zsrc, char *src)
@@ -130,7 +218,7 @@ void mz_extract(char *path, bool extract, uint8_t *zsrc, char *src)
 
 bool mz_exists_in_cache(uint8_t *md5, struct mz_cache_item *mz_cache)
 {
-    int mzid = uint16(md5);
+	int mzid = uint16(md5);
 
 	/* False if cache is empty */
 	if (!mz_cache[mzid].length) return false;
@@ -138,7 +226,7 @@ bool mz_exists_in_cache(uint8_t *md5, struct mz_cache_item *mz_cache)
 	/* Search md5 in cache */
 	uint8_t *cache = mz_cache[mzid].data;
 	int cacheln = mz_cache[mzid].length;
-	 
+
 	while (cache < (mz_cache[mzid].data + cacheln))
 	{
 		/* MD5 comparison starts on the third byte of the MD5 */
@@ -146,7 +234,7 @@ bool mz_exists_in_cache(uint8_t *md5, struct mz_cache_item *mz_cache)
 
 		/* Extract zsrc and displace cache pointer */
 		uint32_t zsrc_ln;
-    	memcpy((uint8_t*)&zsrc_ln, cache + MZ_MD5, MZ_SIZE);
+		memcpy((uint8_t*)&zsrc_ln, cache + MZ_MD5, MZ_SIZE);
 		cache += (MZ_HEAD + zsrc_ln);
 	}
 
