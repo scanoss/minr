@@ -38,6 +38,7 @@
 #include "blacklist_ext.h"
 #include "blacklist_wfp.h"
 #include "external/wfp/winnowing.c"
+#include "bsort.c"
 #include "global.c"
 #include "file.c"
 #include "md5.c"
@@ -142,7 +143,9 @@ int main(int argc, char *argv[])
 	int exit_code = EXIT_SUCCESS;
 	bool all_extensions = false;
 	bool exclude_mz = false;
+	bool skip_sort = false;
 
+	char import_path[MAX_PATH_LEN]="\0";
 	char join_from[MAX_PATH_LEN] = "\0";
 	char join_to[MAX_PATH_LEN] = "\0";
 	char metadata[MAX_PATH_LEN] = "\0";
@@ -153,7 +156,7 @@ int main(int argc, char *argv[])
 	int option;
 	bool invalid_argument = false;
 
-	while ((option = getopt(argc, argv, ":o:m:g:w:t:f:T:i:z:u:d:xahv")) != -1)
+	while ((option = getopt(argc, argv, ":o:m:g:w:t:f:T:i:z:u:d:xsahv")) != -1)
 	{
 		/* Check valid alpha is entered */
 		if (optarg)
@@ -201,8 +204,7 @@ int main(int argc, char *argv[])
 				break;
 
 			case 'i':
-				mined_import(optarg);
-				exit(EXIT_SUCCESS);
+				strcpy(import_path, optarg);
 				break;
 
 			case 'z':
@@ -215,6 +217,10 @@ int main(int argc, char *argv[])
 
 			case 'd':
 				strcpy(metadata, optarg);
+				break;
+
+			case 's':
+				skip_sort = true;
 				break;
 
 			case 'x':
@@ -262,9 +268,11 @@ int main(int argc, char *argv[])
 
 	strcat(mined_path, "/mined");
 
+	/* Import mined/ into the LDB */
+	if (*import_path) mined_import(import_path, skip_sort);
+
 	/* Join mined/ structures */
-	if (*join_from && *join_to)
-		minr_join(argv[2], argv[4]);
+	else if (*join_from && *join_to) minr_join(argv[2], argv[4]);
 
 	/* Process mz file */
 	else if (*mz)

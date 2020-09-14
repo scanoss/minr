@@ -558,7 +558,11 @@ bool ldb_import_files(char *filename)
 		char *data = field_n(3, line);
 		char *path = field_n(4, line);
 
-		if (data && path)
+		bool skip = false; 
+		if (blacklisted(path)) skip = true;
+		if (!skip) if (strlen(path) > DISCARD_PATH_IF_LONGER_THAN) skip = true;
+
+		if (data && path && !skip)
 		{
 			/* File ID is last 15 bytes */
 			if (line[30] == ',')
@@ -669,19 +673,46 @@ bool ldb_import_files(char *filename)
 
 }
 
-void mined_import(char *mined_path)
+bool csv_sort(char *file_path, bool skip_sort)
+{
+	if (!file_size(file_path)) return false;
+	if (skip_sort) return true;
+
+	/* Assemble command */
+	char command[MAX_PATH_LEN] = "\0";
+	sprintf(command,"sort -u -o %s %s", file_path, file_path);
+
+	FILE *p = popen(command, "r");
+	if (p) pclose(p);
+	else
+	{
+		printf("Cannot execute %s\n", command);
+		return false;
+	}
+	return true;
+}
+
+bool bin_sort(char * file_path, bool skip_sort)
+{
+	if (!file_size(file_path)) return false;
+	if (skip_sort) return true;
+
+	return bsort(file_path);
+}
+
+void mined_import(char *mined_path, bool skip_sort)
 {
 	char file_path[MAX_PATH_LEN] = "\0";
-	
+
 	/* Import components */
 	sprintf(file_path, "%s/components.csv", mined_path);
-	ldb_import_components(file_path);
+	if (csv_sort(file_path, skip_sort)) ldb_import_components(file_path);
 
 	/* Import files */
 	for (int i = 0; i < 256; i++)
 	{
 		sprintf(file_path, "%s/files/%02x.csv", mined_path, i);
-		if (file_size(file_path))
+		if (csv_sort(file_path, skip_sort))
 		{
 			printf("%s\n", file_path);
 			ldb_import_files(file_path);
@@ -692,7 +723,7 @@ void mined_import(char *mined_path)
 	for (int i = 0; i < 256; i++)
 	{
 		sprintf(file_path, "%s/snippets/%02x.bin", mined_path, i);
-		if (file_size(file_path))
+		if (bin_sort(file_path, skip_sort))
 		{
 			printf("%s\n", file_path);
 			ldb_import_snippets(file_path);

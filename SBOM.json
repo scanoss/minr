@@ -2,7 +2,7 @@
   "bomFormat": "CycloneDX",
   "specVersion": "1.2",
   "version": 1,
-  "serialNumber": "minr:1594548880",
+  "serialNumber": "minr:1600088466",
   "components": [
     {
       "type": "application",
@@ -49,6 +49,18 @@
       "licenses": [
         {
           "id": "BSD-3-Clause"
+        }
+      ]
+    },
+    {
+      "type": "application",
+      "publisher": "pelotoncycle",
+      "group": "pelotoncycle",
+      "name": "bsort",
+      "url": "https://github.com/pelotoncycle/bsort",
+      "licenses": [
+        {
+          "id": "GPL-2.0"
         }
       ]
     }

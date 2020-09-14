@@ -198,7 +198,7 @@ The sources/ directory is there the original downloaded source files are stored.
 Minr can also be used to join two mined/ structures as follows: 
 
 ```
-$ minr join mined01/files/01.csv into mined02 
+$ minr -f mined01/files/01.csv -t mined02
 ```
 
 The command will concatenate mined01/files/01.csv to mined02/files/01.csv 

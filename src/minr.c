@@ -260,17 +260,26 @@ bool check_dependencies()
 {
 
 	struct stat sb;
-	char *dependencies[]= {"/bin/gunzip", "/bin/tar", "/usr/bin/7z", "/usr/bin/curl", "/usr/bin/sort", "/usr/bin/unrar", "/usr/bin/unzip", "/usr/bin/xz", NULL};
-	uint32_t i=0;
+	char *dependencies[] = 
+	{
+		"/bin/gunzip",
+		"/bin/tar",
+		"/usr/bin/7z",
+		"/usr/bin/curl",
+		"/usr/bin/sort",
+		"/usr/bin/unrar",
+		"/usr/bin/unzip",
+		"/usr/bin/xz",
+		"/usr/bin/gem"
+	};
 
-	while (dependencies[i])
+	for (int i = 0; i < (sizeof(dependencies)/sizeof(dependencies[0])); i++)
 	{
 		if (!(stat(dependencies[i], &sb) == 0 && sb.st_mode & S_IXUSR))
 		{
 			printf("Missing %s\n", dependencies[i]);
 			return false;
 		}
-		i++;
 	}
 	return true;
 }
