@@ -196,10 +196,10 @@ void mz_extract(char *path, bool extract, uint8_t *zsrc, char *src)
 		actual = bin_to_hex(actual_md5, 16);
 		if (strcmp(hex_md5, (char *)actual))
 		{
-			printf("[FAILED] %lu bytes\n", src_ln);
+			printf("[FAILED] %lu bytes\n", src_ln - 1);
 			exit(EXIT_FAILURE);
 		}
-		else printf("[OK] %lu bytes\n", src_ln);
+		else printf("[OK] %lu bytes\n", src_ln - 1);
 
 		free(actual_md5);
 		free(actual);

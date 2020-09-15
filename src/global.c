@@ -21,7 +21,7 @@
  */
 
 /* Definitions */
-#define MINR_VERSION "1.16"
+#define MINR_VERSION "1.17"
 #define MZ_CACHE_SIZE 32768
 #define MZ_FILES 65536
 #define MZ_HEAD 18 // Head contains 14 bytes of the MD5 + 4 bytes for compressed SIZE
@@ -29,11 +29,17 @@
 #define MZ_SIZE 4
 #define FILE_FILES 256
 #define MAX_ARG_LEN 1024
+#define MIN_FILE_REC_LEN 70
 #define MAX_PATH_LEN 4096
 #define MAX_FILE_SIZE (4 * 1048576)
 #define BUFFER_SIZE 1048576
 #define MIN_FILE_SIZE 3 // files below this size will be ignored
 #define DISCARD_PATH_IF_LONGER_THAN 1024
+#define MD5_LEN 16
+#define MD5_LEN_HEX 32
+#define NODE_PTR_LEN 5
+#define REC_SIZE_LEN 2
+#define LDB_KEY_LN 4
 
 /* Structures */
 struct mz_cache_item

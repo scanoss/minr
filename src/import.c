@@ -214,31 +214,91 @@ char *field_n(int n, char *data)
     return NULL;
 }
 
-bool ldb_import_generic(char *filename, char *table)
+/* Extract binary item ID (and optional first field binary ID) from CSV line
+   where the first field is the hex itemid and the second could also be hex (if is_file_table) */
+bool file_id_to_bin(char *line, uint8_t first_byte, bool got_1st_byte, uint8_t *itemid, uint8_t *field2, bool is_file_table)
+{
+
+	/* File ID is only the last 15 bytes (first byte should be in the file name) */
+	if (line[30] == ',')
+	{
+		if (!got_1st_byte) 
+		{
+			printf("Key is incomplete. File name does not contain the first byte\n");
+			return false;
+		}
+
+		/* Concatenate first_byte and 15 remaining bytres into itemid */
+		else
+		{
+			/* Add 1st byte */
+			*itemid = first_byte;
+
+			/* Convert remaining 15 bytes */
+			hex_to_bin(line, MD5_LEN_HEX - 2, itemid + 1);
+
+			/* Convert componentid if needed (file table) */
+			if (is_file_table) hex_to_bin(line + (MD5_LEN_HEX - 2 + 1), MD5_LEN_HEX, field2);
+		}
+	}
+
+	/* Entire file ID included */
+	else
+	{
+		/* Convert item id */
+		hex_to_bin(line, 32, itemid);
+
+		/* Convert component id if needed (file table) */
+		if (is_file_table) hex_to_bin(field_n(2, line), 32, field2);
+	}
+
+	return true;
+}
+
+bool valid_hex(char *str, int bytes)
+{
+    for (int i = 0; i < bytes; i++)
+    {
+        char h = str[i];
+        if (h < '0' || (h > '9' && h < 'a') || h > 'f') return false;
+    }
+    return true;
+}
+
+bool ldb_import_csv(char *filename, char *table, int expected_fields, bool is_file_table, int min_line_size, int max_line_size)
 {
 	FILE * fp;
 	char * line = NULL;
 	size_t len = 0;
 	ssize_t lineln;
 
-	uint8_t *componentid  = calloc (16,1);
-	uint32_t component_count = 0;
-	uint32_t component_skipped = 0;
-	uint8_t  *component_buf = malloc (ldb_max_nodeln);
-	uint16_t  component_ptr = 0;
-	uint8_t  *component_lastid = calloc (33, 1);
-	long      component_lastsector = -1;
-	FILE     *component_sector = NULL;
-	uint16_t  component_rg_start   = 0; // record group size
-	uint16_t  component_rg_size   = 0; // record group size
+	uint8_t *itemid = calloc(MD5_LEN,1);
+	uint8_t *field2 = calloc(MD5_LEN,1);
+	uint8_t  *item_buf = malloc (ldb_max_nodeln);
+	uint8_t  *item_lastid = calloc (MD5_LEN * 2 + 1, 1);
+	uint32_t item_count = 0;
+	uint32_t item_skipped = 0;
+	uint16_t  item_ptr = 0;
+	long      item_lastsector = -1;
+	FILE     *item_sector = NULL;
+	uint16_t  item_rg_start   = 0; // record group size
+	uint16_t  item_rg_size   = 0; // record group size
 
 	uint64_t totalbytes = file_size(filename);
 	size_t bytecounter = 0;
+	int field2_ln = is_file_table ? 16 : 0;
+
+	/* Get 1st byte of the item ID from csv filename (if available) */
+	uint8_t first_byte = 0;
+	bool got_1st_byte = false;
+	if (valid_hex(basename(filename), 2)) got_1st_byte = true;
+	hex_to_bin(basename(filename), 2, &first_byte);
 
 	/* Create table if it doesn't exist */
-	if (!ldb_database_exists("oss"))           ldb_create_database("oss");
+	if (!ldb_database_exists("oss")) ldb_create_database("oss");
 	if (!ldb_table_exists("oss", table)) ldb_create_table("oss", table, 16, 0);
 
+	/* Create table structure for bulk import (32-bit key) */
 	struct ldb_table oss_bulk;
 	strcpy(oss_bulk.db, "oss");
 	strcpy(oss_bulk.table, table);
@@ -255,422 +315,115 @@ bool ldb_import_generic(char *filename, char *table)
 
 	while ((lineln = getline (&line, &len, fp)) != -1)
 	{
-
-		if (lineln > 4096) continue;
+		if (lineln > max_line_size || lineln < min_line_size) continue;
 
 		/* Trim trailing chr(10) */
-		if (line[lineln - 1] == 10)
-		{
-			lineln--;
-			line[lineln] = 0;
-		}
+		if (line[lineln - 1] == 10) lineln--;
+		line[lineln] = 0;
 
+		/* First CSV field is the data key. Data starts with the second CSV field */
 		char *data = field_n(2, line);
+		bool skip = false;
 
-		if (*data)
+		/* File table will have the component id as the second field, which will be
+			converted to binary. Data then starts on the third field. Also file extensions
+			are checked and ruled out if blacklisted */
+		if (is_file_table)
 		{
-
-			/* Calculate record size */
-			uint16_t r_size = strlen (data);
-
-			/* Convert file md5 to binary */
-			hex_to_bin (line, 32, componentid);
-
-			/* Check if we have a whole new key (first 4 bytes), or just a new subkey (last 12 bytes) */
-			bool new_key = (memcmp (componentid, component_lastid, 4) != 0);
-			bool new_subkey = new_key ? true : (memcmp (componentid, component_lastid, 16) != 0);
-
-			/* If we have a new main key, or we exceed node size, we must flush and and initialize buffer */
-			if (new_key || (component_ptr + 5 + 5 + 12 + 2 + 2 + r_size + 1) >= ldb_max_nodeln)
-			{
-				/* Write buffer to disk and initialize buffer */
-				if (component_rg_size > 0) uint16_write(component_buf + component_rg_start + 12, component_rg_size);
-				if (component_ptr) ldb_node_write(oss_bulk, component_sector, component_lastid, component_buf, component_ptr, 0);
-				component_ptr = 0;
-				component_rg_start  = 0;
-				component_rg_size   = 0;
-
-				/* Open new sector if needed */
-				if (*componentid != component_lastsector)
-				{
-					if (component_sector) fclose (component_sector);
-					component_sector = ldb_open(oss_bulk, componentid, "r+");
-				}
-			}
-
-			/* New file id, start a new record group */
-			if (new_subkey)
-			{
-				/* Write size of previous record group */
-				if (component_rg_size > 0) uint16_write(component_buf + component_rg_start + 12, component_rg_size);
-				component_rg_start  = component_ptr;
-
-				/* K: Add remaining part of key to buffer */
-				memcpy (component_buf + component_ptr, componentid + 4, 12);
-				component_ptr += 12;
-
-				/* GS: Add record group size (zeroed) */
-				uint16_t zero = 0;
-				uint16_write(component_buf + component_ptr, zero);
-				component_ptr += 2;
-
-				/* Update component_lastid */
-				memcpy (component_lastid, componentid, 16);
-
-				/* Update variables */
-				component_rg_size   = 0;
-			}
-
-			/* Add record length to record */
-			uint16_write(component_buf + component_ptr, r_size);
-			component_ptr += 2;
-
-			/* Add record to buffer */
-			memcpy (component_buf + component_ptr, data, r_size);
-			component_ptr += r_size;
-			component_rg_size += (2 + r_size);
-			component_count++;
-		}
-		bytecounter += lineln;
-
-		progress ("Importing: ", bytecounter, totalbytes, true);
-	}
-
-	/* Flush buffer */
-	if (component_rg_size > 0) uint16_write(component_buf + component_rg_start + 12, component_rg_size);
-	if (component_ptr) ldb_node_write(oss_bulk, component_sector, component_lastid, component_buf, component_ptr, 0);
-	if (component_sector) fclose (component_sector);
-
-	printf ("Skipped: %u/%u component\n", component_skipped, component_count);
-	fclose (fp);
-
-	if (line) free (line);
-	free (componentid);
-	free (component_buf);
-	free (component_lastid);
-
-	/* Lock DB */
-	ldb_unlock ();
-
-	return true;
-
-}
-
-bool ldb_import_components(char *filename)
-{
-	FILE * fp;
-	char * line = NULL;
-	size_t len = 0;
-	ssize_t lineln;
-
-	/* Table definition */
-	struct ldb_table oss_component_bulk;
-	strcpy(oss_component_bulk.db, "oss");
-	strcpy(oss_component_bulk.table, "component");
-	oss_component_bulk.key_ln = 4;
-	oss_component_bulk.rec_ln = 0;
-	oss_component_bulk.ts_ln = 2;
-	oss_component_bulk.tmp = false;
-
-	uint8_t *componentid  = calloc (16,1);
-	uint32_t component_count = 0;
-	uint32_t component_skipped = 0;
-	uint8_t  *component_buf = malloc (ldb_max_nodeln);
-	uint16_t  component_ptr = 0;
-	uint8_t  *component_lastid = calloc (33, 1);
-	long      component_lastsector = -1;
-	FILE     *component_sector = NULL;
-	uint16_t  component_rg_start   = 0; // record group size
-	uint16_t  component_rg_size   = 0; // record group size
-
-	uint64_t totalbytes = file_size(filename);
-	size_t bytecounter = 0;
-
-	/* Create table if it doesn't exist */
-	if (!ldb_database_exists("oss"))           ldb_create_database("oss");
-	if (!ldb_table_exists("oss", "component")) ldb_create_table("oss", "component", 16, 0);
-
-	fp = fopen (filename, "r");
-	if (fp == NULL) return false;
-
-	/* Lock DB */
-	ldb_lock ();
-
-	while ((lineln = getline (&line, &len, fp)) != -1)
-	{
-
-		if (lineln > 4096) continue;
-
-		/* Trim trailing chr(10) */
-		if (line[lineln - 1] == 10)
-		{
-			lineln--;
-			line[lineln] = 0;
+			data = field_n(3, line);
+			if (blacklisted(data)) skip = true;
 		}
 
-		char *data = field_n(2, line);
-
-		if (csv_fields(line) == 5 && data)
+		if (csv_fields(line) == expected_fields && data && !skip)
 		{
-
-			/* Calculate record size */
-			uint16_t r_size = strlen (data);
-
-			/* Convert file md5 to binary */
-			hex_to_bin (line, 32, componentid);
-
-			/* Check if we have a whole new key (first 4 bytes), or just a new subkey (last 12 bytes) */
-			bool new_key = (memcmp (componentid, component_lastid, 4) != 0);
-			bool new_subkey = new_key ? true : (memcmp (componentid, component_lastid, 16) != 0);
-
-			/* If we have a new main key, or we exceed node size, we must flush and and initialize buffer */
-			if (new_key || (component_ptr + 5 + 5 + 12 + 2 + 2 + r_size + 1) >= ldb_max_nodeln)
-			{
-				/* Write buffer to disk and initialize buffer */
-				if (component_rg_size > 0) uint16_write(component_buf + component_rg_start + 12, component_rg_size);
-				if (component_ptr) ldb_node_write(oss_component_bulk, component_sector, component_lastid, component_buf, component_ptr, 0);
-				component_ptr = 0;
-				component_rg_start  = 0;
-				component_rg_size   = 0;
-
-				/* Open new sector if needed */
-				if (*componentid != component_lastsector)
-				{
-					if (component_sector) fclose (component_sector);
-					component_sector = ldb_open(oss_component_bulk, componentid, "r+");
-				}
-			}
-
-			/* New file id, start a new record group */
-			if (new_subkey)
-			{
-				/* Write size of previous record group */
-				if (component_rg_size > 0) uint16_write(component_buf + component_rg_start + 12, component_rg_size);
-				component_rg_start  = component_ptr;
-
-				/* K: Add remaining part of key to buffer */
-				memcpy (component_buf + component_ptr, componentid + 4, 12);
-				component_ptr += 12;
-
-				/* GS: Add record group size (zeroed) */
-				uint16_t zero = 0;
-				uint16_write(component_buf + component_ptr, zero);
-				component_ptr += 2;
-
-				/* Update component_lastid */
-				memcpy (component_lastid, componentid, 16);
-
-				/* Update variables */
-				component_rg_size   = 0;
-			}
-
-			/* Add record length to record */
-			uint16_write(component_buf + component_ptr, r_size);
-			component_ptr += 2;
-
-			/* Add record to buffer */
-			memcpy (component_buf + component_ptr, data, r_size);
-			component_ptr += r_size;
-			component_rg_size += (2 + r_size);
-			component_count++;
-		}
-		bytecounter += lineln;
-
-		progress ("Importing: ", bytecounter, totalbytes, true);
-	}
-
-	/* Flush buffer */
-	if (component_rg_size > 0) uint16_write(component_buf + component_rg_start + 12, component_rg_size);
-	if (component_ptr) ldb_node_write(oss_component_bulk, component_sector, component_lastid, component_buf, component_ptr, 0);
-	if (component_sector) fclose (component_sector);
-
-	printf ("Skipped: %u/%u component\n", component_skipped, component_count);
-	fclose (fp);
-
-	if (line) free (line);
-	free (componentid);
-	free (component_buf);
-	free (component_lastid);
-
-	/* Lock DB */
-	ldb_unlock ();
-
-	return true;
-
-}
-
-/* Imports a csv with: File_MD5(#2-16, since #1 is in the filename), Component_MD5(16), File_length, File_path  */
-bool ldb_import_files(char *filename)
-{
-	FILE * fp;
-	char * line = NULL;
-	size_t len = 0;
-	ssize_t lineln;
-
-	/* Table definition */
-	struct ldb_table oss_file_bulk;
-	strcpy(oss_file_bulk.db, "oss");
-	strcpy(oss_file_bulk.table, "file");
-	oss_file_bulk.key_ln = 4;
-	oss_file_bulk.rec_ln = 0;
-	oss_file_bulk.ts_ln = 2;
-	oss_file_bulk.tmp = false;
-
-	uint8_t *componentid  = calloc (16,1);
-	uint8_t *fileid = calloc (16,1);
-
-	uint32_t file_count = 0;
-
-	/* File table buffer */
-	uint8_t  *file_buf = malloc (ldb_max_nodeln);
-	uint16_t  file_ptr = 0;
-	uint8_t  *file_lastid = calloc (33, 1);
-	long      file_lastsector = -1;
-	FILE     *file_sector = NULL;
-	uint16_t  file_rg_start   = 0; // record group size
-	uint16_t  file_rg_size   = 0; // record group size
-
-	uint64_t totalbytes = file_size(filename);
-	size_t bytecounter = 0;
-
-	/* Create table if it doesn't exist */
-	if (!ldb_database_exists("oss"))           ldb_create_database("oss");
-	if (!ldb_table_exists("oss", "file"))      ldb_create_table("oss", "file", 16, 0);
-
-	fp = fopen (filename, "r");
-	if (fp == NULL) return false;
-
-	/* Lock DB */
-	ldb_lock ();
-
-	while ((lineln = getline (&line, &len, fp)) != -1)
-	{
-
-		if (lineln > 4096 || lineln < 69) continue;
-
-		/* Trim trailing chr(10) */
-		if (line[lineln - 1] == 10)
-		{
-			lineln--;
-			line[lineln] = 0;
-		}
-
-		char *data = field_n(3, line);
-		char *path = field_n(4, line);
-
-		bool skip = false; 
-		if (blacklisted(path)) skip = true;
-		if (!skip) if (strlen(path) > DISCARD_PATH_IF_LONGER_THAN) skip = true;
-
-		if (data && path && !skip)
-		{
-			/* File ID is last 15 bytes */
-			if (line[30] == ',')
-			{
-				hex_to_bin(basename(filename), 2, fileid);
-				hex_to_bin(line, 30, fileid + 1);
-				hex_to_bin(line + 31, 32, componentid);
-			}
-			/* Entire file ID in line */
-			else
-			{
-				hex_to_bin(line, 32, fileid);
-				hex_to_bin(field_n(2, line), 32, componentid);
-			}
-
 			/* Calculate record size */
 			uint16_t r_size = strlen(data);
 
+			/* Convert id to binary (and 2nd field too if needed (files table)) */
+			file_id_to_bin(line, first_byte, got_1st_byte, itemid, field2, is_file_table);
+
 			/* Check if we have a whole new key (first 4 bytes), or just a new subkey (last 12 bytes) */
-			bool new_key = (memcmp (fileid, file_lastid, 4) != 0);
-			bool new_subkey   = new_key ? true : (memcmp (fileid + 4, file_lastid + 4, 12) != 0);
-            bool node_size_exceeded = (file_ptr > 60000);
+			bool new_key = (memcmp (itemid, item_lastid, 4) != 0);
+			bool new_subkey = new_key ? true : (memcmp (itemid, item_lastid, MD5_LEN) != 0);
 
 			/* If we have a new main key, or we exceed node size, we must flush and and initialize buffer */
-			if (new_key || node_size_exceeded)
+			if (new_key || (item_ptr + 2 * NODE_PTR_LEN + MD5_LEN + 2 * REC_SIZE_LEN + r_size) >= ldb_max_nodeln)
 			{
 				/* Write buffer to disk and initialize buffer */
-				if (file_rg_size > 0) uint16_write(file_buf + file_rg_start + 12, file_rg_size);
-				if (file_ptr) ldb_node_write(oss_file_bulk, file_sector, file_lastid, file_buf, file_ptr, 0);
-				file_ptr = 0;
-				file_rg_start  = 0;
-				file_rg_size   = 0;
+				if (item_rg_size > 0) uint16_write(item_buf + item_rg_start + 12, item_rg_size);
+				if (item_ptr) ldb_node_write(oss_bulk, item_sector, item_lastid, item_buf, item_ptr, 0);
+				item_ptr = 0;
+				item_rg_start = 0;
+				item_rg_size = 0;
 
 				/* Open new sector if needed */
-				if (*fileid != file_lastsector)
+				if (*itemid != item_lastsector)
 				{
-					if (file_sector) fclose (file_sector);
-					file_sector = ldb_open(oss_file_bulk, fileid, "r+");
+					if (item_sector) fclose (item_sector);
+					item_sector = ldb_open(oss_bulk, itemid, "r+");
 				}
 			}
 
 			/* New file id, start a new record group */
 			if (new_subkey)
 			{
-
 				/* Write size of previous record group */
-				if (file_rg_size > 0) uint16_write(file_buf + file_rg_start + 12, file_rg_size);
-				file_rg_start  = file_ptr;
+				if (item_rg_size > 0) uint16_write(item_buf + item_rg_start + 12, item_rg_size);
+				item_rg_start  = item_ptr;
 
 				/* K: Add remaining part of key to buffer */
-				memcpy (file_buf + file_ptr, fileid + 4, 12);
-				file_ptr += 12;
+				memcpy (item_buf + item_ptr, itemid + 4, MD5_LEN - LDB_KEY_LN);
+				item_ptr += MD5_LEN - LDB_KEY_LN;
 
 				/* GS: Add record group size (zeroed) */
 				uint16_t zero = 0;
-				uint16_write(file_buf + file_ptr, zero);
-				file_ptr += 2;
+				uint16_write(item_buf + item_ptr, zero);
+				item_ptr += REC_SIZE_LEN;
 
-				/* Update file_lastid */
-				memcpy (file_lastid, fileid, 16);
+				/* Update item_lastid */
+				memcpy (item_lastid, itemid, MD5_LEN);
 
 				/* Update variables */
-				file_rg_size   = 0;
-
+				item_rg_size = 0;
 			}
 
 			/* Add record length to record */
-			uint16_write(file_buf + file_ptr, r_size + 16);
-			file_ptr += 2;
+			uint16_write(item_buf + item_ptr, r_size + field2_ln);
+			item_ptr += REC_SIZE_LEN;
 
 			/* Add component id to record */
-			memcpy (file_buf + file_ptr, componentid, 16);
-			file_ptr += 16;
+			memcpy (item_buf + item_ptr, field2, field2_ln);
+			item_ptr += field2_ln;
 
 			/* Add record to buffer */
-			memcpy (file_buf + file_ptr, data, r_size);
-			file_ptr += r_size;
-			file_rg_size += (16 + 2 + r_size);
-			file_count++;
+			memcpy (item_buf + item_ptr, data, r_size);
+			item_ptr += r_size;
+			item_rg_size += (field2_ln + REC_SIZE_LEN + r_size);
+			item_count++;
 		}
 		bytecounter += lineln;
 
-		progress("Importing: ", bytecounter, totalbytes, true);
+		progress ("Importing: ", bytecounter, totalbytes, true);
 	}
-	progress("Importing: ", totalbytes, totalbytes, true);
-	printf("\n");
 
-	/* Flush file buffer */
-	if (file_ptr)
-	{
-		/* update GS */
-		if (file_rg_size > 0) uint16_write(file_buf + file_rg_start + 12, file_rg_size);
-		ldb_node_write(oss_file_bulk, file_sector, file_lastid, file_buf, file_ptr, 0);
-	}
-	if (file_sector) fclose (file_sector);
+	/* Flush buffer */
+	if (item_rg_size > 0) uint16_write(item_buf + item_rg_start + MD5_LEN - LDB_KEY_LN, item_rg_size);
+	if (item_ptr) ldb_node_write(oss_bulk, item_sector, item_lastid, item_buf, item_ptr, 0);
+	if (item_sector) fclose (item_sector);
 
+	printf ("Skipped: %u/%u items\n", item_skipped, item_count);
 	fclose (fp);
-	if (line) free (line);
-	free (fileid);
-	free (file_buf);
-	free (file_lastid);
-	free (componentid);
+
+	if (line) free(line);
+	free(itemid);
+	free(item_buf);
+	free(item_lastid);
+	free(field2);
 
 	/* Lock DB */
 	ldb_unlock ();
 
 	return true;
-
 }
 
 bool csv_sort(char *file_path, bool skip_sort)
@@ -706,7 +459,9 @@ void mined_import(char *mined_path, bool skip_sort)
 
 	/* Import components */
 	sprintf(file_path, "%s/components.csv", mined_path);
-	if (csv_sort(file_path, skip_sort)) ldb_import_components(file_path);
+	if (csv_sort(file_path, skip_sort))
+		/* 5 fields expected (component id, vendor, component, version, url) */
+		ldb_import_csv(file_path, "component", 5, false, 2 * MD5_LEN + 5, 1024);
 
 	/* Import files */
 	for (int i = 0; i < 256; i++)
@@ -715,7 +470,8 @@ void mined_import(char *mined_path, bool skip_sort)
 		if (csv_sort(file_path, skip_sort))
 		{
 			printf("%s\n", file_path);
-			ldb_import_files(file_path);
+			/* 4 fields expected (file id, component id, size, URL) */
+			ldb_import_csv(file_path, "file", 4, true, 2 * MD5_LEN + 4, 1024);
 		}
 	}
 
@@ -729,4 +485,15 @@ void mined_import(char *mined_path, bool skip_sort)
 			ldb_import_snippets(file_path);
 		}
 	}
+
+	/* Import licenses. 3 CSV fields expected (id, source, license) */
+	sprintf(file_path, "%s/licenses.csv", mined_path);
+	if (csv_sort(file_path, skip_sort))
+		ldb_import_csv(file_path, "license", 3, false, 2 * MD5_LEN + 3, 1024);
+
+	/* Import dependencies. 3 CSV fields expected (id, source, license) */
+	sprintf(file_path, "%s/dependencies.csv", mined_path);
+	if (csv_sort(file_path, skip_sort))
+		ldb_import_csv(file_path, "dependency", 3, false, 2 * MD5_LEN + 3, 1024);
+
 }
