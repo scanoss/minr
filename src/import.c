@@ -279,13 +279,15 @@ bool ldb_import_csv(char *filename, char *table, int expected_fields, bool is_fi
 	uint8_t *field2 = calloc(MD5_LEN,1);
 	uint8_t  *item_buf = malloc (ldb_max_nodeln);
 	uint8_t  *item_lastid = calloc (MD5_LEN * 2 + 1, 1);
-	uint32_t item_count = 0;
-	uint32_t item_skipped = 0;
 	uint16_t  item_ptr = 0;
 	long      item_lastsector = -1;
 	FILE     *item_sector = NULL;
 	uint16_t  item_rg_start   = 0; // record group size
 	uint16_t  item_rg_size   = 0; // record group size
+
+	/* Counters */
+	uint32_t imported = 0;
+	uint32_t skipped = 0;
 
 	uint64_t totalbytes = file_size(filename);
 	size_t bytecounter = 0;
@@ -318,7 +320,12 @@ bool ldb_import_csv(char *filename, char *table, int expected_fields, bool is_fi
 
 	while ((lineln = getline (&line, &len, fp)) != -1)
 	{
-		if (lineln > max_line_size || lineln < min_line_size) continue;
+		/* Skip records with sizes out of range */
+		if (lineln > max_line_size || lineln < min_line_size)
+		{
+			skipped++;
+			continue;
+		}
 
 		/* Trim trailing chr(10) */
 		if (line[lineln - 1] == 10) lineln--;
@@ -336,6 +343,8 @@ bool ldb_import_csv(char *filename, char *table, int expected_fields, bool is_fi
 			data = field_n(3, line);
 			if (blacklisted(data)) skip = true;
 		}
+
+		if (skip) skipped++;
 
 		if (csv_fields(line) == expected_fields && data && !skip)
 		{
@@ -402,7 +411,8 @@ bool ldb_import_csv(char *filename, char *table, int expected_fields, bool is_fi
 			memcpy (item_buf + item_ptr, data, r_size);
 			item_ptr += r_size;
 			item_rg_size += (field2_ln + REC_SIZE_LEN + r_size);
-			item_count++;
+
+			imported++;
 		}
 		bytecounter += lineln;
 
@@ -415,7 +425,8 @@ bool ldb_import_csv(char *filename, char *table, int expected_fields, bool is_fi
 	if (item_ptr) ldb_node_write(oss_bulk, item_sector, item_lastid, item_buf, item_ptr, 0);
 	if (item_sector) fclose (item_sector);
 
-	printf ("Skipped: %u/%u items\n", item_skipped, item_count);
+	printf ("%u records imported, %u skipped\n", imported, skipped);
+
 	fclose (fp);
 
 	if (line) free(line);
