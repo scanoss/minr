@@ -272,6 +272,9 @@ bool ldb_import_csv(char *filename, char *table, int expected_fields, bool is_fi
 	size_t len = 0;
 	ssize_t lineln;
 
+	/* Node size is a 16-bit int */
+	int node_limit = 65536;
+
 	uint8_t *itemid = calloc(MD5_LEN,1);
 	uint8_t *field2 = calloc(MD5_LEN,1);
 	uint8_t  *item_buf = malloc (ldb_max_nodeln);
@@ -347,7 +350,7 @@ bool ldb_import_csv(char *filename, char *table, int expected_fields, bool is_fi
 			bool new_subkey = new_key ? true : (memcmp (itemid, item_lastid, MD5_LEN) != 0);
 
 			/* If we have a new main key, or we exceed node size, we must flush and and initialize buffer */
-			if (new_key || (item_ptr + 2 * NODE_PTR_LEN + MD5_LEN + 2 * REC_SIZE_LEN + r_size) >= ldb_max_nodeln)
+			if (new_key || (item_ptr + 2 * NODE_PTR_LEN + MD5_LEN + 2 * REC_SIZE_LEN + r_size) >= node_limit)
 			{
 				/* Write buffer to disk and initialize buffer */
 				if (item_rg_size > 0) uint16_write(item_buf + item_rg_start + 12, item_rg_size);
@@ -403,8 +406,9 @@ bool ldb_import_csv(char *filename, char *table, int expected_fields, bool is_fi
 		}
 		bytecounter += lineln;
 
-		progress ("Importing: ", bytecounter, totalbytes, true);
+		progress("Importing: ", bytecounter, totalbytes, true);
 	}
+	progress("Importing: ", 100, 100, true);
 
 	/* Flush buffer */
 	if (item_rg_size > 0) uint16_write(item_buf + item_rg_start + MD5_LEN - LDB_KEY_LN, item_rg_size);
