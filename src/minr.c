@@ -316,9 +316,54 @@ bool valid_file_and_directory(char *file, char *directory)
 	return true;
 }
 
+/* Returns true if file ends with LF or if it is empty */
+bool ends_with_chr10(char *path)
+{
+	/* Read source into memory */
+	FILE *file = fopen(path, "r");
+	if (!file)
+	{
+		printf("Cannot open source file %s\n", path);
+		exit(EXIT_FAILURE);
+	}
+
+	/* Obtain file size */
+	fseeko64(file, 0, SEEK_END);
+	uint64_t size = ftello64(file);
+
+	/* Empty file, it is ok */
+	if (size == 0)
+	{
+		fclose(file);
+		return true;
+	}
+
+	/* Read last byte */	
+	uint8_t last_byte[1] = "\0";
+	fseeko64(file, size - 1, SEEK_SET);
+	fread(last_byte, 1, 1, file);
+
+	/* Ends with chr(10), it is ok */
+	if (*last_byte == 10)
+	{
+		fclose(file);
+		return true;
+	}
+
+	/* Not empty, not ending with chr(10), it is not ok */
+	fclose(file);
+	return false;
+}
+
 /* Validate source and destination files for join and sort */
 bool valid_source_destination(char *file, char *destination)
 {
+	if (strcmp(extension(file), extension(destination)))
+	{
+		printf("Source and destination should be the same file type %s != %s\n", file, destination);
+		return false;
+	}
+
 	/* Validate .mz files by checking .mz integrity */ 
 	if (!strcmp(extension(file), "mz"))
 	{
@@ -337,6 +382,21 @@ bool valid_source_destination(char *file, char *destination)
 				printf("Destination %s is corrupted\n", file);
 				return false;
 			}
+		}
+	}
+
+	/* CSV files should both end with chr(10) (or be empty) */
+	if (!strcmp(extension(file), "csv"))
+	{
+		if (!ends_with_chr10(file))
+		{
+			printf("CSV file %s should end with LF\n", file);
+			return false;
+		}
+		if (!ends_with_chr10(destination))
+		{
+			printf("CSV file %s should end with LF\n", destination);
+			return false;
 		}
 	}
 
