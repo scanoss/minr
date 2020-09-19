@@ -341,7 +341,8 @@ bool ldb_import_csv(char *filename, char *table, int expected_fields, bool is_fi
 		if (is_file_table)
 		{
 			data = field_n(3, line);
-			if (blacklisted(data)) skip = true;
+			if (!data) skip = true;
+			else if (blacklisted(data)) skip = true;
 		}
 
 		if (skip) skipped++;
@@ -443,8 +444,8 @@ bool ldb_import_csv(char *filename, char *table, int expected_fields, bool is_fi
 
 bool csv_sort(char *file_path, bool skip_sort)
 {
-	if (!file_size(file_path)) return false;
 	if (skip_sort) return true;
+	if (!file_size(file_path)) return false;
 
 	/* Assemble command */
 	char command[MAX_PATH_LEN] = "\0";
@@ -474,11 +475,13 @@ void mined_import(char *mined_path, bool skip_sort)
 
 	/* Import components */
 	sprintf(file_path, "%s/components.csv", mined_path);
+	printf("Importing %s\n", file_path);
 	if (csv_sort(file_path, skip_sort))
 		/* 5 fields expected (component id, vendor, component, version, url) */
 		ldb_import_csv(file_path, "component", 5, false, 2 * MD5_LEN + 5, 1024);
 
 	/* Import files */
+	printf("Importing %s/files/\n", mined_path);
 	for (int i = 0; i < 256; i++)
 	{
 		sprintf(file_path, "%s/files/%02x.csv", mined_path, i);
@@ -491,6 +494,7 @@ void mined_import(char *mined_path, bool skip_sort)
 	}
 
 	/* Import snippets */
+	printf("Importing %s/snippets/\n", mined_path);
 	for (int i = 0; i < 256; i++)
 	{
 		sprintf(file_path, "%s/snippets/%02x.bin", mined_path, i);
