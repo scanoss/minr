@@ -360,7 +360,7 @@ bool ldb_import_csv(char *filename, char *table, int expected_fields, bool is_fi
 			bool new_subkey = new_key ? true : (memcmp (itemid, item_lastid, MD5_LEN) != 0);
 
 			/* If we have a new main key, or we exceed node size, we must flush and and initialize buffer */
-			if (new_key || (item_ptr + 2 * NODE_PTR_LEN + MD5_LEN + 2 * REC_SIZE_LEN + r_size) >= node_limit)
+			if (new_key || (item_ptr + 5 * NODE_PTR_LEN + MD5_LEN + 2 * REC_SIZE_LEN + r_size) >= node_limit)
 			{
 				/* Write buffer to disk and initialize buffer */
 				if (item_rg_size > 0) uint16_write(item_buf + item_rg_start + 12, item_rg_size);
