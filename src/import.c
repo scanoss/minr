@@ -368,6 +368,7 @@ bool ldb_import_csv(char *filename, char *table, int expected_fields, bool is_fi
 				item_ptr = 0;
 				item_rg_start = 0;
 				item_rg_size = 0;
+				new_subkey = true;
 
 				/* Open new sector if needed */
 				if (*itemid != item_lastsector)
