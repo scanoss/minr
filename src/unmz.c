@@ -47,6 +47,7 @@ void help()
 	printf("-x MZ   extract all files from MZ file\n");
 	printf("-l MZ   list directory of MZ file, validating integrity\n");
 	printf("-c MZ   check MZ container integrity\n");
+	printf("-s MZ   list files containing an SPDX-License-Identifier (and their license)\n");
 	printf("-k MD5  extracts file with id MD5 and display contents via STDOUT\n");
 	printf("-p PATH specify mined/ directory (default: mined/)\n");
 	printf("-v      print version\n");
@@ -85,7 +86,7 @@ int main(int argc, char *argv[])
 	char *src = calloc(MAX_FILE_SIZE + 1, 1);
 	uint8_t *zsrc = calloc((MAX_FILE_SIZE + 1) * 2, 1);
 
-	while ((option = getopt(argc, argv, ":x:k:p:l:c:hv")) != -1)
+	while ((option = getopt(argc, argv, ":x:k:p:l:s:c:hv")) != -1)
 	{
 		/* Check valid alpha is entered */
 		if (optarg)
@@ -121,11 +122,15 @@ int main(int argc, char *argv[])
 				break;
 
 			case 'x':
-				mz_extract(optarg, true, zsrc, src);
+				mz_extract(optarg, true, false, zsrc, src);
 				break;
 
 			case 'l':
-				mz_extract(optarg, false, zsrc, src);
+				mz_extract(optarg, false, false, zsrc, src);
+				break;
+
+			case 's':
+				mz_extract(optarg, false, true, zsrc, src);
 				break;
 
 			case 'c':

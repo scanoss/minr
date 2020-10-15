@@ -507,11 +507,13 @@ void mined_import(char *mined_path, bool skip_sort)
 	}
 
 	/* Import licenses. 3 CSV fields expected (id, source, license) */
+	printf("Importing %s/licenses.csv\n", mined_path);
 	sprintf(file_path, "%s/licenses.csv", mined_path);
 	if (csv_sort(file_path, skip_sort))
 		ldb_import_csv(file_path, "license", 3, false, 2 * MD5_LEN + 3, 1024);
 
 	/* Import dependencies. 3 CSV fields expected (id, source, license) */
+	printf("Importing %s/dependencies.csv\n", mined_path);
 	sprintf(file_path, "%s/dependencies.csv", mined_path);
 	if (csv_sort(file_path, skip_sort))
 		ldb_import_csv(file_path, "dependency", 3, false, 2 * MD5_LEN + 3, 1024);
