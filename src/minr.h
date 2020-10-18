@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 /*
- * src/global.c
+ * src/minr.h
  *
- * Global declarations
+ * Global minr declarations
  *
  * Copyright (C) 2018-2020 SCANOSS.COM
  *
@@ -21,7 +21,7 @@
  */
 
 /* Definitions */
-#define MINR_VERSION "1.20"
+#define MINR_VERSION "1.21"
 #define MZ_CACHE_SIZE 32768
 #define MZ_FILES 65536
 #define MZ_HEAD 18 // Head contains 14 bytes of the MD5 + 4 bytes for compressed SIZE
@@ -32,6 +32,7 @@
 #define MIN_FILE_REC_LEN 70
 #define MAX_PATH_LEN 4096
 #define MAX_FILE_SIZE (4 * 1048576)
+#define MAX_FILE_HEADER 4096
 #define BUFFER_SIZE 1048576
 #define MIN_FILE_SIZE 3 // files below this size will be ignored
 #define DISCARD_PATH_IF_LONGER_THAN 1024

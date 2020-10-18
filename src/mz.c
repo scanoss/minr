@@ -109,69 +109,8 @@ void mz_cat(char *mined, char *key, uint8_t *zsrc, char *src)
 	close(mz);
 }
 
-bool strnicmp(char *a, char *b, int len)
-{
-	for (int i = 0; i < len; i++) if (tolower(a[i]) != tolower(b[i])) return false;
-	return true;
-}
-
-bool is_spdx_license_identifier(char *src)
-{
-	int tag_len = 24; // length of "SPDX-License-Identifier:"
-	return strnicmp(src,"SPDX-License-Identifier:", tag_len);
-}
-
-char *spdx_license_identifier(char *src)
-{
-	int tag_len = 24; // length of "SPDX-License-Identifier:"
-	char *s = src + tag_len;
-
-	/* Skip until SPDX License starts */
-	while (*s)
-	{
-		if (isalpha(*s)) break;
-		s++;
-	}
-
-	char *out = s;
-
-	/* End string at end of tag */
-	while (*s)
-	{
-		if (*s == ' ' || *s == '\t' || *s == '\n')
-		{
-			*s = 0;
-			break;
-		}
-		s++;
-	}
-
-	return out;
-}
-
-void print_spdx_license_identifier(char *md5, char *src, uint64_t src_ln)
-{
-	/* Max bytes/lines to analyze */
-	int max_bytes = 1024;
-	int max_lines = 20;
-	int line = 0;
-
-	char *s = src;
-	while (*s)
-	{
-		if (*s == '\n') line++;
-		else if (is_spdx_license_identifier(s))
-		{
-			printf("%s,1,%s\n", md5, spdx_license_identifier(s));
-			return;
-		}
-		if (*(s++) > max_bytes || line > max_lines) return;
-	}
-}
-
-
 /* Extracts, lists, checks all files from the given mz file path */
-void mz_extract(char *path, bool extract, bool license, uint8_t *zsrc, char *src)
+void mz_extract(char *path, bool extract, int total_licenses, uint8_t *zsrc, char *src)
 {
 	/* Open mz file */
 	int mz = open(path, O_RDONLY);
@@ -222,7 +161,7 @@ void mz_extract(char *path, bool extract, bool license, uint8_t *zsrc, char *src
 		src_ln = MAX_FILE_SIZE;
 
 		/* Uncompress */
-		if (!license) printf("%s ", hex_md5);
+		if (!total_licenses) printf("%s ", hex_md5);
 		if (Z_OK != uncompress((uint8_t *)src, &src_ln, zsrc, zsrc_ln))
 		{
 			printf("[CORRUPTED]\n");
@@ -262,7 +201,7 @@ void mz_extract(char *path, bool extract, bool license, uint8_t *zsrc, char *src
 		}
 		else
 		{
-			if (license) print_spdx_license_identifier(hex_md5, src, src_ln);
+			if (total_licenses) mine_license(hex_md5, src, src_ln, total_licenses);
 			else printf("[OK] %lu bytes\n", src_ln - 1);
 		}
 

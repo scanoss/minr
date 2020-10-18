@@ -60,11 +60,13 @@ void show_help ()
 	printf("\n");
 	printf("Misc options:\n");
 	printf("\n");
-	printf("-o   Set the output directory (defaults to current directory)\n");
-	printf("-s   Skip sorting of .csv and .bin files before importing (-i)\n");
-	printf("-T   Set absolute temporary directory (defaults to /dev/shm)\n");
-	printf("-v   Display version and exit\n");
-	printf("-h   Display this help and exit\n");
+
+	printf("-l DIR  Auto-generates license_ids.c (used by unmz for license detection) from DIR\n");
+	printf("-o      Set the output directory (defaults to current directory)\n");
+	printf("-s      Skip sorting of .csv and .bin files before importing (-i)\n");
+	printf("-T      Set absolute temporary directory (defaults to /dev/shm)\n");
+	printf("-v      Display version and exit\n");
+	printf("-h      Display this help and exit\n");
 	printf("\n");
 	printf("Copyright (C) 2018-2020 SCANOSS.COM\n");
 	printf("\n");

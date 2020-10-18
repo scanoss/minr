@@ -39,8 +39,10 @@
 #include "blacklist_wfp.h"
 #include "external/wfp/winnowing.c"
 #include "bsort.c"
-#include "global.c"
+#include "minr.h"
 #include "file.c"
+#include "license_ids.c"
+#include "license.c"
 #include "md5.c"
 #include "hex.c"
 #include "mz.c"
@@ -156,7 +158,7 @@ int main(int argc, char *argv[])
 	int option;
 	bool invalid_argument = false;
 
-	while ((option = getopt(argc, argv, ":o:m:g:w:t:f:T:i:z:u:d:xsahv")) != -1)
+	while ((option = getopt(argc, argv, ":o:m:g:w:t:f:T:i:l:z:u:d:xsahv")) != -1)
 	{
 		/* Check valid alpha is entered */
 		if (optarg)
@@ -206,6 +208,10 @@ int main(int argc, char *argv[])
 			case 'i':
 				strcpy(import_path, optarg);
 				break;
+
+			case 'l':
+				generate_license_ids_c(optarg);
+				exit(EXIT_SUCCESS);
 
 			case 'z':
 				strcpy(mz, optarg);

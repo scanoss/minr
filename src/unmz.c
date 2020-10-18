@@ -35,7 +35,9 @@
 #include <sys/statvfs.h>
 #include <zlib.h>
 
-#include "global.c"
+#include "minr.h"
+#include "license_ids.c"
+#include "license.c"
 #include "hex.c"
 #include "file.c"
 #include "md5.c"
@@ -82,6 +84,7 @@ int main(int argc, char *argv[])
 	strcpy(mined, "mined");
 	char key[33] = "\0";
 	bool key_provided = false;
+	int total_licenses = 0;
 
 	char *src = calloc(MAX_FILE_SIZE + 1, 1);
 	uint8_t *zsrc = calloc((MAX_FILE_SIZE + 1) * 2, 1);
@@ -122,15 +125,16 @@ int main(int argc, char *argv[])
 				break;
 
 			case 'x':
-				mz_extract(optarg, true, false, zsrc, src);
+				mz_extract(optarg, true, 0, zsrc, src);
 				break;
 
 			case 'l':
-				mz_extract(optarg, false, false, zsrc, src);
+				mz_extract(optarg, false, 0, zsrc, src);
 				break;
 
 			case 's':
-				mz_extract(optarg, false, true, zsrc, src);
+				total_licenses = load_licenses();
+				mz_extract(optarg, false, total_licenses, zsrc, src);
 				break;
 
 			case 'c':
