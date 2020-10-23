@@ -284,38 +284,6 @@ bool check_dependencies()
 	return true;
 }
 
-bool valid_file_and_directory(char *file, char *directory)
-{
-	/* Does the file exist? */
-	if (!is_file(file))
-	{
-		printf("File %s does not exist or cannot be accessed\n", file);
-		return false;
-	}
-
-	/* Is the file a valid extension? */
-	if (strcmp(extension(file), "bin") && strcmp(extension(file), "csv") && strcmp(extension(file), "mz"))
-	{
-		printf("Only .csv, .bin or .mz files can be joined by minr\n");
-		return false;
-	}
-
-	if (!directory) if (!strcmp(extension(file), "mz"))
-	{
-		printf("Sorting support for .mz files is not yet implemented\n");
-		return false;
-	}
-
-	/* Does the target directory exist? */
-	if (directory) if (!is_dir(directory))
-	{
-		printf("Target directory %s does not exist or cannot be accessed\n", directory);
-		return false;
-	}
-
-	return true;
-}
-
 /* Returns true if file ends with LF or if it is empty */
 bool ends_with_chr10(char *path)
 {
@@ -428,59 +396,3 @@ bool valid_source_destination(char *file, char *destination)
 	return true;
 }
 
-void file_append(char *file, char *destination)
-{
-	FILE *f;
-	uint64_t size = file_size(file);
-	if (!size) return;
-
-	/* Read source into memory */
-	f = fopen(file, "r");
-	if (!f)
-	{
-		printf("Cannot open source file %s\n", file);
-		exit(EXIT_FAILURE);
-	}
-	char *buffer = malloc(size);
-	uint64_t bytes = fread(buffer, 1, size, f);
-	fclose(f);
-	if (bytes != size)
-	{
-		free(buffer);
-		printf("Failure reading source file %s\n", file);
-		exit(EXIT_FAILURE);
-	}
-
-	/* Append data to destination */
-	f = fopen(destination, "a");
-	if (!f)
-	{
-		free(buffer);
-		printf("Cannot write to destination file %s\n", destination);
-		exit(EXIT_FAILURE);
-	}
-	bytes = fwrite(buffer, 1, size, f);
-	fclose(f);
-	free(buffer);	
-}
-
-void minr_join(char *file, char *directory)
-{
-	if (!valid_file_and_directory(file, directory)) exit(EXIT_FAILURE);
-
-	/* Assemble and check destination file path */
-	char *destination = malloc(MAX_PATH_LEN);
-	sprintf(destination, "%s/%s", directory, basename(file));
-	if (!strcmp(destination, file))
-	{
-		printf("Cannot join a file with itself\n");
-		free(destination);
-		return;
-	}
-
-	/* Validate source and destination files */	
-	if (valid_source_destination(file, destination))
-		file_append(file, destination);
-
-	free(destination);
-}

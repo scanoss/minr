@@ -69,7 +69,7 @@ void progress(char *prompt, size_t count, size_t max, bool percent)
    containing wfp(3)+md5(16)+line(2). While the wfp is 4 bytes, the first 
    byte is the file name 
 */
-bool ldb_import_snippets(char *filename)
+bool ldb_import_snippets(char *filename, bool erase_after)
 {
 
 	/* Table definition */
@@ -90,8 +90,15 @@ bool ldb_import_snippets(char *filename)
 	/* First byte of the wfp is the file name */
 	uint8_t key1 = first_byte(filename);
 
+	/* File should contain 21 * N bytes */
+	if (file_size(filename) % 21)
+	{
+		printf("File %s does not contain 21-byte records\n", filename);
+		exit(EXIT_FAILURE);
+	}
+
 	/* Load blacklisted wfps into boolean array */
-    long size = sizeof(BLACKLISTED_WFP);
+	long size = sizeof(BLACKLISTED_WFP);
 	bool *bl = calloc(256*256*256,1);
 	for (int i = 0; i < size; i += 4)
 		if (BLACKLISTED_WFP[i] == key1)
@@ -189,6 +196,8 @@ bool ldb_import_snippets(char *filename)
 	if (out) fclose (out);
 
 	fclose(in);
+	if (erase_after) unlink(filename);
+
 	free(record);
 
 	/* Lock DB */
@@ -265,7 +274,7 @@ bool valid_hex(char *str, int bytes)
     return true;
 }
 
-bool ldb_import_csv(char *filename, char *table, int expected_fields, bool is_file_table, int min_line_size, int max_line_size)
+bool ldb_import_csv(char *filename, char *table, int expected_fields, bool is_file_table, int min_line_size, int max_line_size, bool erase_after)
 {
 	FILE * fp;
 	char * line = NULL;
@@ -430,6 +439,7 @@ bool ldb_import_csv(char *filename, char *table, int expected_fields, bool is_fi
 	printf ("%u records imported, %u skipped\n", imported, skipped);
 
 	fclose (fp);
+	if (erase_after) unlink(filename);
 
 	if (line) free(line);
 	free(itemid);
@@ -470,7 +480,7 @@ bool bin_sort(char * file_path, bool skip_sort)
 	return bsort(file_path);
 }
 
-void mined_import(char *mined_path, bool skip_sort)
+void mined_import(char *mined_path, bool skip_sort, bool erase)
 {
 	char file_path[MAX_PATH_LEN] = "\0";
 
@@ -479,7 +489,7 @@ void mined_import(char *mined_path, bool skip_sort)
 	printf("Importing %s\n", file_path);
 	if (csv_sort(file_path, skip_sort))
 		/* 5 fields expected (component id, vendor, component, version, url) */
-		ldb_import_csv(file_path, "component", 5, false, 2 * MD5_LEN + 5, 1024);
+		ldb_import_csv(file_path, "component", 5, false, 2 * MD5_LEN + 5, 1024, erase);
 
 	/* Import files */
 	printf("Importing %s/files/\n", mined_path);
@@ -490,7 +500,7 @@ void mined_import(char *mined_path, bool skip_sort)
 		{
 			printf("%s\n", file_path);
 			/* 4 fields expected (file id, component id, size, URL) */
-			ldb_import_csv(file_path, "file", 4, true, 2 * MD5_LEN + 4, 1024);
+			ldb_import_csv(file_path, "file", 4, true, 2 * MD5_LEN + 4, 1024, erase);
 		}
 	}
 
@@ -502,7 +512,7 @@ void mined_import(char *mined_path, bool skip_sort)
 		if (bin_sort(file_path, skip_sort))
 		{
 			printf("%s\n", file_path);
-			ldb_import_snippets(file_path);
+			ldb_import_snippets(file_path, erase);
 		}
 	}
 
@@ -510,12 +520,12 @@ void mined_import(char *mined_path, bool skip_sort)
 	printf("Importing %s/licenses.csv\n", mined_path);
 	sprintf(file_path, "%s/licenses.csv", mined_path);
 	if (csv_sort(file_path, skip_sort))
-		ldb_import_csv(file_path, "license", 3, false, 2 * MD5_LEN + 3, 1024);
+		ldb_import_csv(file_path, "license", 3, false, 2 * MD5_LEN + 3, 1024, erase);
 
 	/* Import dependencies. 3 CSV fields expected (id, source, license) */
 	printf("Importing %s/dependencies.csv\n", mined_path);
 	sprintf(file_path, "%s/dependencies.csv", mined_path);
 	if (csv_sort(file_path, skip_sort))
-		ldb_import_csv(file_path, "dependency", 3, false, 2 * MD5_LEN + 3, 1024);
+		ldb_import_csv(file_path, "dependency", 3, false, 2 * MD5_LEN + 3, 1024, erase);
 
 }

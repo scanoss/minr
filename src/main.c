@@ -50,6 +50,7 @@
 #include "help.c"
 #include "wfp.c"
 #include "import.c"
+#include "join.c"
 
 void url_download(char *target, char *metadata, char *tmp_path, bool all_extensions, bool exclude_mz)
 {
@@ -146,6 +147,7 @@ int main(int argc, char *argv[])
 	bool all_extensions = false;
 	bool exclude_mz = false;
 	bool skip_sort = false;
+	bool erase_after = false;
 
 	char import_path[MAX_PATH_LEN]="\0";
 	char join_from[MAX_PATH_LEN] = "\0";
@@ -158,7 +160,7 @@ int main(int argc, char *argv[])
 	int option;
 	bool invalid_argument = false;
 
-	while ((option = getopt(argc, argv, ":o:m:g:w:t:f:T:i:l:z:u:d:xsahv")) != -1)
+	while ((option = getopt(argc, argv, ":o:m:g:w:t:f:T:i:l:z:u:d:xseahv")) != -1)
 	{
 		/* Check valid alpha is entered */
 		if (optarg)
@@ -225,6 +227,10 @@ int main(int argc, char *argv[])
 				strcpy(metadata, optarg);
 				break;
 
+			case 'e':
+				erase_after = true;
+				break;
+
 			case 's':
 				skip_sort = true;
 				break;
@@ -275,7 +281,7 @@ int main(int argc, char *argv[])
 	strcat(mined_path, "/mined");
 
 	/* Import mined/ into the LDB */
-	if (*import_path) mined_import(import_path, skip_sort);
+	if (*import_path) mined_import(import_path, skip_sort, erase_after);
 
 	/* Join mined/ structures */
 	else if (*join_from && *join_to) minr_join(argv[2], argv[4]);
