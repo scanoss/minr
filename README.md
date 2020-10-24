@@ -6,8 +6,8 @@ Minr is a multi-purpose command line tool used for data mining. Minr downloads, 
 
 Minr takes two arguments: 
 
-* -d: Target metadata (CSV) 
-* -u: Target URL (pointing to a downloadable archive of a given component/version) 
+* `-d`: Target metadata (CSV) 
+* `-u`: Target URL (pointing to a downloadable archive of a given component/version) 
 
 Usage example: 
 
@@ -47,11 +47,11 @@ Downloading https://github.com/scanoss/webhook/archive/1.0.tar.gz
 $
 ```
 
-A mined/ directory is created with the downloaded metadata. This includes component and file metadata and source code archives which are kept using the .mz archives, specifically designed for this purpose. 
+A `mined/` directory is created with the downloaded metadata. This includes component and file metadata and source code archives which are kept using the `.mz` archives, specifically designed for this purpose. 
 
 ## Snippet mining
 
-Snippet mining is a second step, where snippet information is mined from the .mz archives. This is achieved with the -z parameter.
+Snippet mining is a second step, where snippet information is mined from the `.mz` archives. This is achieved with the `-z` parameter.
 
 ```
 $ minr -z mined
@@ -60,7 +60,7 @@ mined/sources/146a.mz
 $
 ```
 
-A mined/snippets directory is created with the snippet wfp fingerprints extracted from the .mz files located in mined/sources
+A `mined/snippets` directory is created with the snippet wfp fingerprints extracted from the `.mz` files located in `mined/sources`
 
 ## Data importation into the LDB
 
@@ -93,7 +93,12 @@ $ scanoss 1.0.tar.gz
       "file": "all",
       "size": "N/A",
       "dependencies": [],
-      "licenses": []
+      "licenses": [
+        {
+          "name": "GPL-2.0-only",
+          "source": "declared"
+        }
+      ]	
     }
   ]
 }
@@ -120,7 +125,12 @@ $ scanoss webhook-1.0/scanoss/github.py
       "file": "webhook-1.0/scanoss/github.py",
       "size": "6624",
       "dependencies": [],
-      "licenses": []
+      "licenses": [
+        {
+          "name": "GPL-2.0-only",
+          "source": "declared"
+        }
+      ]	
     }
   ]
 }
@@ -148,7 +158,12 @@ $ scanoss webhook-1.0/scanoss/github.py
       "file": "webhook-1.0/scanoss/github.py",
       "size": "6624",
       "dependencies": [],
-      "licenses": []
+      "licenses": [
+        {
+          "name": "GPL-2.0-only",
+          "source": "declared"
+        }
+      ]	
     }
   ]
 }
@@ -164,41 +179,43 @@ The minr command produces a directory called mined/ containing the mined metadat
 OSS components are saved in a single CSV file called mined/components.csv which contains the original archive md5 hash,  vendor, name, version and url as in the following example: 
 
 ```
- 6c067f97266c817b339f0e989499c8e4,gnu,bison,3.5,https://ftp.gnu.org/gnu/bison/bison-3.5.tar.gzd004ad1ee8d2895994663ab5e05be4d2,gloac,gloac,0.0.2,https://rubygems.org/downloads/gloac-0.0.2.gem 
+6c067f97266c817b339f0e989499c8e4,gnu,bison,3.5,https://ftp.gnu.org/gnu/bison/bison-3.5.tar.gz
+d004ad1ee8d2895994663ab5e05be4d2,gloac,gloac,0.0.2,https://rubygems.org/downloads/gloac-0.0.2.gem 
 ```
 
 ## Files 
 
-OSS files are split in 256 files named 00.csv to ff.csv containing the component archive md5, the file md5, the file length and the file name, as follows: 
+OSS files are split in 256 files named `00.csv` to `ff.csv` containing the component archive md5, the file md5, the file length and the file name, as follows: 
 
 ```
-6c067f97266c817b339f0e989499c8e4,00fc6e8b3ae062fbcfbe8d2e40d36e68,47214,bison-3.5/src/ielr.c6c067f97266c817b339f0e989499c8e4,00ac96f26eed6fab33d7451e8f697939,17570,bison-3.5/lib/stat-w32.c 
+6c067f97266c817b339f0e989499c8e4,00fc6e8b3ae062fbcfbe8d2e40d36e68,47214,bison-3.5/src/ielr.c
+6c067f97266c817b339f0e989499c8e4,00ac96f26eed6fab33d7451e8f697939,17570,bison-3.5/lib/stat-w32.c 
 ```
 
 ## Snippets 
 
-OSS snippets are 32-bit identifiers calculated with the winnowing algorithm. They are saved in binary format split in 256 files called 00.bin-ff.bin containing sequential records composed of: 
+OSS snippets are 32-bit identifiers calculated with the winnowing algorithm. They are saved in binary format split in 256 files called `00.bin` - `ff.bin` containing sequential records composed of:
 
 * 3 bytes for the snippet wfp identifier (the first byte is the file name) 
 * 16 bytes for the file md5 where the snippet is found 
 * 2 bytes for the line number where the wfp starts 
 
-These .bin files can be joined by simple concatenation.
+These `.bin` files can be joined by simple concatenation.
 
 ## Sources 
 
-The sources/ directory is there the original downloaded source files are stored. They are kept in 65536 .mz archive files. These files can be listed and extracted using the `unmz` command, which is part of minr. Unlike ZIP files, MZ files can be joined by simple concatenation.
+The `sources/` directory is there the original downloaded source files are stored. They are kept in 65536 `.mz` archive files. These files can be listed and extracted using the `unmz` command, which is part of minr. Unlike ZIP files, MZ files can be joined by simple concatenation.
 
 # Minr join 
 
-Minr can also be used to join two mined/ structures as follows: 
+Minr can also be used to join two `mined/` structures as follows: 
 
 ```
 $ minr -f dir1/mined -t dir2/mined
 
 ```
 
-All files within a mined/ structure can be joined by simple concatenation. This applies to .csv, .bin (snippet records) and .mz (compressed source code archives). The command above will concatenate all .csv, .bin and .mz files from dir1/mined into dir2/mined. Files in dir1/mined will be erased after concatenation is done.
+All files within a `mined/` structure can be joined by simple concatenation. This applies to `.csv`, `.bin` (snippet records) and `.mz` (compressed source code archives). The command above will concatenate all `.csv`, `.bin` and `.mz` files from `dir1/mined` into `dir2/mined`. Files in `dir1/mined` will be erased after concatenation is done.
 
 Minr join also performs a pre-validation on .bin and .mz file integrity (otherwise an error is generated and concatenation is aborted). 
 
