@@ -154,8 +154,6 @@ $ scanoss webhook-1.0/scanoss/github.py
 }
 $
 ```
-
-
  
 # Mined/ output structure 
 
@@ -185,30 +183,24 @@ OSS snippets are 32-bit identifiers calculated with the winnowing algorithm. The
 * 16 bytes for the file md5 where the snippet is found 
 * 2 bytes for the line number where the wfp starts 
 
-## Sorting 
-
-Components, files and snippet files should be sorted before being imported into the LDB in order to ensure an optimized database and the fastest importation times. CSV files are sorted with the sort command, while snippet binary files are sorted with: bsort –r21 –k21 file.bin 
+These .bin files can be joined by simple concatenation.
 
 ## Sources 
 
-The sources/ directory is there the original downloaded source files are stored. They are kept in 65536 .mz archive files. 
+The sources/ directory is there the original downloaded source files are stored. They are kept in 65536 .mz archive files. These files can be listed and extracted using the `unmz` command, which is part of minr. Unlike ZIP files, MZ files can be joined by simple concatenation.
 
 # Minr join 
 
 Minr can also be used to join two mined/ structures as follows: 
 
 ```
-$ minr -f mined01/files/01.csv -t mined02
+$ minr -f dir1/mined -t dir2/mined
+
 ```
 
-The command will concatenate mined01/files/01.csv to mined02/files/01.csv 
-
-Minr can join not only CSV files (component and file metadata), but also wfp .bin files (snippet data) and .mz files (source code archives), since .csv, .bin and .mz files can be joined by simple concatenation. 
-
-Minr join takes a directory as destination with the purpose of automatically calculating the destination file and avoiding human error (ie concatenating a 01.csv to a 02.csv). 
+All files within a mined/ structure can be joined by simple concatenation. This applies to .csv, .bin (snippet records) and .mz (compressed source code archives). The command above will concatenate all .csv, .bin and .mz files from dir1/mined into dir2/mined. Files in dir1/mined will be erased after concatenation is done.
 
 Minr join also performs a pre-validation on .bin and .mz file integrity (otherwise an error is generated and concatenation is aborted). 
-
 
 # License
 
