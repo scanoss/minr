@@ -215,7 +215,7 @@ void mine(char *src, uint8_t *zsrc, struct mz_cache_item *mz_cache, char *tmp_co
 
 	/* Output file information */
 	char *hex_md5 = bin_to_hex(md5, 16);
-	fprintf(out_file[*md5], "%s,%s,%lu,%s\n", hex_md5 + 2, urlid, length, path + strlen(tmp_component) + 1);
+	fprintf(out_file[*md5], "%s,%s,%s\n", hex_md5 + 2, urlid, path + strlen(tmp_component) + 1);
 	free(hex_md5);
 }
 
