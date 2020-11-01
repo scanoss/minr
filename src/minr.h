@@ -21,7 +21,7 @@
  */
 
 /* Definitions */
-#define MINR_VERSION "1.23"
+#define MINR_VERSION "1.24"
 #define MZ_CACHE_SIZE 32768
 #define MZ_FILES 65536
 #define MZ_HEAD 18 // Head contains 14 bytes of the MD5 + 4 bytes for compressed SIZE
@@ -41,6 +41,7 @@
 #define NODE_PTR_LEN 5
 #define REC_SIZE_LEN 2
 #define LDB_KEY_LN 4
+#define MAX_COPYRIGHT_LEN 1024
 
 /* Structures */
 struct mz_cache_item

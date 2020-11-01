@@ -23,13 +23,8 @@
 bool is_file(char *path);
 bool is_dir(char *path);
 bool not_a_dot(char *path);
-
-/* Perform a fast case-sensitive string comparison */
-bool strn_icmp(char *a, char *b, int len)
-{
-	for (int i = 0; i < len; i++) if (tolower(a[i]) != tolower(b[i])) return false;
-	return true;
-}
+void normalize_src(char *src, uint64_t src_ln, char *out, int max_in, int max_out);
+bool strn_icmp(char *a, char *b, int len);
 
 /* Check if SPDX-License-Identifier is found at *src */
 bool is_spdx_license_identifier(char *src)
@@ -69,7 +64,7 @@ char *spdx_license_identifier(char *src)
 }
 
 /* Return a pointer to the SPDX-License-Identifier if found in src header */
-char *mine_spdx_license_identifier(char *md5, char *src, uint64_t src_ln)
+char *mine_spdx_license_identifier(char *src, uint64_t src_ln)
 {
 	/* Max bytes/lines to analyze */
 	int max_bytes = MAX_FILE_HEADER;
@@ -89,20 +84,6 @@ char *mine_spdx_license_identifier(char *md5, char *src, uint64_t src_ln)
 		if (((s++)-src) > max_bytes || line > max_lines) return NULL;
 	}
 	return NULL;
-}
-
-void normalize_src(char *src, uint64_t src_ln, char *out, int max_in, int max_out)
-{
-	int out_ptr = 0;
-
-	for (int i = 0; i < max_in; i++)
-	{
-		if (!src[i]) break;
-		if (isalnum(src[i])) out[out_ptr++] = tolower(src[i]);
-		else if (src[i] == '+') out[out_ptr++] = src[i];
-		if (out_ptr >= max_out) break;
-	}
-	out[out_ptr] = 0;
 }
 
 /* Normalize the license in *path and output license definition
@@ -215,7 +196,7 @@ bool license_cmp(char *s, char *l)
 }
 
 /* Attempt license detection in the header of *src */
-char *mine_license_header(char *md5, char *src, uint64_t src_ln, int total_licenses)
+char *mine_license_header(char *src, uint64_t src_ln, int total_licenses)
 {
 	/* Max bytes/lines to analyze */
 	int max_bytes = MAX_FILE_HEADER - 1;
@@ -244,16 +225,15 @@ char *mine_license_header(char *md5, char *src, uint64_t src_ln, int total_licen
 void mine_license(char *md5, char *src, uint64_t src_ln, int total_licenses)
 {
 	/* SPDX license tag detection */
-	char *license = mine_spdx_license_identifier(md5, src, src_ln);
+	char *license = mine_spdx_license_identifier(src, src_ln);
 	if (license) printf("%s,1,%s\n", md5, license);
 
 	/* License header detection */
 	else
 	{
-		license = mine_license_header(md5, src, src_ln, total_licenses);
+		license = mine_license_header(src, src_ln, total_licenses);
 		if (license) printf("%s,2,%s\n", md5, license);
 	}
-
 }
 
 

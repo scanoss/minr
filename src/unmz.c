@@ -36,8 +36,10 @@
 #include <zlib.h>
 
 #include "minr.h"
+#include "string.c"
 #include "license_ids.c"
 #include "license.c"
+#include "copyright.c"
 #include "hex.c"
 #include "file.c"
 #include "md5.c"
@@ -49,7 +51,8 @@ void help()
 	printf("-x MZ   extract all files from MZ file\n");
 	printf("-l MZ   list directory of MZ file, validating integrity\n");
 	printf("-c MZ   check MZ container integrity\n");
-	printf("-s MZ   list files containing an SPDX-License-Identifier (and their license)\n");
+	printf("-s MZ   detect license (SPDX identifier) in all files\n");
+	printf("-a MZ   detect author (Copyright declaration) in all files\n");
 	printf("-k MD5  extracts file with id MD5 and display contents via STDOUT\n");
 	printf("-p PATH specify mined/ directory (default: mined/)\n");
 	printf("-v      print version\n");
@@ -89,7 +92,7 @@ int main(int argc, char *argv[])
 	char *src = calloc(MAX_FILE_SIZE + 1, 1);
 	uint8_t *zsrc = calloc((MAX_FILE_SIZE + 1) * 2, 1);
 
-	while ((option = getopt(argc, argv, ":x:k:p:l:s:c:hv")) != -1)
+	while ((option = getopt(argc, argv, ":x:k:p:l:s:a:c:hv")) != -1)
 	{
 		/* Check valid alpha is entered */
 		if (optarg)
@@ -125,16 +128,20 @@ int main(int argc, char *argv[])
 				break;
 
 			case 'x':
-				mz_extract(optarg, true, 0, zsrc, src);
+				mz_extract(optarg, true, 0, false, zsrc, src);
 				break;
 
 			case 'l':
-				mz_extract(optarg, false, 0, zsrc, src);
+				mz_extract(optarg, false, 0, false, zsrc, src);
+				break;
+
+			case 'a':
+				mz_extract(optarg, false, 0, true, zsrc, src);
 				break;
 
 			case 's':
 				total_licenses = load_licenses();
-				mz_extract(optarg, false, total_licenses, zsrc, src);
+				mz_extract(optarg, false, total_licenses, false, zsrc, src);
 				break;
 
 			case 'c':

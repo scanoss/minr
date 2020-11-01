@@ -110,7 +110,7 @@ void mz_cat(char *mined, char *key, uint8_t *zsrc, char *src)
 }
 
 /* Extracts, lists, checks all files from the given mz file path */
-void mz_extract(char *path, bool extract, int total_licenses, uint8_t *zsrc, char *src)
+void mz_extract(char *path, bool extract, int total_licenses, bool get_copyright, uint8_t *zsrc, char *src)
 {
 	/* Open mz file */
 	int mz = open(path, O_RDONLY);
@@ -161,7 +161,7 @@ void mz_extract(char *path, bool extract, int total_licenses, uint8_t *zsrc, cha
 		src_ln = MAX_FILE_SIZE;
 
 		/* Uncompress */
-		if (!total_licenses) printf("%s ", hex_md5);
+		if (!total_licenses && !get_copyright) printf("%s ", hex_md5);
 		if (Z_OK != uncompress((uint8_t *)src, &src_ln, zsrc, zsrc_ln))
 		{
 			printf("[CORRUPTED]\n");
@@ -202,6 +202,7 @@ void mz_extract(char *path, bool extract, int total_licenses, uint8_t *zsrc, cha
 		else
 		{
 			if (total_licenses) mine_license(hex_md5, src, src_ln, total_licenses);
+			else if (get_copyright) mine_copyright(hex_md5, src, src_ln);
 			else printf("[OK] %lu bytes\n", src_ln - 1);
 		}
 
