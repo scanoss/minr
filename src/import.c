@@ -528,4 +528,9 @@ void mined_import(char *mined_path, bool skip_sort, bool erase)
 	if (csv_sort(file_path, skip_sort))
 		ldb_import_csv(file_path, "dependency", 3, false, 2 * MD5_LEN + 3, 1024, erase);
 
+	/* Import copyrights. 3 CSV fields expected (id, source, copyright statement) */
+	printf("Importing %s/copyrights.csv\n", mined_path);
+	sprintf(file_path, "%s/copyrights.csv", mined_path);
+	if (csv_sort(file_path, skip_sort))
+		ldb_import_csv(file_path, "copyright", 3, false, 2 * MD5_LEN + 3, 1024, erase);
 }
