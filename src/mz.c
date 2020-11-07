@@ -161,53 +161,59 @@ void mz_extract(char *path, bool extract, int total_licenses, bool get_copyright
 		src_ln = MAX_FILE_SIZE;
 
 		/* Uncompress */
+		bool failed = false;
 		if (!total_licenses && !get_copyright) printf("%s ", hex_md5);
 		if (Z_OK != uncompress((uint8_t *)src, &src_ln, zsrc, zsrc_ln))
 		{
 			printf("[CORRUPTED]\n");
-			exit(EXIT_FAILURE);
+			failed = true;
 		}
 
 		/* Write decompressed data to output file */
-		uint8_t *actual_md5;
-		char *actual;
-		if (extract)
+		uint8_t *actual_md5 = NULL;
+		char *actual = NULL;
+
+		if (!failed)
 		{
-			FILE *out = fopen(hex_md5, "w");
-			if (!out)
+			if (extract)
 			{
-				printf("\nCannot open %s for writing\n", hex_md5);
+				FILE *out = fopen(hex_md5, "w");
+				if (!out)
+				{
+					printf("\nCannot open %s for writing\n", hex_md5);
+					exit(EXIT_FAILURE);
+				}
+				fwrite(src, 1, src_ln-1, out);
+				fclose(out);
+
+				/* Calculate resulting file MD5 */
+				actual_md5 = file_md5(hex_md5);
+			}
+			else
+			{
+				/* Calculate resulting data MD5 */
+				actual_md5 = calloc(16, 1);
+				calc_md5(src, src_ln - 1, actual_md5);
+			}
+
+			/* Compare data checksum to validate */
+			actual = bin_to_hex(actual_md5, 16);
+
+			if (strcmp(hex_md5, (char *)actual))
+			{
+				printf("[FAILED] %lu bytes\n", src_ln - 1);
 				exit(EXIT_FAILURE);
 			}
-			fwrite(src, 1, src_ln-1, out);
-			fclose(out);
-
-			/* Calculate resulting file MD5 */
-			actual_md5 = file_md5(hex_md5);
-		}
-		else
-		{
-			/* Calculate resulting data MD5 */
-			actual_md5 = calloc(16, 1);
-			calc_md5(src, src_ln - 1, actual_md5);
-		}
-
-		/* Compare data checksum to validate */
-		actual = bin_to_hex(actual_md5, 16);
-		if (strcmp(hex_md5, (char *)actual))
-		{
-			printf("[FAILED] %lu bytes\n", src_ln - 1);
-			exit(EXIT_FAILURE);
-		}
-		else
-		{
-			if (total_licenses) mine_license(hex_md5, src, src_ln, total_licenses);
-			else if (get_copyright) mine_copyright(hex_md5, src, src_ln);
-			else printf("[OK] %lu bytes\n", src_ln - 1);
+			else
+			{
+				if (total_licenses) mine_license(hex_md5, src, src_ln, total_licenses);
+				else if (get_copyright) mine_copyright(hex_md5, src, src_ln);
+				else printf("[OK] %lu bytes\n", src_ln - 1);
+			}
 		}
 
 		free(actual_md5);
-		free(actual);
+		if (actual) free(actual);
 
 		/* Increment ptr */
 		ptr += zsrc_ln;

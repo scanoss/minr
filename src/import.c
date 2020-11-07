@@ -81,6 +81,12 @@ bool ldb_import_snippets(char *filename, bool erase_after)
 	oss_wfp.ts_ln = 2;
 	oss_wfp.tmp = false;
 
+	/* Progress counters */
+	uint64_t totalbytes = file_size(filename);
+	int reccounter = 0;
+	size_t bytecounter = 0;
+	int tick = 10000; // activate progress every "tick" records
+
 	/* raw record length = wfp crc32(3) + file md5(16) + line(2) = 21 bytes */
 	int raw_ln = 21;
 
@@ -180,7 +186,7 @@ bool ldb_import_snippets(char *filename, bool erase_after)
 			else
 			{
 				/* Skip duplicated records. Since md5 records to be imported are sorted, it will be faster
-				   to compare them from last to first byte. Also, we only compare the 16 byte md5 */
+					 to compare them from last to first byte. Also, we only compare the 16 byte md5 */
 				if (record_ln > 0) if (!reverse_memcmp(record + record_ln - rec_ln, rec, 16))
 				{
 					memcpy(record + record_ln, rec, rec_ln);
@@ -188,9 +194,18 @@ bool ldb_import_snippets(char *filename, bool erase_after)
 					wfp_counter++;
 				}
 			}
-			if (wfp_counter % 100000 == 0) printf ("%lu wfp imported, %lu blacklisted\n", wfp_counter, bl_counter);
+
+			/* Update progress every "tick" records */
+			if (++reccounter > tick)
+			{
+				bytecounter += (rec_ln * reccounter);
+				progress("Importing: ", bytecounter, totalbytes, true);
+				reccounter = 0;
+			}
 		}
 	}
+	progress("Importing: ", 100, 100, true);
+	printf ("%'lu wfp imported, %'lu blacklisted\n", wfp_counter, bl_counter);
 
 	if (record_ln) ldb_node_write(oss_wfp, out, last_wfp, record, record_ln, (uint16_t) (record_ln/rec_ln));
 	if (out) fclose (out);
@@ -210,21 +225,21 @@ bool ldb_import_snippets(char *filename, bool erase_after)
 /* Count number of comma delimited fields in data */
 int csv_fields(char *data)
 {
-    int commas = 0;
-    while (*data) if (*data++ == ',') commas++;
-    return commas + 1;
+	int commas = 0;
+	while (*data) if (*data++ == ',') commas++;
+	return commas + 1;
 }
 
 /* Returns a pointer to field n in data */
 char *field_n(int n, char *data)
 {
-    int commas = 0;
-    while (*data) if (*data++ == ',') if (++commas == n-1) return data;
-    return NULL;
+	int commas = 0;
+	while (*data) if (*data++ == ',') if (++commas == n-1) return data;
+	return NULL;
 }
 
 /* Extract binary item ID (and optional first field binary ID) from CSV line
-   where the first field is the hex itemid and the second could also be hex (if is_file_table) */
+	 where the first field is the hex itemid and the second could also be hex (if is_file_table) */
 bool file_id_to_bin(char *line, uint8_t first_byte, bool got_1st_byte, uint8_t *itemid, uint8_t *field2, bool is_file_table)
 {
 

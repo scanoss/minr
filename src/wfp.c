@@ -75,7 +75,6 @@ void extract_wfp(uint8_t *md5, char *src, int length, bool check_mz)
 /* Extracts wfps from the given mz file path */
 void mz_wfp_extract(char *path)
 {
-
 	/* Open mz file */
 	int mzfile = open(path, O_RDONLY);
 	if (mzfile < 0)
@@ -106,6 +105,7 @@ void mz_wfp_extract(char *path)
 
 	/* Recurse mz contents */
 	uint64_t ptr = 0;
+	int corrupted = 0;
 	while (ptr < size)
 	{
 		/* Read 14 remaining bytes of the MD5 */
@@ -122,23 +122,26 @@ void mz_wfp_extract(char *path)
 		/* Uncompress */
 		if (Z_OK != uncompress((uint8_t *)src, &src_ln, mz + ptr + MZ_HEAD, zsrc_ln))
 		{
-			printf("Corrupted .mz file\n");
-			exit(EXIT_FAILURE);
+			corrupted++;
 		}
 
-		/* Check resulting file integrity */
-		calc_md5(src, src_ln - 1, actual_md5);
-		if (memcmp(md5, actual_md5, 16))
+		else
 		{
-			printf("Record failed verification\n");
-			exit(EXIT_FAILURE);
-		}
+			/* Check resulting file integrity */
+			calc_md5(src, src_ln - 1, actual_md5);
+			if (memcmp(md5, actual_md5, 16))
+			{
+				printf("Record failed verification\n");
+				exit(EXIT_FAILURE);
+			}
 
-		extract_wfp(md5, src, src_ln - 1, true);
+			extract_wfp(md5, src, src_ln - 1, true);
+		}
 
 		/* Increment ptr */
 		ptr += (MZ_HEAD + zsrc_ln);
 	}
+	if (corrupted) fprintf(stderr, "Warning! %d files corrupted\n", corrupted);
 	close(mzfile);
 	free(mz);
 	free(src);
