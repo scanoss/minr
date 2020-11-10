@@ -477,16 +477,18 @@ bool csv_sort(char *file_path, bool skip_sort)
 	if (!file_size(file_path)) return false;
 
 	/* Assemble command */
-	char command[MAX_PATH_LEN] = "\0";
-	sprintf(command,"sort -u -o %s %s", file_path, file_path);
+	char *command = malloc(MAX_ARG_LEN + 3 * MAX_PATH_LEN);
+	sprintf(command,"sort -T %s -u -o %s %s", tmp_path, file_path, file_path);
 
 	FILE *p = popen(command, "r");
 	if (p) pclose(p);
 	else
 	{
 		printf("Cannot execute %s\n", command);
+		free(command);
 		return false;
 	}
+	free(command);
 	return true;
 }
 
@@ -585,7 +587,7 @@ void mined_import(char *mined_path, bool skip_sort, bool erase)
 		printf("Importing %s\n", file_path);
 		if (csv_sort(file_path, skip_sort))
 		{
-			ldb_import_csv(file_path, "vulnerabilities", 10, false, 2 * MD5_LEN + 10, 1024, erase);
+			ldb_import_csv(file_path, "vulnerability", 10, false, 2 * MD5_LEN + 10, 1024, erase);
 		}
 	}
 }
