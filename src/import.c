@@ -590,4 +590,15 @@ void mined_import(char *mined_path, bool skip_sort, bool erase)
 			ldb_import_csv(file_path, "vulnerability", 10, false, 2 * MD5_LEN + 10, 1024, erase);
 		}
 	}
+
+	/* Import quality. 3 CSV fields expected (id, source, value) */
+	sprintf(file_path, "%s/quality.csv", mined_path);
+	if (is_file(file_path))
+	{
+		printf("Importing %s\n", file_path);
+		if (csv_sort(file_path, skip_sort))
+		{
+			ldb_import_csv(file_path, "quality", 3, false, 2 * MD5_LEN + 4, 1024, erase);
+		}
+	}
 }

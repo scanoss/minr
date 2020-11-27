@@ -139,6 +139,7 @@ char *BLACKLISTED_EXTENSIONS[] = {
 "wav",
 "xht",
 "xhtml",
+"xls",
 "xml",
 "xpm",
 "xsd",
@@ -250,7 +251,7 @@ bool unwanted_header(char *src)
 	int i=0;
 	while (BLACKLISTED_HEADERS[i])
 	{
-		if (!headicmp(src,BLACKLISTED_HEADERS[i]))
+		if (headicmp(src,BLACKLISTED_HEADERS[i]))
 		{
 			return true;
 		}
