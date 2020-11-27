@@ -21,7 +21,7 @@
  */
 
 /* Definitions */
-#define MINR_VERSION "1.25"
+#define MINR_VERSION "2.0.0"
 #define MZ_CACHE_SIZE 32768
 #define MZ_FILES 65536
 #define MZ_HEAD 18 // Head contains 14 bytes of the MD5 + 4 bytes for compressed SIZE
@@ -34,7 +34,7 @@
 #define MAX_FILE_SIZE (4 * 1048576)
 #define MAX_FILE_HEADER 4096
 #define BUFFER_SIZE 1048576
-#define MIN_FILE_SIZE 3 // files below this size will be ignored
+#define MIN_FILE_SIZE 64 // files below this size will be ignored
 #define DISCARD_PATH_IF_LONGER_THAN 1024
 #define MD5_LEN 16
 #define MD5_LEN_HEX 32
@@ -49,6 +49,8 @@ struct mz_cache_item
 	uint16_t length;
 	uint8_t data[MZ_CACHE_SIZE];
 }; 
+
+typedef enum { none, license, copyright, quality } metadata;
 
 /* Pointers */
 uint8_t *buffer;

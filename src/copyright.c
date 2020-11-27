@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 /*
- * src/license.c
+ * src/copyright.c
  *
- * SCANOSS License detection subroutines
+ * SCANOSS Copyright detection subroutines
  *
  * Copyright (C) 2018-2020 SCANOSS.COM
  *

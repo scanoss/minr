@@ -177,8 +177,9 @@ bool download(char *tmp_component, char *url, char *md5)
 void mine(char *src, uint8_t *zsrc, struct mz_cache_item *mz_cache, char *tmp_component, char *path, bool all_extensions, bool exclude_mz, char *urlid)
 {
 
-	/* File discrimination check #2: Is the extension blacklisted? */
-	if (!all_extensions) if (blacklisted(path)) return;
+	/* File discrimination check #2: Is the extension blacklisted or path not wanted? */
+	if (!all_extensions) if (blacklisted_extension(path)) return;
+	if (unwanted_path(path)) return;
 
 	/* Open file and obtain file length */
 	FILE *fp = fopen(path, "rb");

@@ -366,7 +366,7 @@ bool ldb_import_csv(char *filename, char *table, int expected_fields, bool is_fi
 		{
 			data = field_n(3, line);
 			if (!data) skip = true;
-			else if (blacklisted(data)) skip = true;
+			else if (blacklisted_extension(data)) skip = true;
 		}
 
 		/* Check if number of fields matches the expectation */

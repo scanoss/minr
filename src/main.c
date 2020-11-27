@@ -35,7 +35,7 @@
 #include <sys/statvfs.h>
 #include <sys/time.h>
 #include <zlib.h>
-#include "blacklist_ext.h"
+#include "blacklist.h"
 #include "blacklist_wfp.h"
 #include "external/wfp/winnowing.c"
 #include "bsort.c"
@@ -45,6 +45,7 @@
 #include "license_ids.c"
 #include "license.c"
 #include "copyright.c"
+#include "quality.c"
 #include "md5.c"
 #include "hex.c"
 #include "mz.c"

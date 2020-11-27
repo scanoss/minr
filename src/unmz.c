@@ -36,10 +36,12 @@
 #include <zlib.h>
 
 #include "minr.h"
+#include "blacklist.h"
 #include "string.c"
 #include "license_ids.c"
 #include "license.c"
 #include "copyright.c"
+#include "quality.c"
 #include "hex.c"
 #include "file.c"
 #include "md5.c"
@@ -51,8 +53,9 @@ void help()
 	printf("-x MZ   extract all files from MZ file\n");
 	printf("-l MZ   list directory of MZ file, validating integrity\n");
 	printf("-c MZ   check MZ container integrity\n");
-	printf("-s MZ   detect license (SPDX identifier) in all files\n");
+	printf("-s MZ   detect license (SPDX ID) in all file headers\n");
 	printf("-a MZ   detect author (Copyright declaration) in all files\n");
+	printf("-q MZ   extract code quality information from all files\n");
 	printf("-k MD5  extracts file with id MD5 and display contents via STDOUT\n");
 	printf("-p PATH specify mined/ directory (default: mined/)\n");
 	printf("-v      print version\n");
@@ -87,12 +90,11 @@ int main(int argc, char *argv[])
 	strcpy(mined, "mined");
 	char key[33] = "\0";
 	bool key_provided = false;
-	int total_licenses = 0;
 
 	char *src = calloc(MAX_FILE_SIZE + 1, 1);
 	uint8_t *zsrc = calloc((MAX_FILE_SIZE + 1) * 2, 1);
 
-	while ((option = getopt(argc, argv, ":x:k:p:l:s:a:c:hv")) != -1)
+	while ((option = getopt(argc, argv, ":p:k:c:x:l:a:q:s:hv")) != -1)
 	{
 		/* Check valid alpha is entered */
 		if (optarg)
@@ -106,10 +108,6 @@ int main(int argc, char *argv[])
 
 		switch (option)
 		{
-			case 'h':
-				help();
-				break;
-
 			case 'p':
 				strcpy(mined, optarg);
 				break;
@@ -127,29 +125,37 @@ int main(int argc, char *argv[])
 				}
 				break;
 
-			case 'x':
-				mz_extract(optarg, true, 0, false, zsrc, src);
-				break;
-
-			case 'l':
-				mz_extract(optarg, false, 0, false, zsrc, src);
-				break;
-
-			case 'a':
-				mz_extract(optarg, false, 0, true, zsrc, src);
-				break;
-
-			case 's':
-				total_licenses = load_licenses();
-				mz_extract(optarg, false, total_licenses, false, zsrc, src);
-				break;
-
 			case 'c':
 				if (!mz_check(optarg))
 				{
 					printf(".mz validation failed!\n");
 					exit_status = EXIT_FAILURE;
 				}
+				break;
+			
+			case 'x':
+				mz_extract(optarg, true, none, zsrc, src);
+				break;
+
+			case 'l':
+				mz_extract(optarg, false, none, zsrc, src);
+				break;
+
+			case 'a':
+				mz_extract(optarg, false, copyright, zsrc, src);
+				break;
+
+			case 'q':
+				mz_extract(optarg, false, quality, zsrc, src);
+				break;
+
+			case 's':
+				load_licenses();
+				mz_extract(optarg, false, license, zsrc, src);
+				break;
+
+			case 'h':
+				help();
 				break;
 
 			case 'v':
