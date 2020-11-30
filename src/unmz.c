@@ -86,8 +86,8 @@ int main(int argc, char *argv[])
 	/* Parse arguments */
 	int option;
 	bool invalid_argument = false;
-	char mined[MAX_PATH_LEN] = "\0";
-	strcpy(mined, "mined");
+	char mz_file[MAX_PATH_LEN] = "\0";
+	strcpy(mz_file, "mined");
 	char key[33] = "\0";
 	bool key_provided = false;
 
@@ -109,7 +109,7 @@ int main(int argc, char *argv[])
 		switch (option)
 		{
 			case 'p':
-				strcpy(mined, optarg);
+				strcpy(mz_file, optarg);
 				break;
 
 			case 'k':
@@ -134,24 +134,24 @@ int main(int argc, char *argv[])
 				break;
 			
 			case 'x':
-				mz_extract(optarg, true, none, zsrc, src);
+				mz_extract(optarg, NULL, true, none, zsrc, src);
 				break;
 
 			case 'l':
-				mz_extract(optarg, false, none, zsrc, src);
+				mz_extract(optarg, NULL, false, none, zsrc, src);
 				break;
 
 			case 'a':
-				mz_extract(optarg, false, copyright, zsrc, src);
+				mz_extract(optarg, NULL, false, copyright, zsrc, src);
 				break;
 
 			case 'q':
-				mz_extract(optarg, false, quality, zsrc, src);
+				mz_extract(optarg, NULL, false, quality, zsrc, src);
 				break;
 
 			case 's':
 				load_licenses();
-				mz_extract(optarg, false, license, zsrc, src);
+				mz_extract(optarg, NULL, false, license, zsrc, src);
 				break;
 
 			case 'h':
@@ -190,7 +190,14 @@ int main(int argc, char *argv[])
 	}
 
 	/* Process -k request */
-	if (key_provided) mz_cat(mined, key, zsrc, src);
+	if (key_provided)
+	{
+		/* Calculate mz file path */
+		char mz_file_id[5] = "\0\0\0\0\0";
+		memcpy(mz_file_id, key, 4);
+		sprintf(mz_file + strlen(mz_file), "/sources/%s.mz", mz_file_id);
+		mz_extract(mz_file, key, false, none, zsrc, src);
+	}
 
 	free(src);
 	free(zsrc);

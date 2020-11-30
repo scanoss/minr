@@ -20,97 +20,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-/* Extract a file and print contents to stdout */
-void mz_cat(char *mined, char *key, uint8_t *zsrc, char *src)
-{
-	int mz = -1;
-	char hex_md5[32 + 1] = "\0";
-	hex_md5[32] = 0;
-
-    /* Calculate mz file path */
-    char mz_file[5] = "\0\0\0\0\0";
-    memcpy(mz_file, key, 4);
-    sprintf(mined + strlen(mined), "/sources/%s.mz", mz_file);
-
-    /* Open mz file */
-    mz = open(mined, O_RDONLY);
-
-    /* Extract first two MD5 bytes from the key */
-    memcpy(hex_md5, key, 4);
-
-    if (mz < 0)
-    {
-        printf("Cannot open mz file %s\n", mined);
-        exit(EXIT_FAILURE);
-    }
-
-    /* Obtain file size */
-    uint64_t size = lseek64(mz, 0, SEEK_END);
-    if (!size)
-    {
-        printf("File %s is empty\n", mined);
-        exit(EXIT_FAILURE);
-    }
-
-    /* Recurse mz contents */
-    char header[MZ_HEAD];
-    uint64_t ptr = 0;
-    while (ptr < size)
-    {
-        /* Read header from ptr */
-        lseek64 (mz, ptr, SEEK_SET);
-        if (!read(mz, header, MZ_HEAD))
-        {
-            printf("[READ_ERROR]\n");
-            exit(EXIT_FAILURE);
-        }
-
-        /* Extract remaining bytes of the MD5 from header */
-        char *tmp = bin_to_hex((uint8_t *)header, MZ_MD5);
-        memcpy(hex_md5 + 4, tmp, 28);
-        free(tmp);
-        ptr += MZ_HEAD;
-
-        /* Extract compressed data size from header */
-        uint64_t zsrc_ln, src_ln;
-        uint32_t tmpln;
-        memcpy((uint8_t*)&tmpln, header + MZ_MD5, MZ_SIZE);
-        zsrc_ln = tmpln;
-        if (!read(mz, zsrc, zsrc_ln)) break; // ERRROR
-        src_ln = MAX_FILE_SIZE;
-
-        /* Uncompress */
-        bool skip = false;
-        if (strcmp(hex_md5, key)) skip = true;
-
-		if (!skip)
-		{
-			if (Z_OK != uncompress((uint8_t *)src, &src_ln, zsrc, zsrc_ln))
-			{
-				printf("ERROR: Corrupted archive\n");
-				exit(EXIT_FAILURE);
-			}
-			else
-			{
-				printf(src);
-				break;
-			}
-		}
-
-		/* Increment ptr */
-		ptr += zsrc_ln;
-
-		if (ptr > size)
-		{
-			printf("%s integrity failed\n", mined);
-			exit(EXIT_FAILURE);
-		}
-	}
-	close(mz);
-}
-
 /* Extracts, lists, checks all files from the given mz file path */
-void mz_extract(char *path, bool extract, metadata mine, uint8_t *zsrc, char *src)
+void mz_extract(char *path, char *key, bool extract, metadata mine, uint8_t *zsrc, char *src)
 {
 	/* Open mz file */
 	int mz = open(path, O_RDONLY);
@@ -152,69 +63,95 @@ void mz_extract(char *path, bool extract, metadata mine, uint8_t *zsrc, char *sr
 		free(tmp);
 		ptr += MZ_HEAD;
 
-		/* Extract compressed data size from header */
+		/* Get compressed data size */
 		uint64_t zsrc_ln, src_ln;
 		uint32_t tmpln;
 		memcpy((uint8_t*)&tmpln, header + MZ_MD5, MZ_SIZE);
 		zsrc_ln = tmpln;
-		if (!read(mz, zsrc, zsrc_ln)) break; // ERRROR
-		src_ln = MAX_FILE_SIZE;
 
-		/* Uncompress */
-		bool failed = false;
-		if (!mine) printf("%s ", hex_md5);
-		if (Z_OK != uncompress((uint8_t *)src, &src_ln, zsrc, zsrc_ln))
+		/* Compare provided MD5 key */
+		bool skip = false;
+		if (key) if (strcmp(hex_md5, key)) skip = true;
+
+		/* Get compressed data */
+		if (!read(mz, zsrc, zsrc_ln))
 		{
-			printf("[CORRUPTED]\n");
-			failed = true;
+			printf("[ERROR_READING_DATA]");
+			exit(EXIT_FAILURE);
 		}
 
-		/* Write decompressed data to output file */
-		uint8_t *actual_md5 = NULL;
-		char *actual = NULL;
-
-		if (!failed)
+		if (!skip)
 		{
-			if (extract)
+
+			/* Uncompress */
+			bool failed = false;
+			if (!mine && !key) printf("%s ", hex_md5);
+			src_ln = MAX_FILE_SIZE;
+			if (Z_OK != uncompress((uint8_t *)src, &src_ln, zsrc, zsrc_ln))
 			{
-				FILE *out = fopen(hex_md5, "w");
-				if (!out)
+				printf("[CORRUPTED]\n");
+				failed = true;
+			}
+
+			/* If key provided, print contents to STDOUT and exit */
+			if (key)
+			{
+				printf("%s", src);
+				free(src);
+				free(zsrc);
+				exit(EXIT_SUCCESS);
+			}
+
+			/* Write decompressed data to output file */
+			uint8_t *actual_md5 = NULL;
+			char *actual = NULL;
+
+			if (!failed)
+			{
+				if (extract)
 				{
-					printf("\nCannot open %s for writing\n", hex_md5);
-					exit(EXIT_FAILURE);
+					FILE *out = fopen(hex_md5, "w");
+					if (!out)
+					{
+						printf("\nCannot open %s for writing\n", hex_md5);
+						exit(EXIT_FAILURE);
+					}
+					fwrite(src, 1, src_ln - 1, out);
+					fclose(out);
+
+					/* Calculate resulting file MD5 */
+					actual_md5 = file_md5(hex_md5);
 				}
-				fwrite(src, 1, src_ln-1, out);
-				fclose(out);
+				else
+				{
+					/* Calculate resulting data MD5 */
+					actual_md5 = calloc(16, 1);
+					calc_md5(src, src_ln - 1, actual_md5);
+				}
 
-				/* Calculate resulting file MD5 */
-				actual_md5 = file_md5(hex_md5);
-			}
-			else
-			{
-				/* Calculate resulting data MD5 */
-				actual_md5 = calloc(16, 1);
-				calc_md5(src, src_ln - 1, actual_md5);
+				/* Compare data checksum to validate */
+				actual = bin_to_hex(actual_md5, 16);
+
+				if (!key)
+				{
+					if (strcmp(hex_md5, (char *)actual))
+					{
+						printf("[FAILED] %lu bytes\n", src_ln - 1);
+						exit(EXIT_FAILURE);
+					}
+					else
+					{
+						if (mine == license) mine_license(hex_md5, src, src_ln);
+						else if (mine == copyright) mine_copyright(hex_md5, src, src_ln-1);
+						else if (mine == quality) mine_quality(hex_md5, src, src_ln-1);
+						else printf("[OK] %lu bytes\n", src_ln - 1);
+					}
+				}
 			}
 
-			/* Compare data checksum to validate */
-			actual = bin_to_hex(actual_md5, 16);
-
-			if (strcmp(hex_md5, (char *)actual))
-			{
-				printf("[FAILED] %lu bytes\n", src_ln - 1);
-				exit(EXIT_FAILURE);
-			}
-			else
-			{
-				if (mine == license) mine_license(hex_md5, src, src_ln);
-				else if (mine == copyright) mine_copyright(hex_md5, src, src_ln-1);
-				else if (mine == quality) mine_quality(hex_md5, src, src_ln-1);
-				else printf("[OK] %lu bytes\n", src_ln - 1);
-			}
+			free(actual_md5);
+			if (actual) free(actual);
 		}
-
-		free(actual_md5);
-		if (actual) free(actual);
 
 		/* Increment ptr */
 		ptr += zsrc_ln;
