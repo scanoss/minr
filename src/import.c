@@ -558,14 +558,14 @@ void mined_import(char *mined_path, bool skip_sort, bool erase)
 		}
 	}
 
-	/* Import dependencies. 3 CSV fields expected (id, source, license) */
+	/* Import dependencies. 5 CSV fields expected (id, source, vendor, component, version) */
 	sprintf(file_path, "%s/dependencies.csv", mined_path);
 	if (is_file(file_path))
 	{
 		printf("Importing %s\n", file_path);
 		if (csv_sort(file_path, skip_sort))
 		{
-			ldb_import_csv(file_path, "dependency", 3, false, 2 * MD5_LEN + 3, 1024, erase);
+			ldb_import_csv(file_path, "dependency", 5, false, 2 * MD5_LEN + 5, 1024, erase);
 		}
 	}
 
