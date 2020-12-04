@@ -71,7 +71,6 @@ void progress(char *prompt, size_t count, size_t max, bool percent)
 */
 bool ldb_import_snippets(char *filename, bool erase_after)
 {
-
 	/* Table definition */
 	struct ldb_table oss_wfp;
 	strcpy(oss_wfp.db, "oss");
@@ -214,9 +213,11 @@ bool ldb_import_snippets(char *filename, bool erase_after)
 	if (erase_after) unlink(filename);
 
 	free(record);
+	free(buffer);
+	free(bl);
 
 	/* Lock DB */
-	ldb_unlock ();
+	ldb_unlock();
 
 	return true;
 

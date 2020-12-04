@@ -21,7 +21,7 @@
  */
 
 /* Definitions */
-#define MINR_VERSION "2.0.2"
+#define MINR_VERSION "2.0.3"
 #define MZ_CACHE_SIZE 16384
 #define MZ_FILES 65536
 #define MZ_HEAD 18 // Head contains 14 bytes of the MD5 + 4 bytes for compressed SIZE
@@ -43,12 +43,38 @@
 #define LDB_KEY_LN 4
 #define MAX_COPYRIGHT_LEN 1024
 
+/* Set best practices to twice the average (calculated over entire OSSKB) */
+#define BEST_PRACTICES_MAX_LINES (210 * 2)
+#define BEST_PRACTICES_MAX_LINE_LN (36 * 2)
+#define BEST_PRACTICES_MAX_LINES_PER_COMMENT (27 * 2)
+
 /* Structures */
 struct mz_cache_item
 {
 	uint16_t length;
 	uint8_t data[MZ_CACHE_SIZE];
 }; 
+
+struct mz_job
+{
+	char *path;        // Path to mz file
+	uint8_t *mz;       // Pointer to entire mz file contents
+	uint64_t mz_ln;    // MZ file length
+	uint8_t *id;       // MZ record ID
+	uint64_t ln;       // MZ record length
+	char md5[33];      // MZ record hex ID (MD5)
+	char *data;        // Pointer to uncompressed data
+	uint64_t data_ln;  // Uncompressed data length
+	uint8_t *zdata;    // Pointer to compressed data
+	uint64_t zdata_ln; // Compressed data length
+	void *ptr;         // Pointer to temporary data
+	uint64_t ptr_ln;   // Temporary data length
+	uint32_t dup_c;    // Duplicated counter
+	uint32_t bll_c;    // Blacklisted counter
+	uint32_t orp_c;    // Orphan file counter
+	bool check_only;   // Perform only an mz validation (without list output)
+	uint8_t *key;      // File key to be printed via STDOUT (-k)
+};
 
 typedef enum { none, license, copyright, quality } metadata;
 

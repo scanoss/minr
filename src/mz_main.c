@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 /*
- * src/unmz.c
+ * src/mz_main.c
  *
- * The unmz command extracts files from .mz archives
+ * The mz archive command tool
  *
  * Copyright (C) 2018-2020 SCANOSS.COM
  *
@@ -45,27 +45,49 @@
 #include "hex.c"
 #include "file.c"
 #include "md5.c"
+#include "external/ldb/ldb.c"
 #include "mz.c"
+#include "mz_optimise.c"
+#include "mz_mine.c"
+#include "mz_deflate.c"
+
 
 void help()
 {
-	printf("usage: unmz command mzfile\n");
+	printf("The mz command is part of scanoss/minr and provides mz archive managing\n");
+	printf("\n");
+	printf("Usage:\n");
+	printf("mz command/s [file.mz]\n");
+	printf("\n");
+
+	printf("Parameters:\n");
 	printf("-x MZ   extract all files from MZ file\n");
 	printf("-l MZ   list directory of MZ file, validating integrity\n");
-	printf("-c MZ   check MZ container integrity\n");
-	printf("-s MZ   detect license (SPDX ID) in all file headers\n");
-	printf("-a MZ   detect author (Copyright declaration) in all files\n");
-	printf("-q MZ   extract code quality information from all files\n");
+	printf("-c MZ   check MZ file integrity\n");
+	printf("-o MZ   optimise MZ archive eliminating duplicated entries\n");
+	printf("\n");
+
+	printf("Single file extraction to STDOUT:\n");
 	printf("-k MD5  extracts file with id MD5 and display contents via STDOUT\n");
 	printf("-p PATH specify mined/ directory (default: mined/)\n");
+	printf("\n");
+
+	printf("Data mining:\n");
+	printf("-L MZ   detect license (SPDX ID) declarations (text and SPDX-License-Identifier tags)\n");
+	printf("-C MZ   detect copyright declarations\n");
+	printf("-Q MZ   extract code quality (best practices) information\n");
+	printf("\n");
+
+	printf("Help and version:\n");
 	printf("-v      print version\n");
 	printf("-h      print this help\n");
+	exit(EXIT_SUCCESS);
 }
 
 bool validate_md5(char *txt)
 {
     /* Check length */
-    if (strlen(txt) != 32) { printf("f1\n");return false;}
+    if (strlen(txt) != 32) return false;
 
     /* Check digits (and convert to lowercase) */
     for (int i = 0; i < 32; i++)
@@ -73,9 +95,8 @@ bool validate_md5(char *txt)
         txt[i] = tolower(txt[i]);
         if (txt[i] > 'f') return false;
         if (txt[i] < '0') return false;
-        if (txt[i] > '9' && txt[i] < 'a')  return false;
+        if (txt[i] > '9' && txt[i] < 'a') return false;
     }
-
     return true;
 }
 
@@ -91,10 +112,35 @@ int main(int argc, char *argv[])
 	char key[33] = "\0";
 	bool key_provided = false;
 
+	if (argc < 2)
+	{
+		printf("Missing parameters\n");
+		exit(EXIT_FAILURE);	
+	}
+
 	char *src = calloc(MAX_FILE_SIZE + 1, 1);
 	uint8_t *zsrc = calloc((MAX_FILE_SIZE + 1) * 2, 1);
 
-	while ((option = getopt(argc, argv, ":p:k:c:x:l:a:q:s:hv")) != -1)
+    struct mz_job job;
+    job.path = NULL;
+    job.mz = NULL;
+    job.mz_ln = 0;
+    job.id = NULL;
+    job.ln = 0;
+    job.data = src;        // Uncompressed data
+    job.data_ln = 0;
+    job.zdata = zsrc;      // Compressed data
+    job.zdata_ln = 0;
+    job.ptr = NULL;        // Temporary data
+    job.ptr_ln = 0;
+    job.dup_c = 0;
+    job.bll_c = 0;
+    job.orp_c = 0;
+	job.md5[32] = 0;
+	job.check_only = false;
+	job.key = NULL;
+
+	while ((option = getopt(argc, argv, ":p:k:c:x:l:C:Q:L:o:hv")) != -1)
 	{
 		/* Check valid alpha is entered */
 		if (optarg)
@@ -126,40 +172,43 @@ int main(int argc, char *argv[])
 				break;
 
 			case 'c':
-				if (!mz_check(optarg))
-				{
-					printf(".mz validation failed!\n");
-					exit_status = EXIT_FAILURE;
-				}
+				job.check_only = true;
+				mz_list(&job, optarg);
 				break;
-			
+
 			case 'x':
-				mz_extract(optarg, NULL, true, none, zsrc, src);
+				mz_extract(&job, optarg);
 				break;
 
 			case 'l':
-				mz_extract(optarg, NULL, false, none, zsrc, src);
+				mz_list(&job, optarg);
 				break;
 
-			case 'a':
-				mz_extract(optarg, NULL, false, copyright, zsrc, src);
+			case 'C':
+				mz_mine_copyright(&job, optarg);
 				break;
 
-			case 'q':
-				mz_extract(optarg, NULL, false, quality, zsrc, src);
+			case 'Q':
+				mz_mine_quality(&job, optarg);
 				break;
 
-			case 's':
+			case 'o':
+				mz_optimise(&job, optarg);
+				break;
+
+			case 'L':
 				load_licenses();
-				mz_extract(optarg, NULL, false, license, zsrc, src);
+				mz_mine_license(&job, optarg);
 				break;
 
 			case 'h':
+				free(src);
+				free(zsrc);
 				help();
 				break;
 
 			case 'v':
-				printf("unmz is part of scanoss-minr-%s\n", MINR_VERSION);
+				printf("mz is part of scanoss-minr-%s\n", MINR_VERSION);
 				free(src);
 				free(zsrc);
 				exit(EXIT_SUCCESS);
@@ -190,14 +239,7 @@ int main(int argc, char *argv[])
 	}
 
 	/* Process -k request */
-	if (key_provided)
-	{
-		/* Calculate mz file path */
-		char mz_file_id[5] = "\0\0\0\0\0";
-		memcpy(mz_file_id, key, 4);
-		sprintf(mz_file + strlen(mz_file), "/sources/%s.mz", mz_file_id);
-		mz_extract(mz_file, key, false, none, zsrc, src);
-	}
+	if (key_provided) mz_cat(&job, mz_file, key);
 
 	free(src);
 	free(zsrc);

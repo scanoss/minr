@@ -110,17 +110,19 @@ bool move_file(char *src, char *dst) {
 		
 	mkdir_if_not_exist(dst);
 		
-	FILE *srcf = fopen(src, "r");
+	FILE *srcf = fopen(src, "rb");
 	if (!srcf) return false;
 
-	FILE *dstf = fopen(dst, "w");
+	FILE *dstf = fopen(dst, "wb");
 	if (!dstf) return false;
 
+	/* Copy byte by byte */
 	int byte = 0;
-	while ((byte = fgetc(srcf)))
+	while (!feof(srcf))
 	{
-		if (byte == EOF) break;
-		if (fputc(byte, dstf) == EOF) break;
+		byte = fgetc(srcf);
+		if (feof(srcf)) break;
+		fputc(byte, dstf);
 	}
 
 	fclose(srcf);

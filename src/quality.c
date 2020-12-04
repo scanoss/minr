@@ -87,8 +87,14 @@ void mine_quality(char *md5, char *src, long size)
 	if (size == bytes && lines)
 	{
 		int average_line = relevant_bytes / lines;
-		printf("%s,%d,%d,%d,%d,%s,%s\n", md5, lines, average_line, longest_line, comments, (tab_start && space_start ? "MIX" : "OK"), (spdx_tag ? "OK" : "NL"));
+		int score = 0;
+		if (lines <= BEST_PRACTICES_MAX_LINES) score++;
+		if (average_line <= BEST_PRACTICES_MAX_LINE_LN) score++;
+		if (comments <= BEST_PRACTICES_MAX_LINES_PER_COMMENT) score++;
+		if (!(tab_start && space_start)) score++;
+		if (spdx_tag) score++;
+
+		printf("%s,0,%d\n", md5, score);
 	}
-	else printf("!%s,%ld\n", md5, size);
 }
 

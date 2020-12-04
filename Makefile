@@ -1,20 +1,20 @@
 CC=gcc
 CFLAGS=-O -Wall -g -lpthread -lcrypto -lz
 
-all: minr unmz
+all: minr mz
 
-minr: src/external/crc32c/crc32c.c src/external/wfp/winnowing.c src/*c
+minr: src/*
 	 $(CC) -o minr src/main.c $(CFLAGS)
 
-unmz: src/unmz.c
-	 $(CC) -o unmz src/unmz.c $(CFLAGS)
+mz: src/*
+	 $(CC) -o mz src/mz_main.c $(CFLAGS)
 
 install:
-	cp unmz /usr/bin
+	cp mz /usr/bin
 	cp minr /usr/bin
 
 clean:
-	rm -f minr unmz *.o
+	rm -f minr mz *.o
 
 distclean: clean
 
