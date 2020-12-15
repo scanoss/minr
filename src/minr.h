@@ -21,7 +21,7 @@
  */
 
 /* Definitions */
-#define MINR_VERSION "2.0.3"
+#define MINR_VERSION "2.0.4"
 #define MZ_CACHE_SIZE 16384
 #define MZ_FILES 65536
 #define MZ_HEAD 18 // Head contains 14 bytes of the MD5 + 4 bytes for compressed SIZE
@@ -41,7 +41,8 @@
 #define NODE_PTR_LEN 5
 #define REC_SIZE_LEN 2
 #define LDB_KEY_LN 4
-#define MAX_COPYRIGHT_LEN 1024
+#define MAX_COPYRIGHT_LEN 256
+#define MAX_NONALNUM_IN_COPYRIGHT 10 // Maximum amount of non alphanumeric bytes accepted in a copyright statement
 
 /* Set best practices to twice the average (calculated over entire OSSKB) */
 #define BEST_PRACTICES_MAX_LINES (210 * 2)

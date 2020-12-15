@@ -42,3 +42,29 @@ void normalize_src(char *src, uint64_t src_ln, char *out, int max_in, int max_ou
 	out[out_ptr] = 0;
 }
 
+/* Count number of non alphanumeric (nor spaces) characters in string until EOL */
+int count_nonalnum(char *str)
+{
+	char *s = str;
+	int count = 0;
+	while (*s && *s != '\n')
+	{
+		if (!isalnum(*s) && *s != ' ') count++;
+		s++;
+	}
+	return count;
+}
+
+/* Count number of chars in str until EOL */
+int linelen(char *str)
+{
+	char *s = str;
+	int count = 0;
+	while (*s && *s != '\n')
+	{
+		count++;
+		s++;
+	}
+	return count;
+}
+

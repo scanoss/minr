@@ -25,15 +25,51 @@ bool is_file(char *path);
 bool is_dir(char *path);
 bool not_a_dot(char *path);
 bool strn_icmp(char *a, char *b, int len);
+int count_nonalnum(char *str);
+int linelen(char *str);
 
-/* Check if (C) or Copyright is found at *src */
+bool string_starts_with(char *str, char *start)
+{
+	int len = strlen(start);
+	if (strn_icmp(str, start, len)) return true;
+	return false;
+}
+
+/* Returns true if word copyright is followed by non wanted words */
+bool ignore_copyright(char *str)
+{
+	if (string_starts_with(str, "copyright notice")) return true;
+	if (string_starts_with(str, "copyright ownership")) return true;
+	if (string_starts_with(str, "copyright laws")) return true;
+	if (string_starts_with(str, "copyright law.")) return true;
+	if (string_starts_with(str, "copyright_")) return true;
+	if (string_starts_with(str, "copyright and ")) return true;
+	return false;
+}
+
+/* Return true if src contains a copyright declaration */
 bool is_copyright(char *src)
 {
-	int tag_len = 3; // length of "(C)"
-	if (strn_icmp(src,"(C)", tag_len)) return true;
+	int tag_len = 0;
 
-	tag_len = 9; // length of "Copyright"
-	return strn_icmp(src,"Copyright", tag_len);
+	if (strn_icmp(src,"(C)", 3))
+	{
+		tag_len = 3; // length of "(C)"
+	}
+
+	if (!tag_len) if (strn_icmp(src,"Copyright", 9))
+	{
+		tag_len = 9; // length of "Copyright"
+		if (ignore_copyright(src)) return false;
+	}
+
+	if (!tag_len) return false;
+
+	if (linelen(src) > MAX_COPYRIGHT_LEN) return false;
+
+	if (count_nonalnum(src + tag_len) > MAX_NONALNUM_IN_COPYRIGHT) return false;
+
+	return true;
 }
 
 /* Calculate the length of the copyright until end of line or end of txt
