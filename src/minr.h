@@ -21,7 +21,7 @@
  */
 
 /* Definitions */
-#define MINR_VERSION "2.0.4"
+#define MINR_VERSION "2.0.5"
 #define MZ_CACHE_SIZE 16384
 #define MZ_FILES 65536
 #define MZ_HEAD 18 // Head contains 14 bytes of the MD5 + 4 bytes for compressed SIZE
@@ -74,6 +74,7 @@ struct mz_job
 	uint32_t bll_c;    // Blacklisted counter
 	uint32_t orp_c;    // Orphan file counter
 	bool check_only;   // Perform only an mz validation (without list output)
+	bool orphan_rm;    // Eliminates orphan files
 	uint8_t *key;      // File key to be printed via STDOUT (-k)
 };
 

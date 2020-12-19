@@ -40,6 +40,7 @@
 #include "external/wfp/winnowing.c"
 #include "bsort.c"
 #include "minr.h"
+#include "ldb.h"
 #include "file.c"
 #include "string.c"
 #include "license_ids.c"

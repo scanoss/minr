@@ -78,7 +78,7 @@ bool mz_id_exists(uint8_t *mz, uint64_t size, uint8_t *id)
 	return false;
 }
 
-/* Optimizes an mz archive, eliminating duplicates and unwanted content */
+/* Optimises an mz archive, eliminating duplicates and unwanted content */
 void mz_parse(struct mz_job *job, bool (*mz_parse_handler) ())
 {
 	/* Recurse mz contents */

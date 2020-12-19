@@ -20,7 +20,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "external/ldb/ldb.c"
 double progress_timer = 0;
 
 /* Checks if two blocks of memory contain the same data, from last to first byte */
@@ -302,7 +301,7 @@ bool ldb_import_csv(char *filename, char *table, int expected_fields, bool is_fi
 
 	uint8_t *itemid = calloc(MD5_LEN,1);
 	uint8_t *field2 = calloc(MD5_LEN,1);
-	uint8_t  *item_buf = malloc (ldb_max_nodeln);
+	uint8_t  *item_buf = malloc (LDB_MAX_NODE_LN);
 	uint8_t  *item_lastid = calloc (MD5_LEN * 2 + 1, 1);
 	uint16_t  item_ptr = 0;
 	long      item_lastsector = -1;

@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-O -Wall -g -lpthread -lcrypto -lz
+CFLAGS=-O -Wall -g -lpthread -lcrypto -lz -L. -lldb
 
 all: minr mz
 
@@ -12,6 +12,7 @@ mz: src/*
 install:
 	cp mz /usr/bin
 	cp minr /usr/bin
+	cp libldb.so /usr/lib
 
 clean:
 	rm -f minr mz *.o
