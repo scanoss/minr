@@ -19,8 +19,19 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+#include <sys/time.h>
+#include <libgen.h>
+#include <dirent.h>
 
-#include "external/ldb/ldb.c"
+#include "import.h"
+#include "ldb.h"
+#include "blacklist_wfp.h"
+#include "minr.h"
+#include "bsort.h"
+#include "file.h"
+#include "hex.h"
+#include "blacklist.h"
+
 double progress_timer = 0;
 
 /* Checks if two blocks of memory contain the same data, from last to first byte */
@@ -103,7 +114,7 @@ bool ldb_import_snippets(char *filename, bool erase_after)
 	}
 
 	/* Load blacklisted wfps into boolean array */
-	long size = sizeof(BLACKLISTED_WFP);
+	long size = strlen((char*) BLACKLISTED_WFP);//sizeof(BLACKLISTED_WFP);
 	bool *bl = calloc(256*256*256,1);
 	for (int i = 0; i < size; i += 4)
 		if (BLACKLISTED_WFP[i] == key1)
@@ -302,7 +313,7 @@ bool ldb_import_csv(char *filename, char *table, int expected_fields, bool is_fi
 
 	uint8_t *itemid = calloc(MD5_LEN,1);
 	uint8_t *field2 = calloc(MD5_LEN,1);
-	uint8_t  *item_buf = malloc (ldb_max_nodeln);
+	uint8_t  *item_buf = malloc (LDB_MAX_NODE_LN);
 	uint8_t  *item_lastid = calloc (MD5_LEN * 2 + 1, 1);
 	uint16_t  item_ptr = 0;
 	long      item_lastsector = -1;

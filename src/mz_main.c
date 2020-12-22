@@ -34,23 +34,13 @@
 #include <sys/stat.h>
 #include <sys/statvfs.h>
 #include <zlib.h>
-
 #include "minr.h"
+#include "ldb.h"
 #include "blacklist.h"
-#include "string.c"
-#include "license_ids.c"
-#include "license.c"
-#include "copyright.c"
-#include "quality.c"
-#include "hex.c"
-#include "file.c"
-#include "md5.c"
-#include "external/ldb/ldb.c"
-#include "mz.c"
-#include "mz_optimise.c"
-#include "mz_mine.c"
-#include "mz_deflate.c"
-
+#include "mz.h"
+#include "quality.h"
+#include "mz_mine.h"
+#include "license_ids.h"
 
 void help()
 {
@@ -64,7 +54,8 @@ void help()
 	printf("-x MZ   extract all files from MZ file\n");
 	printf("-l MZ   list directory of MZ file, validating integrity\n");
 	printf("-c MZ   check MZ file integrity\n");
-	printf("-o MZ   optimise MZ archive eliminating duplicated entries\n");
+	printf("-o MZ   optimise MZ (eliminate duplicates and unwanted content)\n");
+	printf("-O MZ   optimise MZ, eliminating also orphan files (not found in local KB)\n");
 	printf("\n");
 
 	printf("Single file extraction to STDOUT:\n");
@@ -100,6 +91,44 @@ bool validate_md5(char *txt)
     return true;
 }
 
+/* Create an empty mz_job structure */
+struct mz_job new_mz_job()
+{
+	struct mz_job job;
+    job.path = NULL;
+    job.mz = NULL;
+    job.mz_ln = 0;
+    job.id = NULL;
+    job.ln = 0;
+    job.dup_c = 0;
+    job.bll_c = 0;
+    job.orp_c = 0;
+	job.md5[32] = 0;
+	job.check_only = false;
+	job.orphan_rm = false;
+	job.key = NULL;
+
+	// Uncompressed data buffer
+    job.data = calloc(MAX_FILE_SIZE + 1, 1);
+    job.data_ln = 0;
+
+	// Compressed data
+    job.zdata = calloc((MAX_FILE_SIZE + 1) * 2, 1);
+    job.zdata_ln = 0;
+
+	// Temporary data;
+	job.ptr = NULL;
+	job.ptr_ln = 0;
+
+	return job;
+}
+
+void free_mz_job(struct mz_job job)
+{
+	free(job.data);
+	free(job.zdata);
+}
+
 int main(int argc, char *argv[])
 {
 	int exit_status = EXIT_SUCCESS;
@@ -121,26 +150,27 @@ int main(int argc, char *argv[])
 	char *src = calloc(MAX_FILE_SIZE + 1, 1);
 	uint8_t *zsrc = calloc((MAX_FILE_SIZE + 1) * 2, 1);
 
-    struct mz_job job;
-    job.path = NULL;
-    job.mz = NULL;
-    job.mz_ln = 0;
-    job.id = NULL;
-    job.ln = 0;
-    job.data = src;        // Uncompressed data
-    job.data_ln = 0;
-    job.zdata = zsrc;      // Compressed data
-    job.zdata_ln = 0;
-    job.ptr = NULL;        // Temporary data
-    job.ptr_ln = 0;
-    job.dup_c = 0;
-    job.bll_c = 0;
-    job.orp_c = 0;
+	struct mz_job job;
+	job.path = NULL;
+	job.mz = NULL;
+	job.mz_ln = 0;
+	job.id = NULL;
+	job.ln = 0;
+	job.data = src;        // Uncompressed data
+	job.data_ln = 0;
+	job.zdata = zsrc;      // Compressed data
+	job.zdata_ln = 0;
+	job.ptr = NULL;        // Temporary data
+	job.ptr_ln = 0;
+	job.dup_c = 0;
+	job.bll_c = 0;
+	job.orp_c = 0;
 	job.md5[32] = 0;
 	job.check_only = false;
+	job.orphan_rm = false;
 	job.key = NULL;
 
-	while ((option = getopt(argc, argv, ":p:k:c:x:l:C:Q:L:o:hv")) != -1)
+	while ((option = getopt(argc, argv, ":p:k:c:x:l:C:Q:L:o:O:hv")) != -1)
 	{
 		/* Check valid alpha is entered */
 		if (optarg)
@@ -193,6 +223,11 @@ int main(int argc, char *argv[])
 				break;
 
 			case 'o':
+				mz_optimise(&job, optarg);
+				break;
+
+			case 'O':
+				job.orphan_rm = true;
 				mz_optimise(&job, optarg);
 				break;
 

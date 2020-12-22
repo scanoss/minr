@@ -21,6 +21,20 @@
  */
 
 /* Returns the command needed to decompress the "url" */
+#include "minr.h"
+#include <dirent.h>
+#include <sys/stat.h>
+#include "file.h"
+#include "md5.h"
+#include "hex.h"
+#include "blacklist.h"
+#include "mz.h"
+
+/* Paths */
+char mined_path[MAX_ARG_LEN] = ".";
+char tmp_path[MAX_PATH_LEN] = "/dev/shm";
+int min_file_size = MIN_FILE_SIZE;
+
 char *decompress(char *url)
 {
 

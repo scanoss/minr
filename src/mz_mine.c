@@ -20,6 +20,15 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <libgen.h>
+#include "minr.h"
+#include "mz.h"
+#include "copyright.h"
+#include "quality.h"
+#include "license.h"
+#include "license_ids.h"
+#include "mz_mine.h"
+
 bool mz_quality_handler(struct mz_job *job)
 {
 	/* Decompress */

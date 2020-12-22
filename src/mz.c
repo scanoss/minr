@@ -21,6 +21,19 @@
  */
 
 /* Read data to memory and return a pointer. Also, update size */
+#define FILE_OFFSET_BITS =64
+#define __USE_LARGEFILE64
+
+#include "minr.h"
+#include <fcntl.h>
+#include <zlib.h>
+#include <stdio.h>
+#include "mz.h"
+#include <sys/types.h>
+#include <unistd.h>
+#include "hex.h"
+#include "file.h"
+//class fseeko64;
 uint8_t *file_read(char *filename, uint64_t *size)
 {
 	FILE *f = fopen(filename, "r");

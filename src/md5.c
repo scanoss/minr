@@ -21,6 +21,11 @@
  */
 
 /* Returns the hexadecimal md5 sum for "path" */
+#include <openssl/md5.h>
+
+#include "minr.h"
+#include "md5.h"
+
 uint8_t *file_md5 (char *path)
 {
 	uint8_t *c = calloc(16,1);

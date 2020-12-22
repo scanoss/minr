@@ -1,3 +1,12 @@
+
+#include <unistd.h>
+#include <libgen.h>
+#include <sys/stat.h>
+
+#include "minr.h"
+#include "join.h"
+#include "file.h"
+
 void file_append(char *file, char *destination)
 {
 	FILE *f;

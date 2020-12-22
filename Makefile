@@ -1,20 +1,20 @@
-CC=gcc
-CFLAGS=-O -Wall -g -lpthread -lcrypto -lz
+.PHONY: clean All
+
+
+minr:
+	@echo "----------Building project:[minr]----------"
+	"$(MAKE)" -f  "minr.mk"
+mz:
+	@echo "----------Building project:[mz]----------"
+	"$(MAKE)" -f  "mz.mk"
 
 all: minr mz
-
-minr: src/*
-	 $(CC) -o minr src/main.c $(CFLAGS)
-
-mz: src/*
-	 $(CC) -o mz src/mz_main.c $(CFLAGS)
 
 install:
 	cp mz /usr/bin
 	cp minr /usr/bin
 
 clean:
-	rm -f minr mz *.o
-
-distclean: clean
-
+	@echo "----------Cleaning project:[ minr]----------"
+	"$(MAKE)" -f  "minr.mk" clean
+	"$(MAKE)" -f  "mz.mk" clean
