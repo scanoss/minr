@@ -13,8 +13,8 @@ CurrentFileName        :=
 CurrentFilePath        :=
 CurrentFileFullPath    :=
 User                   :=osboxes.org
-Date                   :=12/21/20
-CodeLitePath           :=
+Date                   :=22/12/20
+CodeLitePath           :=/home/osboxes/.codelite
 LinkerName             :=/usr/bin/g++
 SharedObjectLinkerName :=/usr/bin/g++ -shared -fPIC
 ObjectSuffix           :=.o
@@ -59,6 +59,7 @@ AS       := /usr/bin/as
 ##
 ## User defined environment variables
 ##
+CodeLiteDir:=/usr/share/codelite
 Objects0=$(IntermediateDirectory)/external_src_json.c$(ObjectSuffix) $(IntermediateDirectory)/src_blacklist.c$(ObjectSuffix) $(IntermediateDirectory)/src_hex.c$(ObjectSuffix) $(IntermediateDirectory)/src_file.c$(ObjectSuffix) $(IntermediateDirectory)/src_license.c$(ObjectSuffix) $(IntermediateDirectory)/external_src_bsort.c$(ObjectSuffix) $(IntermediateDirectory)/external_src_winnowing.c$(ObjectSuffix) $(IntermediateDirectory)/src_string.c$(ObjectSuffix) $(IntermediateDirectory)/src_import.c$(ObjectSuffix) $(IntermediateDirectory)/src_quality.c$(ObjectSuffix) \
 	$(IntermediateDirectory)/src_mz.c$(ObjectSuffix) $(IntermediateDirectory)/external_src_crc32c.c$(ObjectSuffix) $(IntermediateDirectory)/src_mz_deflate.c$(ObjectSuffix) $(IntermediateDirectory)/src_copyright.c$(ObjectSuffix) $(IntermediateDirectory)/src_main.c$(ObjectSuffix) $(IntermediateDirectory)/src_minr.c$(ObjectSuffix) $(IntermediateDirectory)/src_md5.c$(ObjectSuffix) $(IntermediateDirectory)/src_mz_optimise.c$(ObjectSuffix) $(IntermediateDirectory)/src_join.c$(ObjectSuffix) $(IntermediateDirectory)/src_license_ids.c$(ObjectSuffix) \
 	$(IntermediateDirectory)/src_wfp.c$(ObjectSuffix) $(IntermediateDirectory)/src_help.c$(ObjectSuffix) 
