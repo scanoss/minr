@@ -18,3 +18,5 @@ clean:
 	@echo "----------Cleaning project:[ minr]----------"
 	"$(MAKE)" -f  "minr.mk" clean
 	"$(MAKE)" -f  "mz.mk" clean
+	@rm mz
+	@rm minr
