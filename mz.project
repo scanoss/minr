@@ -11,7 +11,6 @@
     <VirtualDirectory Name="src">
       <File Name="external/src/winnowing.c"/>
       <File Name="external/src/bsort.c"/>
-      <File Name="external/src/json.c"/>
       <File Name="external/src/crc32c.c"/>
     </VirtualDirectory>
   </VirtualDirectory>

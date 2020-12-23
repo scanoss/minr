@@ -13,10 +13,10 @@ CurrentFileName        :=
 CurrentFilePath        :=
 CurrentFileFullPath    :=
 User                   :=osboxes.org
-Date                   :=22/12/20
+Date                   :=23/12/20
 CodeLitePath           :=/home/osboxes/.codelite
-LinkerName             :=/usr/bin/g++
-SharedObjectLinkerName :=/usr/bin/g++ -shared -fPIC
+LinkerName             :=/usr/bin/gcc
+SharedObjectLinkerName :=/usr/bin/gcc -shared -fPIC
 ObjectSuffix           :=.o
 DependSuffix           :=.o.d
 PreprocessSuffix       :=.i
@@ -28,7 +28,7 @@ LibraryPathSwitch      :=-L
 PreprocessorSwitch     :=-D
 SourceSwitch           :=-c 
 OutputFile             :=$(ProjectName)
-Preprocessors          :=
+Preprocessors          :=$(PreprocessorSwitch)__USE_LARGEFILE64 $(PreprocessorSwitch)FILE_OFFSET_BITS=64 
 ObjectSwitch           :=-o 
 ArchiveOutputSwitch    := 
 PreprocessOnlySwitch   :=-E
@@ -60,9 +60,9 @@ AS       := /usr/bin/as
 ## User defined environment variables
 ##
 CodeLiteDir:=/usr/share/codelite
-Objects0=$(IntermediateDirectory)/external_src_json.c$(ObjectSuffix) $(IntermediateDirectory)/src_blacklist.c$(ObjectSuffix) $(IntermediateDirectory)/src_hex.c$(ObjectSuffix) $(IntermediateDirectory)/src_file.c$(ObjectSuffix) $(IntermediateDirectory)/src_license.c$(ObjectSuffix) $(IntermediateDirectory)/external_src_bsort.c$(ObjectSuffix) $(IntermediateDirectory)/external_src_winnowing.c$(ObjectSuffix) $(IntermediateDirectory)/src_string.c$(ObjectSuffix) $(IntermediateDirectory)/src_import.c$(ObjectSuffix) $(IntermediateDirectory)/src_quality.c$(ObjectSuffix) \
-	$(IntermediateDirectory)/src_mz.c$(ObjectSuffix) $(IntermediateDirectory)/external_src_crc32c.c$(ObjectSuffix) $(IntermediateDirectory)/src_mz_deflate.c$(ObjectSuffix) $(IntermediateDirectory)/src_copyright.c$(ObjectSuffix) $(IntermediateDirectory)/src_main.c$(ObjectSuffix) $(IntermediateDirectory)/src_minr.c$(ObjectSuffix) $(IntermediateDirectory)/src_md5.c$(ObjectSuffix) $(IntermediateDirectory)/src_mz_optimise.c$(ObjectSuffix) $(IntermediateDirectory)/src_join.c$(ObjectSuffix) $(IntermediateDirectory)/src_license_ids.c$(ObjectSuffix) \
-	$(IntermediateDirectory)/src_wfp.c$(ObjectSuffix) $(IntermediateDirectory)/src_help.c$(ObjectSuffix) 
+Objects0=$(IntermediateDirectory)/src_blacklist.c$(ObjectSuffix) $(IntermediateDirectory)/src_hex.c$(ObjectSuffix) $(IntermediateDirectory)/src_file.c$(ObjectSuffix) $(IntermediateDirectory)/src_license.c$(ObjectSuffix) $(IntermediateDirectory)/external_src_bsort.c$(ObjectSuffix) $(IntermediateDirectory)/external_src_winnowing.c$(ObjectSuffix) $(IntermediateDirectory)/src_string.c$(ObjectSuffix) $(IntermediateDirectory)/src_import.c$(ObjectSuffix) $(IntermediateDirectory)/src_quality.c$(ObjectSuffix) $(IntermediateDirectory)/src_mz.c$(ObjectSuffix) \
+	$(IntermediateDirectory)/external_src_crc32c.c$(ObjectSuffix) $(IntermediateDirectory)/src_mz_deflate.c$(ObjectSuffix) $(IntermediateDirectory)/src_copyright.c$(ObjectSuffix) $(IntermediateDirectory)/src_main.c$(ObjectSuffix) $(IntermediateDirectory)/src_minr.c$(ObjectSuffix) $(IntermediateDirectory)/src_md5.c$(ObjectSuffix) $(IntermediateDirectory)/src_mz_optimise.c$(ObjectSuffix) $(IntermediateDirectory)/src_join.c$(ObjectSuffix) $(IntermediateDirectory)/src_license_ids.c$(ObjectSuffix) $(IntermediateDirectory)/src_wfp.c$(ObjectSuffix) \
+	$(IntermediateDirectory)/src_help.c$(ObjectSuffix) 
 
 
 
@@ -93,14 +93,6 @@ PreBuild:
 ##
 ## Objects
 ##
-$(IntermediateDirectory)/external_src_json.c$(ObjectSuffix): external/src/json.c $(IntermediateDirectory)/external_src_json.c$(DependSuffix)
-	$(CC) $(SourceSwitch) "/home/osboxes/scanoss/minr/external/src/json.c" $(CFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/external_src_json.c$(ObjectSuffix) $(IncludePath)
-$(IntermediateDirectory)/external_src_json.c$(DependSuffix): external/src/json.c
-	@$(CC) $(CFLAGS) $(IncludePath) -MG -MP -MT$(IntermediateDirectory)/external_src_json.c$(ObjectSuffix) -MF$(IntermediateDirectory)/external_src_json.c$(DependSuffix) -MM external/src/json.c
-
-$(IntermediateDirectory)/external_src_json.c$(PreprocessSuffix): external/src/json.c
-	$(CC) $(CFLAGS) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/external_src_json.c$(PreprocessSuffix) external/src/json.c
-
 $(IntermediateDirectory)/src_blacklist.c$(ObjectSuffix): src/blacklist.c $(IntermediateDirectory)/src_blacklist.c$(DependSuffix)
 	$(CC) $(SourceSwitch) "/home/osboxes/scanoss/minr/src/blacklist.c" $(CFLAGS) $(ObjectSwitch)$(IntermediateDirectory)/src_blacklist.c$(ObjectSuffix) $(IncludePath)
 $(IntermediateDirectory)/src_blacklist.c$(DependSuffix): src/blacklist.c

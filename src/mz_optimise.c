@@ -2,7 +2,7 @@
 /*
  * src/mz_optimise.c
  *
- * SCANOSS .mz optimization functions
+ * SCANOSS .mz optimisation functions
  *
  * Copyright (C) 2018-2020 SCANOSS.COM
  *
@@ -27,9 +27,12 @@
 #include "hex.h"
 #include "blacklist.h"
 #include "mz.h"
+
 /* Check if job->id is found in the LDB */
 bool mz_id_exists_in_ldb(struct mz_job *job)
 {
+	if (!job->orphan_rm) return true;
+
 	struct ldb_table oss_file;
 	strcpy(oss_file.db, "oss");
 	strcpy(oss_file.table, "file");
@@ -47,41 +50,46 @@ bool mz_id_exists_in_ldb(struct mz_job *job)
 	return true;
 }
 
+/*	
+	Handler function to be passed to mz_parse()
+	Eliminates duplicated data, unwanted content
+	and (optionally) orphan files (not found in the KB)
+*/
 bool mz_optimise_handler(struct mz_job *job)
 {
-		/* Uncompress */
-		uint64_t src_ln = MAX_FILE_SIZE;
-		if (Z_OK != uncompress((uint8_t *)job->data, &src_ln, job->zdata, job->zdata_ln))
-		{
-			printf("[CORRUPTED]\n");
-			exit(EXIT_SUCCESS);
-		}
-		job->data_ln = src_ln - 1;
-		job->data[job->data_ln] = 0;
+	/* Uncompress */
+	uint64_t src_ln = MAX_FILE_SIZE;
+	if (Z_OK != uncompress((uint8_t *)job->data, &src_ln, job->zdata, job->zdata_ln))
+	{
+		printf("[CORRUPTED]\n");
+		exit(EXIT_SUCCESS);
+	}
+	job->data_ln = src_ln - 1;
+	job->data[job->data_ln] = 0;
 
-		/* Check if data contains unwanted header */
-		if (unwanted_header(job->data))
-		{
-			job->bll_c++;
-		}
+	/* Check if data contains unwanted header */
+	if (unwanted_header(job->data))
+	{
+		job->bll_c++;
+	}
 
-		/* Check if file is not duplicated */
-		else if (mz_id_exists(job->ptr, job->ptr_ln, job->id))
-		{
-			job->dup_c++;
-		}
+	/* Check if file is not duplicated */
+	else if (mz_id_exists(job->ptr, job->ptr_ln, job->id))
+	{
+		job->dup_c++;
+	}
 
-		/* Check if file exists in the LDB */
-		else if (!mz_id_exists_in_ldb(job))
-		{
-			job->orp_c++;
-		}
+	/* Check if file exists in the LDB */
+	else if (!mz_id_exists_in_ldb(job))
+	{
+		job->orp_c++;
+	}
 
-		else
-		{
-			memcpy(job->ptr + job->ptr_ln, job->id, job->ln);
-			job->ptr_ln += job->ln;
-		}
+	else
+	{
+		memcpy(job->ptr + job->ptr_ln, job->id, job->ln);
+		job->ptr_ln += job->ln;
+	}
 
 	return true;
 }

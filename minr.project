@@ -4,14 +4,12 @@
     <VirtualDirectory Name="inc">
       <File Name="external/inc/winnowing.h"/>
       <File Name="external/inc/ldb.h"/>
-      <File Name="external/inc/json.h"/>
       <File Name="external/inc/bsort.h"/>
       <File Name="external/inc/crc32c.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="src">
       <File Name="external/src/winnowing.c"/>
       <File Name="external/src/bsort.c"/>
-      <File Name="external/src/json.c"/>
       <File Name="external/src/crc32c.c"/>
     </VirtualDirectory>
   </VirtualDirectory>
@@ -55,6 +53,8 @@
   </VirtualDirectory>
   <Description/>
   <Dependencies/>
+  <Dependencies Name="Debug"/>
+  <Dependencies Name="Release"/>
   <Settings Type="Executable">
     <GlobalSettings>
       <Compiler Options="" C_Options="" Assembler="">
@@ -70,6 +70,8 @@
         <IncludePath Value="."/>
         <IncludePath Value="./inc"/>
         <IncludePath Value="./external/inc"/>
+        <Preprocessor Value="__USE_LARGEFILE64"/>
+        <Preprocessor Value="FILE_OFFSET_BITS=64"/>
       </Compiler>
       <Linker Options="" Required="yes">
         <LibraryPath Value="."/>
@@ -153,6 +155,4 @@
       </Completion>
     </Configuration>
   </Settings>
-  <Dependencies Name="Debug"/>
-  <Dependencies Name="Release"/>
 </CodeLite_Project>

@@ -129,6 +129,7 @@ void free_mz_job(struct mz_job job)
 	free(job.zdata);
 }
 
+
 int main(int argc, char *argv[])
 {
 	int exit_status = EXIT_SUCCESS;
