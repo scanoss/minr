@@ -1,3 +1,6 @@
 *.o
 *.project
 *.d
+minr.txt
+mz.txt
+compile_flags.txt
