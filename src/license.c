@@ -20,6 +20,17 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 #include <libgen.h>
+#include <fcntl.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <dirent.h>
+#include <ctype.h>
+#include <unistd.h>
+#include "minr.h"
+#include "license_ids.h"
+#include "license.h"
+
+
 bool is_file(char *path);
 bool is_dir(char *path);
 bool not_a_dot(char *path);

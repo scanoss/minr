@@ -21,6 +21,10 @@
  */
 
 #include <libgen.h>
+
+#include "minr.h"
+#include "copyright.h"
+
 bool is_file(char *path);
 bool is_dir(char *path);
 bool not_a_dot(char *path);

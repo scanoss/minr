@@ -1,21 +1,45 @@
+CWD=$(shell pwd)
 CC=gcc
-CFLAGS=-O -Wall -g -lpthread -lcrypto -lz -L. -lldb
+# Enable all compiler warnings. 
+CCFLAGS=-g -Wall -std=gnu99 -I./inc -I./external/inc 
+# Linker flags
+LDFLAGS=-lz -L. -lldb -lpthread -lcrypto
 
-all: minr mz
+BUILD_DIR =build
+SOURCES=$(wildcard src/*.c) $(wildcard src/**/*.c)  $(wildcard external/*.c) $(wildcard external/**/*.c)
 
-minr: src/*
-	 $(CC) -o minr src/main.c $(CFLAGS)
+SOURCES_MINR=$(filter-out src/mz_main.c, $(SOURCES))
+OBJECTS_MIRN=$(SOURCES_MINR:.c=.o)
 
-mz: src/*
-	 $(CC) -o mz src/mz_main.c $(CFLAGS)
+SOURCES_MZ=$(filter-out src/main.c, $(SOURCES))
+OBJECTS_MZ=$(SOURCES_MZ:.c=.o)
 
-install:
-	cp mz /usr/bin
-	cp minr /usr/bin
-	cp libldb.so /usr/lib
+TARGET_MINR=minr
+TARGET_MZ=mz
+
+clean_build:
+	rm -f src/*.o src/**/*.o 
+
+all: clean $(TARGET_MINR) $(TARGET_MZ) clean_build
+
+$(TARGET_MINR): $(OBJECTS_MIRN)
+	$(CC) -g -o $@ $^ $(LDFLAGS)
+
+$(TARGET_MZ): $(OBJECTS_MZ)
+	$(CC) -g -o $@ $^ $(LDFLAGS)
+
+.PHONY: minr
+
+%.o: %.c
+	$(CC) $(CCFLAGS) -o $@ -c $<
 
 clean:
-	rm -f minr mz *.o
+	 rm -f src/*.o src/**/*.o  $(TARGET_MINR)
 
-distclean: clean
+install: $(TARGET)
+	cp $(TARGET) /usr/bin
 
+update-docs:
+	openapi-spec-gen . > scanoss-api.yaml
+  
+	

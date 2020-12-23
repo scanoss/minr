@@ -19,6 +19,18 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+#include <stdint.h>
+#include <libgen.h>
+#include <stdbool.h>
+#include <fcntl.h>
+#include <zlib.h>
+#include "minr.h"
+#include "md5.h"
+#include "blacklist.h"
+#include "winnowing.h"
+#include "hex.h"
+#include "wfp.h"
+
 
 void extract_wfp(uint8_t *md5, char *src, int length, bool check_mz)
 {

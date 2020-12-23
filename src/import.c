@@ -19,6 +19,18 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+#include <sys/time.h>
+#include <libgen.h>
+#include <dirent.h>
+
+#include "import.h"
+#include "ldb.h"
+#include "blacklist_wfp.h"
+#include "minr.h"
+#include "bsort.h"
+#include "file.h"
+#include "hex.h"
+#include "blacklist.h"
 
 double progress_timer = 0;
 
@@ -102,7 +114,7 @@ bool ldb_import_snippets(char *filename, bool erase_after)
 	}
 
 	/* Load blacklisted wfps into boolean array */
-	long size = sizeof(BLACKLISTED_WFP);
+	long size = strlen((char*) BLACKLISTED_WFP);//sizeof(BLACKLISTED_WFP);
 	bool *bl = calloc(256*256*256,1);
 	for (int i = 0; i < size; i += 4)
 		if (BLACKLISTED_WFP[i] == key1)
