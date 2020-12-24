@@ -22,6 +22,9 @@
 
 
 /* Perform a fast case-insensitive string comparison */
+#include <stdbool.h>
+#include <stdint.h>
+#include <ctype.h>
 bool strn_icmp(char *a, char *b, int len)
 {
 	for (int i = 0; i < len; i++) if (tolower(a[i]) != tolower(b[i])) return false;

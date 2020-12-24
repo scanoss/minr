@@ -19,7 +19,14 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+#include <zlib.h>
+#include <libgen.h>
 
+#include "minr.h"
+#include "ldb.h"
+#include "hex.h"
+#include "blacklist.h"
+#include "mz.h"
 
 /* Check if job->id is found in the LDB */
 bool mz_id_exists_in_ldb(struct mz_job *job)

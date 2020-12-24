@@ -21,6 +21,13 @@
  */
 
 /* Prints a hexdump of 'len' bytes from 'data' organized 'width' columns */
+
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+#include "hex.h"
+
 void hexprint(uint8_t *data, uint32_t len, uint8_t width)
 {
 	uint8_t b16[] = "0123456789abcdef";

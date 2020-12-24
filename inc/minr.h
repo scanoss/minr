@@ -1,3 +1,5 @@
+#ifndef __MINR_H
+    #define _MINR_H
 // SPDX-License-Identifier: GPL-2.0-or-later
 /*
  * src/minr.h
@@ -20,8 +22,14 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <stdint.h>
+#include <stdbool.h>
+#include <string.h>
+
 /* Definitions */
-#define MINR_VERSION "2.0.5"
+#define MINR_VERSION "2.0.6"
 #define MZ_CACHE_SIZE 16384
 #define MZ_FILES 65536
 #define MZ_HEAD 18 // Head contains 14 bytes of the MD5 + 4 bytes for compressed SIZE
@@ -74,7 +82,7 @@ struct mz_job
 	uint32_t bll_c;    // Blacklisted counter
 	uint32_t orp_c;    // Orphan file counter
 	bool check_only;   // Perform only an mz validation (without list output)
-	bool orphan_rm;    // Eliminates orphan files
+    bool orphan_rm;
 	uint8_t *key;      // File key to be printed via STDOUT (-k)
 };
 
@@ -85,12 +93,19 @@ uint8_t *buffer;
 uint32_t *hashes, *lines;
 
 /* Paths */
-char mined_path[MAX_ARG_LEN] = ".";
-char tmp_path[MAX_PATH_LEN] = "/dev/shm";
+extern char mined_path[MAX_ARG_LEN];
+extern char tmp_path[MAX_PATH_LEN];
 
 /* File descriptor arrays */
 FILE *out_component;
 FILE **out_file;
 int *out_snippet;
 
-int min_file_size = MIN_FILE_SIZE;
+extern int min_file_size;
+
+bool download(char *tmp_component, char *url, char *md5);
+void recurse(char *component_record, char *tmp_component, char *tmp_dir, bool all_extensions, bool exclude_mz, char* urlid, char *src, uint8_t *zsrc, struct mz_cache_item *mz_cache);
+bool check_dependencies(void);
+
+
+#endif

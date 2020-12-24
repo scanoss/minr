@@ -19,6 +19,12 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+#include <libgen.h>
+
+#include "minr.h"
+#include "mz.h"
+#include "md5.h"
+#include "hex.h"
 
 bool mz_list_handler(struct mz_job *job)
 {

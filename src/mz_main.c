@@ -37,19 +37,10 @@
 #include "minr.h"
 #include "ldb.h"
 #include "blacklist.h"
-#include "string.c"
-#include "license_ids.c"
-#include "license.c"
-#include "copyright.c"
-#include "quality.c"
-#include "hex.c"
-#include "file.c"
-#include "md5.c"
-#include "mz.c"
-#include "mz_optimise.c"
-#include "mz_mine.c"
-#include "mz_deflate.c"
-
+#include "mz.h"
+#include "quality.h"
+#include "mz_mine.h"
+#include "license_ids.h"
 
 void help()
 {
@@ -137,6 +128,7 @@ void free_mz_job(struct mz_job job)
 	free(job.data);
 	free(job.zdata);
 }
+
 
 int main(int argc, char *argv[])
 {

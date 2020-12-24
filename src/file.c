@@ -20,7 +20,22 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-/* Returns true if "path" is a file */
+
+#include <sys/stat.h>
+#include <openssl/md5.h>
+#include <stdlib.h>
+#include <string.h>
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <sys/statvfs.h>
+
+#include <sys/types.h>
+#include <unistd.h>
+
+
+#include "minr.h"
+#include "file.h"
+
 bool is_file(char *path)
 {
 
@@ -148,4 +163,3 @@ bool check_disk_free(char *file, uint64_t needed)
 	}
 	return true;
 }
-

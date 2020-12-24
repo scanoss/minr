@@ -7,6 +7,9 @@
 #include <sys/types.h>
 #include <time.h>
 #include <unistd.h>
+#include <stdbool.h>
+
+#include "bsort.h"
 
 #define SWITCH_TO_SHELL 20
 

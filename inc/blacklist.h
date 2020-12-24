@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 /*
- * src/md5.c
+ * src/blacklisted.h
  *
- * MD5 calculation
+ * Blacklisted data structures and routines
  *
  * Copyright (C) 2018-2020 SCANOSS.COM
  *
@@ -20,38 +20,26 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-/* Returns the hexadecimal md5 sum for "path" */
-#include <openssl/md5.h>
+/* File paths to be skipped in results */
+#ifndef __BLACKLIST_H
+    #define __BLACKLIST_H
+    
+#include <stdint.h>
+#include <stdbool.h>
+#include <stdio.h>
 
-#include "minr.h"
-#include "md5.h"
+extern char *BLACKLISTED_PATHS[];
+extern char *BLACKLISTED_HEADERS[];
+extern char *BLACKLISTED_EXTENSIONS[];
+extern char *IGNORE_KEYWORDS[];
 
-uint8_t *file_md5 (char *path)
-{
-	uint8_t *c = calloc(16,1);
-	FILE *fp = fopen(path, "rb");
-	MD5_CTX mdContext;
-	uint32_t bytes;
+char *extension(char *path);
+bool stricmp(char *a, char *b);
+bool blacklisted_extension(char *name);
+bool unwanted_path(char *path);
+bool headicmp(char *a, char *b);
+bool unwanted_header(char *src);
 
-	if (fp != NULL)
-	{
-		uint8_t *buffer = malloc(BUFFER_SIZE);
-		MD5_Init (&mdContext);
 
-		while ((bytes = fread(buffer, 1, BUFFER_SIZE, fp)) != 0)
-			MD5_Update(&mdContext, buffer, bytes);
 
-		MD5_Final(c, &mdContext);
-		fclose(fp);
-		free(buffer);
-	}
-	return c;
-}
-
-void calc_md5(char *data, int size, uint8_t *out)
-{
-	MD5_CTX mdContext;
-	MD5_Init (&mdContext);
-	MD5_Update(&mdContext, data, size);
-	MD5_Final(out, &mdContext);
-}
+#endif

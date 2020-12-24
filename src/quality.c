@@ -21,6 +21,11 @@
  */
 
 /* Make quality assessment on an individual file */
+
+#include "minr.h"
+#include "license.h"
+#include "quality.h"
+
 void mine_quality(char *md5, char *src, long size)
 {
 	/* Skip files below MIN_FILE_SIZE */
