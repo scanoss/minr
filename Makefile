@@ -1,7 +1,7 @@
 CWD=$(shell pwd)
 CC=gcc
 # Enable all compiler warnings. 
-CCFLAGS=-g -Wall -std=gnu99 -I./inc -I./external/inc 
+CCFLAGS=-g -Wall -std=gnu99 -I./inc -I./external/inc  -D_LARGEFILE64_SOURCE
 # Linker flags
 LDFLAGS=-lz -L. -lldb -lpthread -lcrypto
 
@@ -17,8 +17,6 @@ OBJECTS_MZ=$(SOURCES_MZ:.c=.o)
 TARGET_MINR=minr
 TARGET_MZ=mz
 
-clean_build:
-	rm -f src/*.o src/**/*.o 
 
 all: clean $(TARGET_MINR) $(TARGET_MZ) clean_build
 
@@ -33,11 +31,16 @@ $(TARGET_MZ): $(OBJECTS_MZ)
 %.o: %.c
 	$(CC) $(CCFLAGS) -o $@ -c $<
 
+clean_build:
+	rm -f src/*.o src/**/*.o 
+
 clean:
 	 rm -f src/*.o src/**/*.o  $(TARGET_MINR)
+	 rm -f src/*.o src/**/*.o  $(TARGET_MZ)
 
-install: $(TARGET)
-	cp $(TARGET) /usr/bin
+install:
+	cp $(TARGET_MINR) /usr/bin
+	cp $(TARGET_MZ) /usr/bin
 
 update-docs:
 	openapi-spec-gen . > scanoss-api.yaml
