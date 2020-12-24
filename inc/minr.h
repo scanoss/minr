@@ -106,6 +106,6 @@ extern int min_file_size;
 bool download(char *tmp_component, char *url, char *md5);
 void recurse(char *component_record, char *tmp_component, char *tmp_dir, bool all_extensions, bool exclude_mz, char* urlid, char *src, uint8_t *zsrc, struct mz_cache_item *mz_cache);
 bool check_dependencies(void);
-
+void minr_join(char *source, char *destination);
 
 #endif

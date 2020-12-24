@@ -1,3 +1,6 @@
+minr
+mz
+.gitignore
 *.o
 *.project
 *.d
