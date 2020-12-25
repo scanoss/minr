@@ -56,6 +56,7 @@ void help()
 	printf("-c MZ   check MZ file integrity\n");
 	printf("-o MZ   optimise MZ (eliminate duplicates and unwanted content)\n");
 	printf("-O MZ   optimise MZ, eliminating also orphan files (not found in local KB)\n");
+	printf("-K MZ   extract a list of unique file keys to STDOUT (binary)\n");
 	printf("\n");
 
 	printf("Single file extraction to STDOUT:\n");
@@ -168,10 +169,11 @@ int main(int argc, char *argv[])
 	job.orp_c = 0;
 	job.md5[32] = 0;
 	job.check_only = false;
+	job.dump_keys = false;
 	job.orphan_rm = false;
 	job.key = NULL;
 
-	while ((option = getopt(argc, argv, ":p:k:c:x:l:C:Q:L:o:O:hv")) != -1)
+	while ((option = getopt(argc, argv, ":p:k:c:x:K:l:C:Q:L:o:O:hv")) != -1)
 	{
 		/* Check valid alpha is entered */
 		if (optarg)
@@ -209,6 +211,11 @@ int main(int argc, char *argv[])
 
 			case 'x':
 				mz_extract(&job, optarg);
+				break;
+
+			case 'K':
+				job.dump_keys = true;
+				mz_list(&job, optarg);
 				break;
 
 			case 'l':

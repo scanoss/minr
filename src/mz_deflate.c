@@ -26,6 +26,60 @@
 #include "md5.h"
 #include "hex.h"
 
+int mz_key_cmp(const void * a, const void * b)
+{
+    const uint8_t *va = a;
+    const uint8_t *vb = b;
+
+    /* Compare byte by byte */
+    for (int i = 0; i < MD5_LEN; i++)
+    {
+        if (va[i] > vb[i]) return 1;
+        if (va[i] < vb[i]) return -1;
+    }
+
+    return 0;
+}
+
+/* Handling function for listing mz keys */
+bool mz_dump_keys_handler(struct mz_job *job)
+{
+	/* Fill MD5 with item id */
+	mz_id_fill(job->md5, job->id);
+
+	hex_to_bin(job->md5, MD5_LEN * 2, job->ptr + job->ptr_ln);
+	job->ptr_ln += MD5_LEN;
+
+	return true;
+}
+
+/* Output unique mz keys to STDOUT (binary) */
+void mz_dump_keys(struct mz_job *job)
+{
+	/* Use job->ptr to store keys */
+	job->ptr = malloc(job->mz_ln);
+
+	/* Fetch keys */
+	mz_parse(job, mz_dump_keys_handler);
+
+	/* Sort keys */
+	qsort(job->ptr, job->ptr_ln / MD5_LEN, MD5_LEN, mz_key_cmp);
+
+	/* Output keys */
+	for (int i = 0; i < job->ptr_ln; i += 16)
+	{
+		bool skip = false;
+		if (i) if (!memcmp(job->ptr + i, job->ptr + i - MD5_LEN, MD5_LEN))
+		{
+			skip = true;
+		}
+		if (!skip) fwrite(job->ptr + i, MD5_LEN, 1, stdout);
+	}
+
+	free(job->ptr);
+}
+
+/* Handling function for listing mz contents */
 bool mz_list_handler(struct mz_job *job)
 {
 	/* Fill MD5 with item id */
@@ -65,7 +119,10 @@ void mz_list(struct mz_job *job, char *path)
 	job->mz = file_read(job->path, &job->mz_ln);
 
 	/* List mz contents */
-	mz_parse(job, mz_list_handler);
+	if (!job->dump_keys) mz_parse(job, mz_list_handler);
+
+	/* Dump mz keys */
+	else mz_dump_keys(job);
 
 	free(job->mz);
 }
