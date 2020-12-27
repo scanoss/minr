@@ -28,6 +28,24 @@
 #include "blacklist.h"
 #include "mz.h"
 
+/* Check if job->id is found in job->xkeys */
+bool mz_id_excluded(struct mz_job *job)
+{
+	if (!job->xkeys_ln) return false;
+
+	for (uint64_t i = 0; i < job->xkeys_ln; i += MD5_LEN)
+	{
+		/* Compare job id (bytes 3-16) */
+		if (!memcmp(job->xkeys + i + 2, job->id, MD5_LEN - 2))
+		{
+			/* Compare mz id (bytes 1-2) */
+			if (!memcmp(job->xkeys + i, job->mz_id, 2)) return true;
+		}
+	}
+
+	return false;
+}
+
 /* Check if job->id is found in the LDB */
 bool mz_id_exists_in_ldb(struct mz_job *job)
 {
@@ -51,10 +69,10 @@ bool mz_id_exists_in_ldb(struct mz_job *job)
 }
 
 /*	
-	Handler function to be passed to mz_parse()
-	Eliminates duplicated data, unwanted content
-	and (optionally) orphan files (not found in the KB)
-*/
+		Handler function to be passed to mz_parse()
+		Eliminates duplicated data, unwanted content
+		and (optionally) orphan files (not found in the KB)
+		*/
 bool mz_optimise_handler(struct mz_job *job)
 {
 	/* Uncompress */
@@ -80,6 +98,12 @@ bool mz_optimise_handler(struct mz_job *job)
 	}
 
 	/* Check if file exists in the LDB */
+	else if (mz_id_excluded(job))
+	{
+		job->exc_c++;
+	}
+
+	/* Check if file exists in the LDB */
 	else if (!mz_id_exists_in_ldb(job))
 	{
 		job->orp_c++;
@@ -95,12 +119,11 @@ bool mz_optimise_handler(struct mz_job *job)
 }
 
 /* Optimise an mz file removing duplicated data */
-void mz_optimise(struct mz_job *job, char *path)
+void mz_optimise(struct mz_job *job)
 {
-	job->path = path;
-
 	/* Extract first two MD5 bytes from the file name */
-	memcpy(job->md5, basename(path), 4);
+	memcpy(job->md5, basename(job->path), 4);
+	hex_to_bin(job->md5, 4, job->mz_id);
 
 	/* Read source mz file into memory */
 	job->mz = file_read(job->path, &job->mz_ln);
@@ -117,6 +140,7 @@ void mz_optimise(struct mz_job *job, char *path)
 	if (job->dup_c) printf("%u duplicated files eliminated\n", job->dup_c);
 	if (job->orp_c) printf("%u orphan files eliminated\n", job->orp_c);
 	if (job->bll_c) printf("%u blacklisted files eliminated\n", job->bll_c);
+	if (job->exc_c) printf("%u keys excluded\n", job->exc_c);
 
 	free(job->mz);
 	free(job->ptr);
