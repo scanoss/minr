@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 /*
- * src/blacklisted_wfp.h
+ * src/blacklisted_ext.h
  *
- * Blacklisted snippet IDs
+ * Blacklisted file extensions
  *
  * Copyright (C) 2018-2020 SCANOSS.COM
  *
@@ -20,12 +20,4 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef __BLACKLIST_WFP_H
-    #define __BLACKLIST_WFP_H
-
-#include <stdint.h>
-
-extern uint8_t BLACKLISTED_WFP[];
-extern long BLACKLISTED_WFP_LN;
-
-#endif
+extern char *BLACKLISTED_EXTENSIONS[];

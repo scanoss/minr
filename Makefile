@@ -41,8 +41,3 @@ clean:
 install:
 	cp $(TARGET_MINR) /usr/bin
 	cp $(TARGET_MZ) /usr/bin
-
-update-docs:
-	openapi-spec-gen . > scanoss-api.yaml
-  
-	

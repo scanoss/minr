@@ -114,9 +114,8 @@ bool ldb_import_snippets(char *filename, bool erase_after)
 	}
 
 	/* Load blacklisted wfps into boolean array */
-	long size = strlen((char*) BLACKLISTED_WFP);//sizeof(BLACKLISTED_WFP);
 	bool *bl = calloc(256*256*256,1);
-	for (int i = 0; i < size; i += 4)
+	for (int i = 0; i < BLACKLISTED_WFP_LN; i += 4)
 		if (BLACKLISTED_WFP[i] == key1)
 			bl[BLACKLISTED_WFP[i+1]+BLACKLISTED_WFP[i+2]*256+BLACKLISTED_WFP[i+3]*256*256] = true;
 
