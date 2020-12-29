@@ -108,12 +108,10 @@ bool mz_list_handler(struct mz_job *job)
 	return true;
 }
 
-void mz_list(struct mz_job *job, char *path)
+void mz_list(struct mz_job *job)
 {
-	job->path = path;
-
 	/* Extract first two MD5 bytes from the file name */
-	memcpy(job->md5, basename(path), 4);
+	memcpy(job->md5, basename(job->path), 4);
 
 	/* Read source mz file into memory */
 	job->mz = file_read(job->path, &job->mz_ln);
@@ -142,22 +140,21 @@ bool mz_cat_handler(struct mz_job *job)
 	return true;
 }
 
-void mz_cat(struct mz_job *job, char *path, char *key)
+void mz_cat(struct mz_job *job, char *key)
 {
 	/* Calculate mz file path */
 	char mz_path[MAX_PATH_LEN] = "\0";
 	char mz_file_id[5] = "\0\0\0\0\0";
 	memcpy(mz_file_id, key, 4);
 
-	sprintf(mz_path, "%s/%s.mz", path, mz_file_id);
+	sprintf(mz_path, "%s/%s.mz", job->path, mz_file_id);
 
 	/* Save path and key on job */
-	job->path = mz_path;
 	job->key = calloc(MD5_LEN, 1);
 	hex_to_bin(key, MD5_LEN * 2, job->key);	
 
 	/* Read source mz file into memory */
-	job->mz = file_read(job->path, &job->mz_ln);
+	job->mz = file_read(mz_path, &job->mz_ln);
 
 	/* Search and display "key" file contents */
 	mz_parse(job, mz_cat_handler);
@@ -198,12 +195,10 @@ bool mz_extract_handler(struct mz_job *job)
 	return true;
 }
 
-void mz_extract(struct mz_job *job, char *path)
+void mz_extract(struct mz_job *job)
 {
-	job->path = path;
-
 	/* Extract first two MD5 bytes from the file name */
-	memcpy(job->md5, basename(path), 4);
+	memcpy(job->md5, basename(job->path), 4);
 
 	/* Read source mz file into memory */
 	job->mz = file_read(job->path, &job->mz_ln);

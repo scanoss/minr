@@ -16,9 +16,8 @@ void mz_corrupted(void);
 void mz_add(uint8_t *md5, char *src, int src_ln, bool check, uint8_t *zsrc, struct mz_cache_item *mz_cache);
 bool mz_check(char *path);
 void mz_flush(struct mz_cache_item *mz_cache);
-void mz_list(struct mz_job *job, char *path);
-void mz_extract(struct mz_job *job, char *path);
-void mz_optimise(struct mz_job *job, char *path);
-void mz_mine_license(struct mz_job *job, char *path);
-void mz_cat(struct mz_job *job, char *path, char *key);
+void mz_list(struct mz_job *job);
+void mz_extract(struct mz_job *job);
+void mz_optimise(struct mz_job *job);
+void mz_cat(struct mz_job *job, char *key);
 #endif

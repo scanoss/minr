@@ -66,9 +66,10 @@ struct mz_cache_item
 
 struct mz_job
 {
-	char *path;        // Path to mz file
+	char path[MAX_ARG_LEN]; // Path to mz file
 	uint8_t *mz;       // Pointer to entire mz file contents
 	uint64_t mz_ln;    // MZ file length
+	uint8_t mz_id[2];  // MZ file ID (first two bytes of MD5s)
 	uint8_t *id;       // MZ record ID
 	uint64_t ln;       // MZ record length
 	char md5[33];      // MZ record hex ID (MD5)
@@ -81,10 +82,13 @@ struct mz_job
 	uint32_t dup_c;    // Duplicated counter
 	uint32_t bll_c;    // Blacklisted counter
 	uint32_t orp_c;    // Orphan file counter
+	uint32_t exc_c;    // Excluded file counter
 	bool check_only;   // Perform only an mz validation (without list output)
 	bool dump_keys;    // Dump unique keys to STDOUT
-    bool orphan_rm;
+	bool orphan_rm;    // Remove orphans
 	uint8_t *key;      // File key to be printed via STDOUT (-k)
+	uint8_t *xkeys;    // List of keys to be excluded in (-o/-O)ptimisation
+	uint64_t xkeys_ln; // Length of xkeys
 };
 
 typedef enum { none, license, copyright, quality } metadata;

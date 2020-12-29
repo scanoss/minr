@@ -43,12 +43,10 @@ bool mz_quality_handler(struct mz_job *job)
 	return true;
 }
 
-void mz_mine_quality(struct mz_job *job, char *path)
+void mz_mine_quality(struct mz_job *job)
 {
-	job->path = path;
-
 	/* Extract first two MD5 bytes from the file name */
-	memcpy(job->md5, basename(path), 4);
+	memcpy(job->md5, basename(job->path), 4);
 
 	/* Read source mz file into memory */
 	job->mz = file_read(job->path, &job->mz_ln);
@@ -78,12 +76,10 @@ bool mz_license_handler(struct mz_job *job)
 	return true;
 }
 
-void mz_mine_license(struct mz_job *job, char *path)
+void mz_mine_license(struct mz_job *job)
 {
-	job->path = path;
-
 	/* Extract first two MD5 bytes from the file name */
-	memcpy(job->md5, basename(path), 4);
+	memcpy(job->md5, basename(job->path), 4);
 
 	/* Read source mz file into memory */
 	job->mz = file_read(job->path, &job->mz_ln);
@@ -108,12 +104,10 @@ bool mz_copyright_handler(struct mz_job *job)
 	return true;
 }
 
-void mz_mine_copyright(struct mz_job *job, char *path)
+void mz_mine_copyright(struct mz_job *job)
 {
-	job->path = path;
-
 	/* Extract first two MD5 bytes from the file name */
-	memcpy(job->md5, basename(path), 4);
+	memcpy(job->md5, basename(job->path), 4);
 
 	/* Read source mz file into memory */
 	job->mz = file_read(job->path, &job->mz_ln);

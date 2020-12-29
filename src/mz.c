@@ -31,7 +31,8 @@
 #include <unistd.h>
 #include "hex.h"
 #include "file.h"
-//class fseeko64;
+
+/* Read file and return pointer to file contents */
 uint8_t *file_read(char *filename, uint64_t *size)
 {
 	FILE *f = fopen(filename, "r");

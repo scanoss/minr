@@ -57,6 +57,7 @@ void help()
 	printf("-o MZ   optimise MZ (eliminate duplicates and unwanted content)\n");
 	printf("-O MZ   optimise MZ, eliminating also orphan files (not found in local KB)\n");
 	printf("-K MZ   extract a list of unique file keys to STDOUT (binary)\n");
+	printf("-X KEYS exclude list of KEYS (see -K) when running optimize (-O and -o)\n");
 	printf("\n");
 
 	printf("Single file extraction to STDOUT:\n");
@@ -92,44 +93,16 @@ bool validate_md5(char *txt)
     return true;
 }
 
-/* Create an empty mz_job structure */
-struct mz_job new_mz_job()
+/* Copy arg into str (exit if argument is too long) */
+void argcpy(char *str, char *arg)
 {
-	struct mz_job job;
-    job.path = NULL;
-    job.mz = NULL;
-    job.mz_ln = 0;
-    job.id = NULL;
-    job.ln = 0;
-    job.dup_c = 0;
-    job.bll_c = 0;
-    job.orp_c = 0;
-	job.md5[32] = 0;
-	job.check_only = false;
-	job.orphan_rm = false;
-	job.key = NULL;
-
-	// Uncompressed data buffer
-    job.data = calloc(MAX_FILE_SIZE + 1, 1);
-    job.data_ln = 0;
-
-	// Compressed data
-    job.zdata = calloc((MAX_FILE_SIZE + 1) * 2, 1);
-    job.zdata_ln = 0;
-
-	// Temporary data;
-	job.ptr = NULL;
-	job.ptr_ln = 0;
-
-	return job;
+	if (strlen(arg) >= MAX_ARG_LEN)
+	{
+		fprintf(stderr, "Argument is too long\n");
+		exit(EXIT_FAILURE);
+	}
+	strcpy(str, arg);
 }
-
-void free_mz_job(struct mz_job job)
-{
-	free(job.data);
-	free(job.zdata);
-}
-
 
 int main(int argc, char *argv[])
 {
@@ -138,11 +111,11 @@ int main(int argc, char *argv[])
 	/* Parse arguments */
 	int option;
 	bool invalid_argument = false;
-	char mz_file[MAX_PATH_LEN] = "\0";
-	strcpy(mz_file, "mined");
 	char key[33] = "\0";
 	bool key_provided = false;
+	bool run_optimise = false;
 
+	/* Check if parameters are present */
 	if (argc < 2)
 	{
 		printf("Missing parameters\n");
@@ -153,7 +126,8 @@ int main(int argc, char *argv[])
 	uint8_t *zsrc = calloc((MAX_FILE_SIZE + 1) * 2, 1);
 
 	struct mz_job job;
-	job.path = NULL;
+	*job.path = 0;
+	memset(job.mz_id, 0, 2);
 	job.mz = NULL;
 	job.mz_ln = 0;
 	job.id = NULL;
@@ -172,8 +146,10 @@ int main(int argc, char *argv[])
 	job.dump_keys = false;
 	job.orphan_rm = false;
 	job.key = NULL;
+	job.xkeys = NULL;
+	job.xkeys_ln = 0;
 
-	while ((option = getopt(argc, argv, ":p:k:c:x:K:l:C:Q:L:o:O:hv")) != -1)
+	while ((option = getopt(argc, argv, ":p:k:c:x:K:l:C:Q:L:o:O:X:hv")) != -1)
 	{
 		/* Check valid alpha is entered */
 		if (optarg)
@@ -188,7 +164,7 @@ int main(int argc, char *argv[])
 		switch (option)
 		{
 			case 'p':
-				strcpy(mz_file, optarg);
+				argcpy(job.path, optarg);
 				break;
 
 			case 'k':
@@ -204,44 +180,57 @@ int main(int argc, char *argv[])
 				}
 				break;
 
+			case 'X':
+				job.xkeys = file_read(optarg, &job.xkeys_ln);
+				break;
+
 			case 'c':
 				job.check_only = true;
-				mz_list(&job, optarg);
+				argcpy(job.path, optarg);
+				mz_list(&job);
 				break;
 
 			case 'x':
-				mz_extract(&job, optarg);
+				argcpy(job.path, optarg);
+				mz_extract(&job);
 				break;
 
 			case 'K':
 				job.dump_keys = true;
-				mz_list(&job, optarg);
+				argcpy(job.path, optarg);
+				mz_list(&job);
 				break;
 
 			case 'l':
-				mz_list(&job, optarg);
+				argcpy(job.path, optarg);
+				mz_list(&job);
 				break;
 
 			case 'C':
-				mz_mine_copyright(&job, optarg);
+				argcpy(job.path, optarg);
+				mz_mine_copyright(&job);
 				break;
 
 			case 'Q':
-				mz_mine_quality(&job, optarg);
+				argcpy(job.path, optarg);
+				mz_mine_quality(&job);
 				break;
 
 			case 'o':
-				mz_optimise(&job, optarg);
+				run_optimise = true;
+				argcpy(job.path, optarg);
 				break;
 
 			case 'O':
+				run_optimise = true;
 				job.orphan_rm = true;
-				mz_optimise(&job, optarg);
+				argcpy(job.path, optarg);
 				break;
 
 			case 'L':
 				load_licenses();
-				mz_mine_license(&job, optarg);
+				argcpy(job.path, optarg);
+				mz_mine_license(&job);
 				break;
 
 			case 'h':
@@ -281,8 +270,11 @@ int main(int argc, char *argv[])
 		invalid_argument = true;
 	}
 
+	/* Process -O and -o requests */
+	if (run_optimise) mz_optimise(&job);
+
 	/* Process -k request */
-	if (key_provided) mz_cat(&job, mz_file, key);
+	else if (key_provided) mz_cat(&job, key);
 
 	free(src);
 	free(zsrc);
