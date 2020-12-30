@@ -82,6 +82,7 @@ void progress(char *prompt, size_t count, size_t max, bool percent)
 */
 bool ldb_import_snippets(char *filename, bool erase_after)
 {
+
 	/* Table definition */
 	struct ldb_table oss_wfp;
 	strcpy(oss_wfp.db, "oss");
@@ -547,6 +548,7 @@ void mined_import(char *mined_path, bool skip_sort, bool erase)
 	if (is_dir(file_path))
 	{
 		printf("Importing snippets/\n");
+		printf("WFP IDs in blacklist: %lu\n", BLACKLISTED_WFP_LN / 4);
 		for (int i = 0; i < 256; i++)
 		{
 			sprintf(file_path, "%s/snippets/%02x.bin", mined_path, i);
