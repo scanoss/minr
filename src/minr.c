@@ -201,7 +201,7 @@ void mine(char *src, uint8_t *zsrc, struct mz_cache_item *mz_cache, char *tmp_co
 	uint64_t length = ftello64 (fp);
 
 	/* File discrimination check #3: Is it under/over the threshold */
-	if (length < min_file_size || length > MAX_FILE_SIZE)
+	if (length < min_file_size || length >= MAX_FILE_SIZE)
 	{
 		if (fp) fclose (fp);
 		return;
