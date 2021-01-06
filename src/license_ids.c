@@ -2,8 +2,8 @@
 
 #define MAX_LICENSE_ID 64
 #define MAX_LICENSE_TEXT 1024
-#define LICENSE_COUNT 103
 #include <string.h>
+#include <stdlib.h>
 
 typedef struct normalized_license
 {
@@ -12,10 +12,10 @@ typedef struct normalized_license
   int ln;
 } normalized_license;
 
-normalized_license licenses[LICENSE_COUNT];
-
-int load_licenses()
+normalized_license *load_licenses(int *count)
 {
+  normalized_license *licenses = calloc(103 + 1, sizeof(normalized_license));
+
   strcpy(licenses[0].spdx_id, "EPL-2.0");
   strcpy(licenses[0].text,"eclipsepubliclicensev20");
   licenses[0].ln = 23;
@@ -429,5 +429,6 @@ int load_licenses()
   licenses[102].ln = 16;
 
 
-  return 103;
+  *count = 103;
+  return licenses;
 }

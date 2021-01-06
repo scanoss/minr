@@ -40,7 +40,6 @@
 #include "mz.h"
 #include "quality.h"
 #include "mz_mine.h"
-#include "license_ids.h"
 
 void help()
 {
@@ -148,6 +147,8 @@ int main(int argc, char *argv[])
 	job.key = NULL;
 	job.xkeys = NULL;
 	job.xkeys_ln = 0;
+	job.licenses = NULL;
+	job.license_count = 0;
 
 	while ((option = getopt(argc, argv, ":p:k:c:x:K:l:C:Q:L:o:O:X:hv")) != -1)
 	{
@@ -228,9 +229,10 @@ int main(int argc, char *argv[])
 				break;
 
 			case 'L':
-				load_licenses();
+				job.licenses = load_licenses(&job.license_count);
 				argcpy(job.path, optarg);
 				mz_mine_license(&job);
+				free(job.licenses);
 				break;
 
 			case 'h':

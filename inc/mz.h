@@ -20,4 +20,5 @@ void mz_list(struct mz_job *job);
 void mz_extract(struct mz_job *job);
 void mz_optimise(struct mz_job *job);
 void mz_cat(struct mz_job *job, char *key);
+normalized_license *load_licenses();
 #endif

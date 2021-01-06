@@ -57,7 +57,17 @@
 #define BEST_PRACTICES_MAX_LINE_LN (36 * 2)
 #define BEST_PRACTICES_MAX_LINES_PER_COMMENT (27 * 2)
 
+#define MAX_LICENSE_ID 64
+#define MAX_LICENSE_TEXT 1024
+
 /* Structures */
+typedef struct normalized_license
+{
+  char spdx_id[MAX_LICENSE_ID];
+  char text[MAX_LICENSE_TEXT];
+  int ln;
+} normalized_license;
+
 struct mz_cache_item
 {
 	uint16_t length;
@@ -89,6 +99,8 @@ struct mz_job
 	uint8_t *key;      // File key to be printed via STDOUT (-k)
 	uint8_t *xkeys;    // List of keys to be excluded in (-o/-O)ptimisation
 	uint64_t xkeys_ln; // Length of xkeys
+	normalized_license *licenses; // Array of known license identifiers
+	int license_count;            // Number of known license identifiers
 };
 
 typedef enum { none, license, copyright, quality } metadata;
