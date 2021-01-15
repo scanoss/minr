@@ -29,7 +29,7 @@
 #include <string.h>
 
 /* Definitions */
-#define MINR_VERSION "2.0.8"
+#define MINR_VERSION "2.0.9"
 #define MZ_CACHE_SIZE 16384
 #define MZ_FILES 65536
 #define MZ_HEAD 18 // Head contains 14 bytes of the MD5 + 4 bytes for compressed SIZE
@@ -41,8 +41,9 @@
 #define MAX_PATH_LEN 4096
 #define MAX_FILE_SIZE (4 * 1048576)
 #define MAX_FILE_HEADER 4096
+#define MAX_CSV_LINE_LEN 1024
 #define BUFFER_SIZE 1048576
-#define MIN_FILE_SIZE 64 // files below this size will be ignored
+#define MIN_FILE_SIZE 256 // files below this size will be ignored
 #define DISCARD_PATH_IF_LONGER_THAN 1024
 #define MD5_LEN 16
 #define MD5_LEN_HEX 32
@@ -124,5 +125,5 @@ bool download(char *tmp_component, char *url, char *md5);
 void recurse(char *component_record, char *tmp_component, char *tmp_dir, bool all_extensions, bool exclude_mz, char* urlid, char *src, uint8_t *zsrc, struct mz_cache_item *mz_cache);
 bool check_dependencies(void);
 void minr_join(char *source, char *destination);
-
+void minr_join_mz(char *source, char *destination);
 #endif

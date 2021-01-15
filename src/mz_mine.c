@@ -70,7 +70,7 @@ bool mz_license_handler(struct mz_job *job)
 	mz_id_fill(job->md5, job->id);
 
 	/* Mine license */
-	mine_license(job->md5, job->data, job->data_ln, job->licenses, job->license_count);
+	mine_license(NULL, job->md5, job->data, job->data_ln, job->licenses, job->license_count);
 
 	return true;
 }

@@ -31,6 +31,7 @@
 #include "file.h"
 #include "hex.h"
 #include "blacklist.h"
+#include "join.h"
 
 double progress_timer = 0;
 
@@ -80,7 +81,7 @@ void progress(char *prompt, size_t count, size_t max, bool percent)
    containing wfp(3)+md5(16)+line(2). While the wfp is 4 bytes, the first 
    byte is the file name 
 */
-bool ldb_import_snippets(char *filename, bool erase_after)
+bool ldb_import_snippets(char *filename)
 {
 
 	/* Table definition */
@@ -159,6 +160,8 @@ bool ldb_import_snippets(char *filename, bool erase_after)
 	bool first_read = true;
 	uint32_t bytes_read = 0;
 
+	printf ("%s\n", filename);
+
 	while ((bytes_read = fread(buffer, 1, buffer_ln, in)) > 0)
 	{
 		for (int i = 0; (i + raw_ln) <= bytes_read; i += raw_ln)
@@ -221,7 +224,7 @@ bool ldb_import_snippets(char *filename, bool erase_after)
 	if (out) fclose (out);
 
 	fclose(in);
-	if (erase_after) unlink(filename);
+	unlink(filename);
 
 	free(record);
 	free(buffer);
@@ -231,7 +234,6 @@ bool ldb_import_snippets(char *filename, bool erase_after)
 	ldb_unlock();
 
 	return true;
-
 }
 
 /* Count number of comma delimited fields in data */
@@ -301,12 +303,15 @@ bool valid_hex(char *str, int bytes)
     return true;
 }
 
-bool ldb_import_csv(char *filename, char *table, int expected_fields, bool is_file_table, int min_line_size, int max_line_size, bool erase_after)
+bool ldb_import_csv(char *filename, char *table, int expected_fields, bool is_file_table)
 {
 	FILE * fp;
 	char * line = NULL;
 	size_t len = 0;
 	ssize_t lineln;
+
+	/* A CSV line should contain at least an MD5, a comma separator per field and a LF */
+	int min_line_size = 2 * MD5_LEN + expected_fields;
 
 	/* Node size is a 16-bit int */
 	int node_limit = 65536;
@@ -349,7 +354,12 @@ bool ldb_import_csv(char *filename, char *table, int expected_fields, bool is_fi
 	oss_bulk.tmp = false;
 
 	fp = fopen (filename, "r");
-	if (fp == NULL) return false;
+	if (fp == NULL)
+	{
+		unlink(filename);
+		return false;
+	}
+	printf ("%s\n", filename);
 
 	/* Lock DB */
 	ldb_lock ();
@@ -357,7 +367,7 @@ bool ldb_import_csv(char *filename, char *table, int expected_fields, bool is_fi
 	while ((lineln = getline (&line, &len, fp)) != -1)
 	{
 		/* Skip records with sizes out of range */
-		if (lineln > max_line_size || lineln < min_line_size)
+		if (lineln > MAX_CSV_LINE_LEN || lineln < min_line_size)
 		{
 			skipped++;
 			continue;
@@ -469,7 +479,7 @@ bool ldb_import_csv(char *filename, char *table, int expected_fields, bool is_fi
 	printf ("%u records imported, %u skipped\n", imported, skipped);
 
 	fclose (fp);
-	if (erase_after) unlink(filename);
+	unlink(filename);
 
 	if (line) free(line);
 	free(itemid);
@@ -486,7 +496,7 @@ bool ldb_import_csv(char *filename, char *table, int expected_fields, bool is_fi
 bool csv_sort(char *file_path, bool skip_sort)
 {
 	if (skip_sort) return true;
-	if (!file_size(file_path)) return false;
+	if (!file_size(file_path)) return true;
 
 	/* Assemble command */
 	char *command = malloc(MAX_ARG_LEN + 3 * MAX_PATH_LEN);
@@ -512,117 +522,182 @@ bool bin_sort(char * file_path, bool skip_sort)
 	return bsort(file_path);
 }
 
-void mined_import(char *mined_path, bool skip_sort, bool erase)
+
+/* Import components */
+void import_components(char *mined_path, bool skip_sort)
 {
-	char file_path[MAX_PATH_LEN] = "\0";
+	char path[MAX_PATH_LEN] = "\0";
+	sprintf(path, "%s/components.csv", mined_path);
 
-	/* Import components */
-	sprintf(file_path, "%s/components.csv", mined_path);
-	if (is_file(file_path))
+	if (is_file(path))
 	{
-		printf("Importing %s\n", file_path);
-		if (csv_sort(file_path, skip_sort))
+		if (csv_sort(path, skip_sort))
 			/* 5 fields expected (component id, vendor, component, version, url) */
-			ldb_import_csv(file_path, "component", 5, false, 2 * MD5_LEN + 5, 1024, erase);
+			ldb_import_csv(path, "component", 5, false);
 	}
+}
 
-	/* Import files */
-	sprintf(file_path, "%s/files", mined_path);
-	if (is_dir(file_path))
+/* Import files */
+void import_files(char *mined_path, bool skip_sort)
+{
+	char path[MAX_PATH_LEN] = "\0";
+	sprintf(path, "%s/files", mined_path);
+
+	if (is_dir(path))
 	{
-		printf("Importing files/\n");
 		for (int i = 0; i < 256; i++)
 		{
-			sprintf(file_path, "%s/files/%02x.csv", mined_path, i);
-			if (csv_sort(file_path, skip_sort))
+			sprintf(path, "%s/files/%02x.csv", mined_path, i);
+			if (csv_sort(path, skip_sort))
 			{
-				printf("Importing %s\n", file_path);
 				/* 3 fields expected (file id, component id, URL) */
-				ldb_import_csv(file_path, "file", 3, true, 2 * MD5_LEN + 3, 1024, erase);
+				ldb_import_csv(path, "file", 3, true);
 			}
 		}
 	}
+	sprintf(path, "%s/files", mined_path);
+	rmdir(path);
+}
 
-	/* Import snippets */
-	sprintf(file_path, "%s/snippets", mined_path);
-	if (is_dir(file_path))
+/* Import snippets */
+void import_snippets(char *mined_path, bool skip_sort)
+{
+	char path[MAX_PATH_LEN] = "\0";
+	sprintf(path, "%s/snippets", mined_path);
+	if (is_dir(path))
 	{
-		printf("Importing snippets/\n");
 		printf("WFP IDs in blacklist: %lu\n", BLACKLISTED_WFP_LN / 4);
 		for (int i = 0; i < 256; i++)
 		{
-			sprintf(file_path, "%s/snippets/%02x.bin", mined_path, i);
-			if (bin_sort(file_path, skip_sort))
+			sprintf(path, "%s/snippets/%02x.bin", mined_path, i);
+			if (bin_sort(path, skip_sort))
 			{
-				printf("Importing %s\n", file_path);
-				ldb_import_snippets(file_path, erase);
+				ldb_import_snippets(path);
 			}
 		}
 	}
+	sprintf(path, "%s/snippets", mined_path);
+	rmdir(path);
+}
 
-	/* Import licenses. 3 CSV fields expected (id, source, license) */
-	sprintf(file_path, "%s/licenses.csv", mined_path);
-	if (is_file(file_path))
+/* Import licenses. 3 CSV fields expected (id, source, license) */
+void import_licenses(char *mined_path, bool skip_sort)
+{
+	char path[MAX_PATH_LEN] = "\0";
+	sprintf(path, "%s/licenses.csv", mined_path);
+	if (is_file(path))
 	{
-		printf("Importing %s\n", file_path);
-		if (csv_sort(file_path, skip_sort))
+		if (csv_sort(path, skip_sort))
 		{
-			ldb_import_csv(file_path, "license", 3, false, 2 * MD5_LEN + 3, 1024, erase);
+			/* 3 CSV fields expected (id, source, license) */
+			ldb_import_csv(path, "license", 3, false);
 		}
 	}
+}
 
-	/* Import dependencies. 5 CSV fields expected (id, source, vendor, component, version) */
-	sprintf(file_path, "%s/dependencies.csv", mined_path);
-	if (is_file(file_path))
+/* Import dependencies */
+void import_dependencies(char *mined_path, bool skip_sort)
+{
+	char path[MAX_PATH_LEN] = "\0";
+	sprintf(path, "%s/dependencies.csv", mined_path);
+	if (is_file(path))
 	{
-		printf("Importing %s\n", file_path);
-		if (csv_sort(file_path, skip_sort))
+		if (csv_sort(path, skip_sort))
 		{
-			ldb_import_csv(file_path, "dependency", 5, false, 2 * MD5_LEN + 5, 1024, erase);
+			/* 5 CSV fields expected (id, source, vendor, component, version) */
+			ldb_import_csv(path, "dependency", 5, false);
 		}
 	}
+}
 
-	/* Import copyrights. 3 CSV fields expected (id, source, copyright statement) */
-	sprintf(file_path, "%s/copyrights.csv", mined_path);
-	if (is_file(file_path))
+/* Import copyrights */
+void import_copyrights(char *mined_path, bool skip_sort)
+{
+	char path[MAX_PATH_LEN] = "\0";
+	sprintf(path, "%s/copyrights.csv", mined_path);
+	if (is_file(path))
 	{
-		printf("Importing %s\n", file_path);
-		if (csv_sort(file_path, skip_sort))
+		if (csv_sort(path, skip_sort))
 		{
-			ldb_import_csv(file_path, "copyright", 3, false, 2 * MD5_LEN + 3, 1024, erase);
+			/* 3 CSV fields expected (id, source, copyright statement) */
+			ldb_import_csv(path, "copyright", 3, false);
 		}
 	}
+}
 
-	/* Import vulnerabilities. 10 CSV fields expected (id, source, vendor/component, version from, version patched, CVE, advisory ID (Github/CPE), Severity, Date, Summary) */
-	sprintf(file_path, "%s/vulnerabilities.csv", mined_path);
-	if (is_file(file_path))
+/* Import vulnerabilities */
+void import_vulnerabilities(char *mined_path, bool skip_sort)
+{
+	char path[MAX_PATH_LEN] = "\0";
+	sprintf(path, "%s/vulnerabilities.csv", mined_path);
+	if (is_file(path))
 	{
-		printf("Importing %s\n", file_path);
-		if (csv_sort(file_path, skip_sort))
+		if (csv_sort(path, skip_sort))
 		{
-			ldb_import_csv(file_path, "vulnerability", 10, false, 2 * MD5_LEN + 10, 1024, erase);
+			/* 10 CSV fields expected (id, source, vendor/component, version from, 
+				version patched, CVE, advisory ID (Github/CPE), Severity, Date, Summary) */
+			ldb_import_csv(path, "vulnerability", 10, false);
 		}
 	}
+}
 
-	/* Import quality. 3 CSV fields expected (id, source, value) */
-	sprintf(file_path, "%s/quality.csv", mined_path);
-	if (is_file(file_path))
+/* Import quality */
+void import_quality(char *mined_path, bool skip_sort)
+{
+	char path[MAX_PATH_LEN] = "\0";
+	sprintf(path, "%s/quality.csv", mined_path);
+	if (is_file(path))
 	{
-		printf("Importing %s\n", file_path);
-		if (csv_sort(file_path, skip_sort))
+		if (csv_sort(path, skip_sort))
 		{
-			ldb_import_csv(file_path, "quality", 3, false, 2 * MD5_LEN + 4, 1024, erase);
+			/* 3 CSV fields expected (id, source, value) */
+			ldb_import_csv(path, "quality", 3, false);
 		}
 	}
+}
 
-	/* Import popularity. 7 CSV fields expected (id, 3 date_stamps, 3 integers) */
-	sprintf(file_path, "%s/popularity.csv", mined_path);
-	if (is_file(file_path))
+/* Import popularity */
+void import_popularity(char *mined_path, bool skip_sort)
+{
+	char path[MAX_PATH_LEN] = "\0";
+	sprintf(path, "%s/popularity.csv", mined_path);
+	if (is_file(path))
 	{
-		printf("Importing %s\n", file_path);
-		if (csv_sort(file_path, skip_sort))
+		if (csv_sort(path, skip_sort))
 		{
-			ldb_import_csv(file_path, "popularity", 7, false, 2 * MD5_LEN + 7, 1024, erase);
+			/* 7 CSV fields expected (id, 3 date_stamps, 3 integers) */
+			ldb_import_csv(path, "popularity", 7, false);
 		}
 	}
+}
+
+void import_mz(char *mined_path)
+{
+	char path[MAX_PATH_LEN] = "\0";
+	sprintf(path, "%s/sources", mined_path);
+	if (is_dir(path))
+	{
+		minr_join_mz(mined_path, "/var/lib/ldb/oss");
+	}
+}
+
+void mined_import(char *mined_path, bool skip_sort)
+{
+	/* Import .bin files */
+	import_snippets(mined_path, skip_sort);
+
+	/* Import CSVs */
+	import_components(mined_path, skip_sort);
+	import_files(mined_path, skip_sort);
+	import_licenses(mined_path, skip_sort);
+	import_dependencies(mined_path, skip_sort);
+	import_copyrights(mined_path, skip_sort);
+	import_copyrights(mined_path, skip_sort);
+	import_vulnerabilities(mined_path, skip_sort);
+
+	/* Import MZ archives */
+	import_mz(mined_path);
+
+	/* Remove mined directory */
+	rmdir(mined_path);
 }

@@ -109,7 +109,7 @@ void mz_wfp_extract(char *path)
 	}
 
 	/* Read entire .mz file to memory */
-	char *src = malloc(MAX_FILE_SIZE);
+	char *src = malloc(MAX_FILE_SIZE + 1);
 	uint8_t *mz = malloc(size);	
 	lseek64 (mzfile, 0, SEEK_SET);
 	if (!read(mzfile, mz, size)) printf("Warning: error reading %s\n", path);
@@ -139,15 +139,17 @@ void mz_wfp_extract(char *path)
 
 		else
 		{
+			src_ln--;
+
 			/* Check resulting file integrity */
-			calc_md5(src, src_ln - 1, actual_md5);
+			calc_md5(src, src_ln, actual_md5);
 			if (memcmp(md5, actual_md5, 16))
 			{
 				printf("Record failed verification\n");
 				exit(EXIT_FAILURE);
 			}
 
-			extract_wfp(md5, src, src_ln - 1, true);
+			extract_wfp(md5, src, src_ln, true);
 		}
 
 		/* Increment ptr */

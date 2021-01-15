@@ -198,6 +198,38 @@ void csv_join(char *source, char *destination)
 	unlink(source);
 }
 
+/* Join mz sources */
+void minr_join_mz(char *source, char *destination)
+{
+	char src_path[MAX_PATH_LEN] = "\0";
+	char dst_path[MAX_PATH_LEN] = "\0";
+
+	for (int i = 0; i < 65536; i++)
+	{
+		sprintf(src_path, "%s/sources/%04x.mz", source, i);
+		sprintf(dst_path, "%s/sources/%04x.mz", destination, i);
+		bin_join(src_path, dst_path, false);
+	}
+	sprintf(src_path, "%s/sources", source);
+	rmdir(src_path);
+}
+
+/* Join snippets */
+void minr_join_snippets(char *source, char *destination)
+{
+	char src_path[MAX_PATH_LEN] = "\0";
+	char dst_path[MAX_PATH_LEN] = "\0";
+
+	for (int i = 0; i < 256; i++)
+	{
+		sprintf(src_path, "%s/snippets/%02x.bin", source, i);
+		sprintf(dst_path, "%s/snippets/%02x.bin", destination, i);
+		bin_join(src_path, dst_path, true);
+	}
+	sprintf(src_path, "%s/snippets", source);
+	rmdir(src_path);
+}
+
 void minr_join(char *source, char *destination)
 {
 	if (!is_dir(source) || !is_dir(destination))
@@ -231,24 +263,10 @@ void minr_join(char *source, char *destination)
 	rmdir(src_path);
 
 	/* Join snippets */
-	for (int i = 0; i < 256; i++)
-	{
-		sprintf(src_path, "%s/snippets/%02x.bin", source, i);
-		sprintf(dst_path, "%s/snippets/%02x.bin", destination, i);
-		bin_join(src_path, dst_path, true);
-	}
-	sprintf(src_path, "%s/snippets", source);
-	rmdir(src_path);
+	minr_join_snippets(source, destination);
 
-	/* Join mz sources */
-	for (int i = 0; i < 65536; i++)
-	{
-		sprintf(src_path, "%s/sources/%04x.mz", source, i);
-		sprintf(dst_path, "%s/sources/%04x.mz", destination, i);
-		bin_join(src_path, dst_path, false);
-	}
-	sprintf(src_path, "%s/sources", source);
-	rmdir(src_path);
+	/* Join MZ */
+	minr_join_mz(source, destination);
 
 	/* Join licenses */
 	sprintf(src_path, "%s/licenses.csv", source);

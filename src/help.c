@@ -70,6 +70,7 @@ void show_help ()
 	printf("Importing mined/ data into the LDB:\n");
 	printf("\n");
 	printf("-i DIR  Import the mined DIRectory into the LDB database\n");
+	printf("        (data in DIR is wiped after imported)\n");
 
 	printf("Misc options:\n");
 	printf("\n");
@@ -78,7 +79,6 @@ void show_help ()
 	printf("-o      Set the output directory (defaults to current directory)\n");
 	printf("-s      Skip sorting of .csv and .bin files before importing (-i)\n");
 	printf("-T      Set absolute temporary directory (defaults to /dev/shm)\n");
-	printf("-e      Erase source files after imported\n");
 	printf("-v      Display version and exit\n");
 	printf("-h      Display this help and exit\n");
 	printf("\n");
