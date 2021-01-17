@@ -694,6 +694,7 @@ void mined_import(char *mined_path, bool skip_sort)
 	import_copyrights(mined_path, skip_sort);
 	import_copyrights(mined_path, skip_sort);
 	import_vulnerabilities(mined_path, skip_sort);
+	import_quality(mined_path, skip_sort);
 
 	/* Import MZ archives */
 	import_mz(mined_path);

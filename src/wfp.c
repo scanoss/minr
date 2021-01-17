@@ -160,4 +160,3 @@ void mz_wfp_extract(char *path)
 	free(mz);
 	free(src);
 }
-

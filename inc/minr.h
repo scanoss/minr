@@ -29,7 +29,7 @@
 #include <string.h>
 
 /* Definitions */
-#define MINR_VERSION "2.0.9"
+#define MINR_VERSION "2.0.10"
 #define MZ_CACHE_SIZE 16384
 #define MZ_FILES 65536
 #define MZ_HEAD 18 // Head contains 14 bytes of the MD5 + 4 bytes for compressed SIZE
@@ -52,6 +52,7 @@
 #define LDB_KEY_LN 4
 #define MAX_COPYRIGHT_LEN 256
 #define MAX_NONALNUM_IN_COPYRIGHT 10 // Maximum amount of non alphanumeric bytes accepted in a copyright statement
+#define MIN_ALNUM_IN_COPYRIGHT 3 // Minimum amount of alphanumeric bytes required in a copyright statement
 
 /* Set best practices to twice the average (calculated over entire OSSKB) */
 #define BEST_PRACTICES_MAX_LINES (210 * 2)
@@ -104,26 +105,62 @@ struct mz_job
 	int license_count;            // Number of known license identifiers
 };
 
+struct minr_job
+{
+	char path[MAX_PATH_LEN];
+	char url[MAX_ARG_LEN];
+	char urlid[MD5_LEN * 2 + 1];
+	char fileid[MD5_LEN * 2 + 1];
+	char metadata[MAX_ARG_LEN];
+	char mined_path[MAX_ARG_LEN]; // Location of output mined/ directory
+	char tmp_dir[MAX_ARG_LEN];    // Temporary directory for decompressing files
+	bool all_extensions;
+	bool exclude_mz;
+	bool exclude_detection;
+
+	// minr -i
+	char import_path[MAX_PATH_LEN];
+	bool skip_sort; // Do not sort before importing
+
+	// minr -f -t
+	char join_from[MAX_PATH_LEN];
+	char join_to[MAX_PATH_LEN];
+
+	// minr -z
+	char mz[MAX_PATH_LEN];
+
+	// Memory allocation
+	char *src; // for uncompressed source
+	uint8_t *zsrc; // for compressed source
+	uint64_t src_ln;
+	uint64_t zsrc_ln;
+	struct mz_cache_item *mz_cache; // for mz cache
+
+	normalized_license *licenses; // Array of known license identifiers
+	int license_count;            // Number of known license identifiers
+};
+
 typedef enum { none, license, copyright, quality } metadata;
 
 /* Pointers */
 uint8_t *buffer;
 uint32_t *hashes, *lines;
 
-/* Paths */
-extern char mined_path[MAX_ARG_LEN];
-extern char tmp_path[MAX_PATH_LEN];
-
 /* File descriptor arrays */
 FILE *out_component;
 FILE **out_file;
 int *out_snippet;
 
+extern char tmp_path[MAX_ARG_LEN];
 extern int min_file_size;
 
-bool download(char *tmp_component, char *url, char *md5);
-void recurse(char *component_record, char *tmp_component, char *tmp_dir, bool all_extensions, bool exclude_mz, char* urlid, char *src, uint8_t *zsrc, struct mz_cache_item *mz_cache);
 bool check_dependencies(void);
-void minr_join(char *source, char *destination);
+bool download(struct minr_job *job);
+void recurse(struct minr_job *job, char *path);
+void minr_join(struct minr_job *job);
 void minr_join_mz(char *source, char *destination);
+void mine_license(char *mined_path, char *md5, char *src, uint64_t src_ln, normalized_license *licenses, int license_count);
+void mine_copyright(char *mined_path, char *md5, char *src, uint64_t src_ln);
+void mine_quality(char *mined_path, char *md5, char *src, long size);
+
 #endif

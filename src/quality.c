@@ -26,7 +26,7 @@
 #include "license.h"
 #include "quality.h"
 
-void mine_quality(char *md5, char *src, long size)
+void mine_quality(char *mined_path, char *md5, char *src, long size)
 {
 	/* Skip files below MIN_FILE_SIZE */
 	if (size < MIN_FILE_SIZE) return;
@@ -99,7 +99,21 @@ void mine_quality(char *md5, char *src, long size)
 		if (!(tab_start && space_start)) score++;
 		if (spdx_tag) score++;
 
-		printf("%s,0,%d\n", md5, score);
+		/* Assemble csv path */
+		char csv_path[MAX_PATH_LEN] = "\0";
+		if (mined_path)
+		{
+			strcpy(csv_path, mined_path);
+			strcat(csv_path, "/quality.csv");
+		}
+
+		/* Output quality score */
+		if (*csv_path)
+		{
+			FILE *fp = fopen(csv_path, "a");
+			fprintf(fp, "%s,0,%d\n", md5, score);
+			fclose(fp);
+		}
+		else printf("%s,0,%d\n", md5, score);
 	}
 }
-

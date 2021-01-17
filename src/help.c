@@ -32,7 +32,7 @@ void show_help ()
 	printf("Minr is used to data mine a URL or file. Information is saved in a mined/ directory for\n");
 	printf("importation into the SCANOSS Knowledgebase. Minr collects metadata and code snippet\n");
 	printf("fingerprints for the provided URL or file. Output is saved in different data structures\n");
-	printf("in ./mined/ or in the directory specified with -o which.\n");
+	printf("in ./mined/ or in the directory specified.\n");
 	printf("\n");
 
 	printf("Mining URLs: Minr performs download, extraction, indexing and archive of files for the provided URL.\n");
@@ -46,6 +46,7 @@ void show_help ()
 	printf("\n");
 	printf("-a     Process all files, regardless of their extensions (default: off)\n");
 	printf("-x     Exclude .mz generation (do not keep a copy of the original source code)\n");
+	printf("-X     Exclude metadata detection (license, copyright, quality, etc)\n");
 	printf("\n");
 
 	printf("Mining snippet WFP: Minr extracts snippet fingerprint from all code in a .mz arhive (mined/sources/)\n");
@@ -76,7 +77,7 @@ void show_help ()
 	printf("\n");
 
 	printf("-l DIR  Auto-generates license_ids.c (used by unmz for license detection) from DIR\n");
-	printf("-o      Set the output directory (defaults to current directory)\n");
+	printf("-o      Set location for the mined/ output directory (defaults to current directory)\n");
 	printf("-s      Skip sorting of .csv and .bin files before importing (-i)\n");
 	printf("-T      Set absolute temporary directory (defaults to /dev/shm)\n");
 	printf("-v      Display version and exit\n");

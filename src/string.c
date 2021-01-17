@@ -58,6 +58,19 @@ int count_nonalnum(char *str)
 	return count;
 }
 
+/* Count number of alphanumeric characters in string until EOL */
+int count_alnum(char *str)
+{
+	char *s = str;
+	int count = 0;
+	while (*s && *s != '\n')
+	{
+		if (isalnum(*s)) count++;
+		s++;
+	}
+	return count;
+}
+
 /* Count number of chars in str until EOL */
 int linelen(char *str)
 {

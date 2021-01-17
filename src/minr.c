@@ -32,8 +32,20 @@
 
 /* Paths */
 char mined_path[MAX_ARG_LEN] = ".";
-char tmp_path[MAX_PATH_LEN] = "/dev/shm";
+char tmp_path[MAX_ARG_LEN] = "/dev/shm";
 int min_file_size = MIN_FILE_SIZE;
+
+uint32_t execute_command(char *command)
+{
+	/* Execute command */
+	FILE *fp = popen(command, "r");
+	if (fp == NULL)
+	{
+		fprintf(stderr, "Error executing %s\n", command);
+		exit(1);
+	}
+	return pclose(fp);
+}
 
 char *decompress(char *url)
 {
@@ -77,13 +89,13 @@ char *decompress(char *url)
 }
 
 /* Returns path to the downloadad tmp file */
-char *downloaded_file(char *tmp_component)
+char *downloaded_file(char *tmp_dir)
 {
 	DIR *dp;
 	struct dirent *ent;
 	char *out = calloc(MAX_PATH_LEN, 1);
 
-	if ((dp = opendir(tmp_component)) != NULL)
+	if ((dp = opendir(tmp_dir)) != NULL)
 	{
 		bool found=false;
 
@@ -92,7 +104,7 @@ char *downloaded_file(char *tmp_component)
 			sprintf(out,"%s", ent->d_name);
 			if (not_a_dot(out))
 			{
-				sprintf(out,"%s/%s", tmp_component, ent->d_name);
+				sprintf(out,"%s/%s", tmp_dir, ent->d_name);
 				found=true;
 				break;
 			}
@@ -103,53 +115,57 @@ char *downloaded_file(char *tmp_component)
 
 	}
 	else
-		printf("Cannot access %s\n", tmp_component);
+		printf("Cannot access %s\n", tmp_dir);
 
 	closedir(dp);
 	return out;
 
 }
 
-/* Download "url" into "tmp_component" */
-bool download(char *tmp_component, char *url, char *md5)
+/* Calculate the MD5 of tmp_file and load it into job->urlid */
+void load_urlid(struct minr_job *job, char *tmp_file)
 {
-	FILE *fp;
+	uint8_t *bin_md5 = file_md5(tmp_file);
+	char *hex_md5 = bin_to_hex(bin_md5, 16);
+	strcpy(job->urlid, hex_md5);
+	free(hex_md5);
+	free(bin_md5);
+}
 
+/* Launch command to either download (url) or copy (file) target */
+uint32_t download_file(struct minr_job *job)
+{
 	/* Assemble download/copy command */
-	char *command = malloc(MAX_PATH_LEN);
-	if (is_file(url))
-		sprintf(command, "cp \"%s\" \"%s\"", url, tmp_component);
+	char command[MAX_PATH_LEN] = "\0";
+	if (is_file(job->url))
+		sprintf(command, "cp \"%s\" \"%s\"", job->url, job->tmp_dir);
 	else
-		sprintf(command, "cd %s && curl -LsJkO -f \"%s\"", tmp_component, url);
+		sprintf(command, "cd %s && curl -LsJkO -f \"%s\"", job->tmp_dir, job->url);
 
-	/* Execute command */
-	fp = popen(command, "r");
-	free(command);
-	if (fp == NULL)
-	{
-		perror("Curl error");
-		exit(1);
-	}
+	return execute_command(command);
+}
 
-	uint32_t response = pclose(fp);
+/* Download and process URL */
+bool download(struct minr_job *job)
+{
+	/* Download file */
+	uint32_t response = download_file(job);
 	if (response != 0)
 	{
-		printf("Curl returned %d\n", response);
+		fprintf(stderr, "Curl returned %d\n", response);
 		return false;
 	}
 
-	char *tmp_file = downloaded_file(tmp_component);
+	/* Get the name of the downloaded file inside tmp_dir */
+	char *tmp_file = downloaded_file(job->tmp_dir);
 	if (!*tmp_file)
 	{
 		free(tmp_file);
 		return false;
 	}
 
-	uint8_t *bin_md5 = file_md5(tmp_file);
-	char *hex_md5 = bin_to_hex(bin_md5, 16);
-	strcpy(md5, hex_md5);
-	free(hex_md5);
-	free(bin_md5);
+	/* Get urlid */
+	load_urlid(job, tmp_file);
 
 	/* Expand file */
 	char *unzipcommand = decompress(tmp_file);
@@ -157,10 +173,10 @@ bool download(char *tmp_component, char *url, char *md5)
 	/* Assemble directory change and unzip command */
 	if (*unzipcommand)
 	{
-		char *command = malloc(MAX_PATH_LEN);
+		char command[MAX_PATH_LEN] = "\0";
 		
 		/* cd into tmp */
-		sprintf(command, "cd %s", tmp_component);
+		sprintf(command, "cd %s", job->tmp_dir);
 
 		/* add the unzip command */		
 		sprintf(command + strlen(command), " ; %s ", unzipcommand);
@@ -168,16 +184,7 @@ bool download(char *tmp_component, char *url, char *md5)
 		/* add the downloaded file name */
 		sprintf(command + strlen(command), " \"%s\" > /dev/null", tmp_file);
 
-		fp = popen(command, "r");
-		free(command);
-
-		if (fp == NULL)
-		{
-			perror("Error decompressing");
-			free(tmp_file);
-			exit(1);
-		}
-		pclose(fp);
+		execute_command(command);
 		remove(tmp_file);
 	}
 
@@ -188,20 +195,19 @@ bool download(char *tmp_component, char *url, char *md5)
 }
 
 /* Mine the given path */
-void mine(char *src, uint8_t *zsrc, struct mz_cache_item *mz_cache, char *tmp_component, char *path, bool all_extensions, bool exclude_mz, char *urlid)
+void mine(struct minr_job *job, char *path)
 {
-
 	/* File discrimination check #2: Is the extension blacklisted or path not wanted? */
-	if (!all_extensions) if (blacklisted_extension(path)) return;
+	if (!job->all_extensions) if (blacklisted_extension(path)) return;
 	if (unwanted_path(path)) return;
 
 	/* Open file and obtain file length */
 	FILE *fp = fopen(path, "rb");
-	fseeko64 (fp, 0, SEEK_END);
-	uint64_t length = ftello64 (fp);
+	fseeko64(fp, 0, SEEK_END);
+	job->src_ln = ftello64(fp);
 
 	/* File discrimination check #3: Is it under/over the threshold */
-	if (length < min_file_size || length >= MAX_FILE_SIZE)
+	if (job->src_ln < min_file_size || job->src_ln >= MAX_FILE_SIZE)
 	{
 		if (fp) fclose (fp);
 		return;
@@ -209,61 +215,65 @@ void mine(char *src, uint8_t *zsrc, struct mz_cache_item *mz_cache, char *tmp_co
 
 	/* Read file contents into src and close it */
 	fseeko64(fp, 0, SEEK_SET);
-	if (!fread(src, 1, length, fp)) printf("Error reading %s\n", path);
-	src[length] = 0;
+	if (!fread(job->src, 1, job->src_ln, fp)) printf("Error reading %s\n", path);
+	job->src[job->src_ln] = 0;
 	fclose(fp);
 
 	/* Calculate MD5 */
 	uint8_t md5[16] = "\0";
-	calc_md5(src, length, md5);
+	calc_md5(job->src, job->src_ln, md5);
 
 	/* File discrimination check: Unwanted header? */
-	if (unwanted_header(src)) return;
+	if (unwanted_header(job->src)) return;
 
 	/* Add to .mz */
-	if (!exclude_mz)
+	if (!job->exclude_mz)
 	{
 		/* File discrimination check: Binary? */
-		int src_ln = strlen(src);
-		if (length == src_ln) mz_add(md5, src, length, true, zsrc, mz_cache);
+		int src_ln = strlen(job->src);
+		if (job->src_ln == src_ln) mz_add(job->mined_path, md5, job->src, job->src_ln, true, job->zsrc, job->mz_cache);
+
+	}
+
+	/* Convert md5 to hex */
+	char *hex_md5 = bin_to_hex(md5, 16);
+
+	/* Mine more */
+	if (!job->exclude_detection)
+	{
+		mine_license(job->mined_path, hex_md5, job->src, job->src_ln, job->licenses, job->license_count);
+		mine_quality(job->mined_path, hex_md5, job->src, job->src_ln);
+		mine_copyright(job->mined_path, hex_md5, job->src, job->src_ln);
 	}
 
 	/* Output file information */
-	char *hex_md5 = bin_to_hex(md5, 16);
-	fprintf(out_file[*md5], "%s,%s,%s\n", hex_md5 + 2, urlid, path + strlen(tmp_component) + 1);
+	fprintf(out_file[*md5], "%s,%s,%s\n", hex_md5 + 2, job->urlid, path + strlen(job->tmp_dir) + 1);
 	free(hex_md5);
 }
 
 /* Recursive directory reading */
-void recurse(char *component_record, char *tmp_component, char *tmp_dir, bool all_extensions, bool exclude_mz, char* urlid, char *src, uint8_t *zsrc, struct mz_cache_item *mz_cache)
+void recurse(struct minr_job *job, char *path)
 {
-
 	DIR *dp;
 	struct dirent *entry;
 
-	if (!(dp = opendir(tmp_dir))) return;
+	if (!(dp = opendir(path))) return;
 
 	while ((entry = readdir(dp)))
 	{
-		if (valid_path(tmp_dir, entry->d_name))
+		if (valid_path(path, entry->d_name))
 		{
-			char *path = malloc(MAX_PATH_LEN);
-			sprintf(path, "%s/%s", tmp_dir, entry->d_name);
-			if (entry->d_type == DT_DIR && not_a_dot(entry->d_name)) 
-				recurse(component_record, tmp_component, path, all_extensions, exclude_mz, urlid, src, zsrc, mz_cache);
+			/* Assemble path */
+			char tmp_path[MAX_PATH_LEN] = "\0";
+			sprintf(tmp_path, "%s/%s", path, entry->d_name);
+
+			/* Recurse if dir */
+			if (entry->d_type == DT_DIR && not_a_dot(entry->d_name))
+				recurse(job, tmp_path);
 
 			/* File discrimination check #1: Is this an actual file? */
-			else if (is_file (path))
-			{
-				/* If it is the first file, then add the component record first */
-				if (*component_record)
-				{
-					fprintf(out_component, "%s\n",component_record);
-					*component_record = 0;
-				}
-				mine(src, zsrc, mz_cache, tmp_component, path, all_extensions, exclude_mz, urlid);
-			}
-			free(path);
+			else if (is_file(tmp_path))
+				mine(job, tmp_path);
 		}
 	}
 

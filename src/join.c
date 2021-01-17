@@ -230,8 +230,11 @@ void minr_join_snippets(char *source, char *destination)
 	rmdir(src_path);
 }
 
-void minr_join(char *source, char *destination)
+void minr_join(struct minr_job *job)
 {
+	char *source = job->join_from;
+	char *destination = job->join_to;
+
 	if (!is_dir(source) || !is_dir(destination))
 	{
 		printf("Source and destination must be mined/ directories\n");

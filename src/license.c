@@ -232,15 +232,23 @@ char *mine_license_header(char *src, uint64_t src_ln, normalized_license *licens
 	 1 = Declared in file with SPDX-License-Identifier
 	 2 = Detected in header
 	 */
-void mine_license(char *csv_path, char *md5, char *src, uint64_t src_ln, normalized_license *licenses, int license_count)
+void mine_license(char *mined_path, char *md5, char *src, uint64_t src_ln, normalized_license *licenses, int license_count)
 {
 	FILE *fp;
+
+	/* Assemble csv path */
+	char csv_path[MAX_PATH_LEN] = "\0";
+	if (mined_path)
+	{
+		strcpy(csv_path, mined_path);
+		strcat(csv_path, "/licenses.csv");
+	}
 
 	/* SPDX license tag detection */
 	char *license = mine_spdx_license_identifier(src, src_ln);
 	if (license)
 	{
-		if (csv_path)
+		if (*csv_path)
 		{
 			fp = fopen(csv_path, "a");
 			fprintf(fp, "%s,1,%s\n", md5, license);
@@ -255,7 +263,7 @@ void mine_license(char *csv_path, char *md5, char *src, uint64_t src_ln, normali
 		license = mine_license_header(src, src_ln, licenses, license_count);
 		if (license)
 		{
-			if (csv_path)
+			if (*csv_path)
 			{
 				fp = fopen(csv_path, "a");
 				fprintf(fp, "%s,2,%s\n", md5, license);
@@ -265,7 +273,3 @@ void mine_license(char *csv_path, char *md5, char *src, uint64_t src_ln, normali
 		}
 	}
 }
-
-
-
-

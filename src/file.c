@@ -75,7 +75,7 @@ bool not_a_dot (char *path)
 }
 
 /* Open 256 "file" descriptors */
-FILE **open_file ()
+FILE **open_file (char *mined_path)
 {
 	char *path = calloc(MAX_PATH_LEN, 1);
 

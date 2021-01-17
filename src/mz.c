@@ -148,7 +148,7 @@ bool mz_exists_in_cache(uint8_t *md5, struct mz_cache_item *mz_cache)
 	return false;
 }
 
-bool mz_exists_in_disk(uint8_t *md5)
+bool mz_exists_in_disk(uint8_t *md5, char *mined_path)
 {
 	char path[MAX_PATH_LEN];
 
@@ -197,14 +197,14 @@ bool mz_exists_in_disk(uint8_t *md5)
 }
 
 
-bool mz_exists(uint8_t *md5, struct mz_cache_item *mz_cache)
+bool mz_exists(char *mined_path, uint8_t *md5, struct mz_cache_item *mz_cache)
 {
 	if (mz_exists_in_cache(md5, mz_cache)) return true;
 
-	return mz_exists_in_disk(md5);
+	return mz_exists_in_disk(md5, mined_path);
 }
 
-void mz_write(int mzid, uint8_t *data, int datalen)
+void mz_write(char *mined_path, int mzid, uint8_t *data, int datalen)
 {
 	char path[MAX_PATH_LEN];
 
@@ -241,9 +241,9 @@ void mz_write(int mzid, uint8_t *data, int datalen)
    MD5(14) + COMPRESSED_SRC_SIZE(4) + COMPRESSED_SRC(N)
    The first two bytes of the md5 are in the actual XXXX.mz filename
    */
-void mz_add(uint8_t *md5, char *src, int src_ln, bool check, uint8_t *zsrc, struct mz_cache_item *mz_cache)
+void mz_add(char *mined_path, uint8_t *md5, char *src, int src_ln, bool check, uint8_t *zsrc, struct mz_cache_item *mz_cache)
 {
-	if (check) if (mz_exists(md5, mz_cache)) return;
+	if (check) if (mz_exists(mined_path, md5, mz_cache)) return;
 
 	uint64_t zsrc_ln = compressBound(src_ln + 1);
 
@@ -263,14 +263,14 @@ void mz_add(uint8_t *md5, char *src, int src_ln, bool check, uint8_t *zsrc, stru
 	/* If it won't fit in the cache, write it directly */
 	if (mzlen > MZ_CACHE_SIZE)
 	{
-		mz_write(mzid, zsrc, mzlen);
+		mz_write(mined_path, mzid, zsrc, mzlen);
 	}
 	else
 	{
 		/* Flush cache and add to cache */
 		if (mz_cache[mzid].length + mzlen > MZ_CACHE_SIZE)
 		{
-			mz_write(mzid, zsrc, mzlen);
+			mz_write(mined_path, mzid, zsrc, mzlen);
 			mz_cache[mzid].length = mzlen;
 			memcpy(mz_cache[mzid].data, zsrc, mzlen);
 		}
@@ -285,13 +285,13 @@ void mz_add(uint8_t *md5, char *src, int src_ln, bool check, uint8_t *zsrc, stru
 }
 
 /* Write all cached mz records */
-void mz_flush(struct mz_cache_item *mz_cache)
+void mz_flush(char *mined_path, struct mz_cache_item *mz_cache)
 {
 	for (int i = 0; i < MZ_FILES; i++)
 	{
 		if (mz_cache[i].length)
 		{
-			mz_write(i, mz_cache[i].data, mz_cache[i].length);
+			mz_write(mined_path, i, mz_cache[i].data, mz_cache[i].length);
 			mz_cache[i].length = 0;
 		}
 	}

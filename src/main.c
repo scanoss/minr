@@ -46,62 +46,68 @@
 #include "wfp.h"
 #include "import.h"
 
-void url_download(char *target, char *metadata, char *tmp_path, bool all_extensions, bool exclude_mz)
+void component_add(struct minr_job *job)
 {
-	char *src = calloc(MAX_FILE_SIZE + 1, 1);
-	uint8_t *zsrc = calloc((MAX_FILE_SIZE + 1) * 2, 1);
-	struct mz_cache_item *mz_cache = NULL;
+	char path[MAX_PATH_LEN]="\0";
+	sprintf(path, "%s/components.csv", job->mined_path);
+
+	FILE *fp = fopen(path, "a");
+	if (!fp)
+	{
+		printf("Cannot create file %s\n", path);
+		exit(EXIT_FAILURE);
+	}
+	fprintf(fp, "%s,%s,%s\n", job->urlid, job->metadata, job->url);
+	fclose(fp);
+}
+
+void rm_tmpdir(struct minr_job *job)
+{
+		/* Assemble command */
+		char command[MAX_PATH_LEN] = "\0";
+		sprintf(command, "rm -rf %s", job->tmp_dir);
+
+		/* Execute command */
+		FILE *fp = popen(command, "r");
+		pclose(fp);
+}
+
+void url_download(struct minr_job *job)
+{
+	job->src = calloc(MAX_FILE_SIZE + 1, 1);
+	job->zsrc = calloc((MAX_FILE_SIZE + 1) * 2, 1);
 
 	/* Reserve memory for snippet fingerprinting */
-	if (!exclude_mz)
+	if (!job->exclude_mz)
 	{
 		buffer = malloc(BUFFER_SIZE * 256);
 		hashes = malloc(MAX_FILE_SIZE);
 		lines  = malloc(MAX_FILE_SIZE);
 
 		/* Reserve memory for mz_cache for mined/sources (65536 files) */
-		mz_cache = malloc(MZ_FILES * sizeof(struct mz_cache_item));
-		for (int i = 0; i < MZ_FILES; i++) mz_cache[i].length = 0;
+		job->mz_cache = malloc(MZ_FILES * sizeof(struct mz_cache_item));
+		for (int i = 0; i < MZ_FILES; i++) job->mz_cache[i].length = 0;
 	}
 
 	/* Open all file handlers in mined/files (256 files) */
-	out_file = open_file();
-
-	char *tmp = calloc(MAX_PATH_LEN,1);
-	sprintf(tmp, "%s/components.csv", mined_path);
-	out_component = fopen(tmp, "a");
-	if (!out_component)
-	{
-		printf("Cannot create file %s\n", tmp);
-		free(tmp);
-		exit(EXIT_FAILURE);
-	}
-	free(tmp);
+	out_file = open_file(job->mined_path);
 
 	/* Create temporary component directory */
-	char *tmp_component = malloc(MAX_PATH_LEN);
-	sprintf(tmp_component,"%s/minr-%d", tmp_path, getpid());
-	mkdir(tmp_component, 0755);
+	sprintf(job->tmp_dir,"%s/minr-%d", tmp_path, getpid());
+	mkdir(job->tmp_dir, 0755);
 
 	/* urlid will contain the hex md5 of the entire component */
-	char *urlid = calloc(33,1);
-	bool downloaded = download(tmp_component, target, urlid);
+	bool downloaded = download(job);
 
 	/* Process downloaded/expanded directory */
-	if (is_dir(tmp_component) && downloaded)
+	if (is_dir(job->tmp_dir) && downloaded)
 	{
-		char *component_record = malloc(MAX_PATH_LEN);
-		sprintf(component_record, "%s,%s,%s",urlid, metadata, target);
+		/* Add info to components.csv */
+		component_add(job);
 
-		recurse(component_record, tmp_component, tmp_component, all_extensions, exclude_mz, urlid, src, zsrc, mz_cache);
-		FILE *fp;
-		char *command = malloc(MAX_PATH_LEN);
-		sprintf(command, "rm -rf %s", tmp_component);
-		fp = popen(command, "r");
-		free(command);
-		fclose(fp);
+		recurse(job, job->tmp_dir);
 
-		free(component_record);
+		rm_tmpdir(job);
 	}
 
 	else
@@ -110,50 +116,69 @@ void url_download(char *target, char *metadata, char *tmp_path, bool all_extensi
 		exit(EXIT_FAILURE);
 	}
 
-	free(urlid);
-	free(tmp_component);
-
-	fclose(out_component);
-
 	/* Close files */
 	for (int i=0; i < 256; i++) fclose(out_file[i]);
 
-	if (!exclude_mz)
+	if (!job->exclude_mz)
 	{
 		/* Flush mz cache */
-		mz_flush(mz_cache);
+		mz_flush(job->mined_path, job->mz_cache);
 
-		free(mz_cache);
+		free(job->mz_cache);
 		free(buffer);
 		free(hashes);
 		free(lines);
 	}
 
 	free(out_file);
-	free(src);
-	free(zsrc);
+	free(job->src);
+	free(job->zsrc);
 }
 
 int main(int argc, char *argv[])
 {
 	if (!check_dependencies()) exit(1);
 	int exit_code = EXIT_SUCCESS;
-	bool all_extensions = false;
-	bool exclude_mz = false;
-	bool skip_sort = false;
 
-	char import_path[MAX_PATH_LEN]="\0";
-	char join_from[MAX_PATH_LEN] = "\0";
-	char join_to[MAX_PATH_LEN] = "\0";
-	char metadata[MAX_PATH_LEN] = "\0";
-	char url[MAX_PATH_LEN] = "\0";
-	char mz[MAX_PATH_LEN] = "\0";
+	/* Configuration defaults */
+	strcpy(tmp_path, "/dev/shm");
+	struct minr_job job;
+	strcpy(job.mined_path, ".");
+
+	// Minr job
+	*job.path = 0;
+	*job.metadata = 0;
+	*job.url = 0;
+	*job.urlid = 0;
+	job.all_extensions = false;
+	job.exclude_mz = false;
+	job.exclude_detection = false;
+
+	// Import job
+	job.skip_sort = false;
+	*job.import_path=0;
+
+	// Join job
+	*job.join_from=0;
+	*job.join_to=0;
+
+	// Snippet mine job
+	*job.mz=0;
+	job.mz_cache = NULL;
+
+	// Tmp data
+	job.src_ln = 0;
+	job.zsrc_ln = 0;
+
+	// License info
+	job.license_count = 0;
+
 
 	/* Parse arguments */
 	int option;
 	bool invalid_argument = false;
 
-	while ((option = getopt(argc, argv, ":o:m:g:w:t:f:T:i:l:z:u:d:xseahv")) != -1)
+	while ((option = getopt(argc, argv, ":o:m:g:w:t:f:T:i:l:z:u:d:xXseahv")) != -1)
 	{
 		/* Check valid alpha is entered */
 		if (optarg)
@@ -168,8 +193,8 @@ int main(int argc, char *argv[])
 		switch (option)
 		{
 			case 'o':
-				strcpy(mined_path, optarg);
-				if (!create_dir(mined_path))
+				strcpy(job.mined_path, optarg);
+				if (!create_dir(job.mined_path))
 				{
 					invalid_argument = true;
 					printf("Cannot create output directory\n");
@@ -189,11 +214,11 @@ int main(int argc, char *argv[])
 				break;
 
 			case 't':
-				strcpy(join_to, optarg);
+				strcpy(job.join_to, optarg);
 				break;
 
 			case 'f':
-				strcpy(join_from, optarg);
+				strcpy(job.join_from, optarg);
 				break;
 
 			case 'T':
@@ -201,7 +226,7 @@ int main(int argc, char *argv[])
 				break;
 
 			case 'i':
-				strcpy(import_path, optarg);
+				strcpy(job.import_path, optarg);
 				break;
 
 			case 'l':
@@ -209,27 +234,31 @@ int main(int argc, char *argv[])
 				exit(EXIT_SUCCESS);
 
 			case 'z':
-				strcpy(mz, optarg);
+				strcpy(job.mz, optarg);
 				break;
 
 			case 'u':
-				strcpy(url, optarg);
+				strcpy(job.url, optarg);
 				break;
 
 			case 'd':
-				strcpy(metadata, optarg);
+				strcpy(job.metadata, optarg);
 				break;
 
 			case 's':
-				skip_sort = true;
+				job.skip_sort = true;
 				break;
 
 			case 'x':
-				exclude_mz = true;
+				job.exclude_mz = true;
+				break;
+
+			case 'X':
+				job.exclude_detection = true;
 				break;
 
 			case 'a':
-				all_extensions = true;
+				job.all_extensions = true;
 				break;
 
 			case 'h':
@@ -267,20 +296,20 @@ int main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
-	strcat(mined_path, "/mined");
+	strcat(job.mined_path, "/mined");
 
 	/* Import mined/ into the LDB */
-	if (*import_path) mined_import(import_path, skip_sort);
+	if (*job.import_path) mined_import(job.import_path, job.skip_sort);
 
 	/* Join mined/ structures */
-	else if (*join_from && *join_to) minr_join(argv[2], argv[4]);
+	else if (*job.join_from && *job.join_to) minr_join(&job);
 
 	/* Process mz file */
-	else if (*mz)
+	else if (*job.mz)
 	{
-		if (!is_dir(mz))
+		if (!is_dir(job.mz))
 		{
-			printf("Cannot access directory %s\n", mz);
+			printf("Cannot access directory %s\n", job.mz);
 			exit(EXIT_FAILURE);
 		}
 
@@ -289,13 +318,13 @@ int main(int argc, char *argv[])
 		lines  = malloc(MAX_FILE_SIZE);
 
 		/* Open all file handlers in mined/snippets (256 files) */
-		out_snippet = open_snippet(mz);
+		out_snippet = open_snippet(job.mz);
 
 		/* Import snippets */
 		for (int i = 0; i < MZ_FILES; i++)
 		{
-			char *file_path = calloc(2 * MAX_PATH_LEN, 1);
-			sprintf(file_path, "%s/sources/%04x.mz", mz, i);
+			char *file_path = calloc(MAX_PATH_LEN + 1, 1);
+			sprintf(file_path, "%s/sources/%04x.mz", job.mz, i);
 			if (file_size(file_path))
 			{
 				printf("%s\n", file_path);
@@ -314,16 +343,22 @@ int main(int argc, char *argv[])
 	}
 
 	/* Mine URL */
-	else if (*metadata && *url)
+	else if (*job.metadata && *job.url)
 	{
 
-		if (!create_dir(mined_path))
+		if (!create_dir(job.mined_path))
 		{
-			printf("Cannot create output structure in %s\n", mined_path);
+			printf("Cannot create output structure in %s\n", job.mined_path);
 			exit(EXIT_FAILURE);
 		}
 
-		url_download(url, metadata, tmp_path, all_extensions, exclude_mz);
+		/* Load licenses */
+		job.licenses = load_licenses(&job.license_count);
+
+		/* Mine URL */
+		url_download(&job);
+
+		free(job.licenses);
 
 	}
 	else

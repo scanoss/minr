@@ -30,6 +30,7 @@ bool is_dir(char *path);
 bool not_a_dot(char *path);
 bool strn_icmp(char *a, char *b, int len);
 int count_nonalnum(char *str);
+int count_alnum(char *str);
 int linelen(char *str);
 
 bool string_starts_with(char *str, char *start)
@@ -71,6 +72,7 @@ bool is_copyright(char *src)
 
 	if (linelen(src) > MAX_COPYRIGHT_LEN) return false;
 
+	if (count_alnum(src + tag_len) < MIN_ALNUM_IN_COPYRIGHT) return false;
 	if (count_nonalnum(src + tag_len) > MAX_NONALNUM_IN_COPYRIGHT) return false;
 
 	return true;
@@ -102,13 +104,21 @@ char *extract_copyright(char *txt)
 }
 
 /* Extract a copyright statement from src */
-void mine_copyright(char *md5, char *src, uint64_t src_ln)
+void mine_copyright(char *mined_path, char *md5, char *src, uint64_t src_ln)
 {
 	/* Max bytes/lines to analyze */
 	int max_bytes = MAX_FILE_HEADER;
 	if (src_ln < max_bytes) max_bytes = src_ln;
 	int max_lines = 20;
 	int line = 0;
+
+	/* Assemble csv path */
+	char csv_path[MAX_PATH_LEN] = "\0";
+	if (mined_path)
+	{
+		strcpy(csv_path, mined_path);
+		strcat(csv_path, "/copyrights.csv");
+	}
 
 	char *s = src;
 	while (*s)
@@ -119,7 +129,14 @@ void mine_copyright(char *md5, char *src, uint64_t src_ln)
 			char *copyright = extract_copyright(s);
 			if (copyright)
 			{
-				printf("%s,1,%s\n", md5, copyright);
+				if (*csv_path)
+				{
+					FILE *fp = fopen(csv_path, "a");
+					fprintf(fp, "%s,1,%s\n", md5, copyright);
+					fclose(fp);
+				}
+				else printf("%s,1,%s\n", md5, copyright);
+
 				free(copyright);
 				return;
 			}
