@@ -28,7 +28,7 @@
 #include "blacklist.h"
 #include "mz.h"
 
-/* Check if job->id is found in job->xkeys */
+/* Check if job->id is found in job->xkeys (see -X) */
 bool mz_id_excluded(struct mz_job *job)
 {
 	if (!job->xkeys_ln) return false;
@@ -86,7 +86,13 @@ bool mz_optimise_handler(struct mz_job *job)
 	job->data[job->data_ln] = 0;
 
 	/* Check if data contains unwanted header */
-	if (unwanted_header(job->data))
+	if (job->data_ln < MIN_FILE_SIZE)
+	{
+		job->min_c++;
+	}
+
+	/* Check if data contains unwanted header */
+	else if (unwanted_header(job->data))
 	{
 		job->bll_c++;
 	}
@@ -97,7 +103,7 @@ bool mz_optimise_handler(struct mz_job *job)
 		job->dup_c++;
 	}
 
-	/* Check if file exists in the LDB */
+	/* Check if mz_id is to be excluded (see -X) */
 	else if (mz_id_excluded(job))
 	{
 		job->exc_c++;
@@ -140,6 +146,7 @@ void mz_optimise(struct mz_job *job)
 	if (job->dup_c) printf("%u duplicated files eliminated\n", job->dup_c);
 	if (job->orp_c) printf("%u orphan files eliminated\n", job->orp_c);
 	if (job->bll_c) printf("%u blacklisted files eliminated\n", job->bll_c);
+	if (job->min_c) printf("%u small files eliminated\n", job->min_c);
 	if (job->exc_c) printf("%u keys excluded\n", job->exc_c);
 
 	free(job->mz);

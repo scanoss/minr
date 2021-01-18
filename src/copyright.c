@@ -100,6 +100,8 @@ char *extract_copyright(char *txt)
 	copyright[len] = 0;
 	if (copyright[len - 1] == '\n') copyright[len - 1] = 0;
 
+	char_replace(copyright, ',', ';');
+
 	return copyright;
 }
 

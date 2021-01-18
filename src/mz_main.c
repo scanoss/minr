@@ -140,6 +140,7 @@ int main(int argc, char *argv[])
 	job.dup_c = 0;
 	job.bll_c = 0;
 	job.orp_c = 0;
+	job.min_c = 0;
 	job.md5[32] = 0;
 	job.check_only = false;
 	job.dump_keys = false;

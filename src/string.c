@@ -25,6 +25,19 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <ctype.h>
+
+/* Replace character */
+void char_replace(char *string, char replace, char with)
+{
+	char *s = string;
+	while (*s)
+	{
+		if (*s == replace) *s = with;
+		s++;
+	}
+}
+
+/* Case insensitive string comparison */
 bool strn_icmp(char *a, char *b, int len)
 {
 	for (int i = 0; i < len; i++) if (tolower(a[i]) != tolower(b[i])) return false;

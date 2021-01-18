@@ -95,6 +95,7 @@ struct mz_job
 	uint32_t bll_c;    // Blacklisted counter
 	uint32_t orp_c;    // Orphan file counter
 	uint32_t exc_c;    // Excluded file counter
+	uint32_t min_c;    // Under MIN_FILE_SIZE file counter
 	bool check_only;   // Perform only an mz validation (without list output)
 	bool dump_keys;    // Dump unique keys to STDOUT
 	bool orphan_rm;    // Remove orphans
