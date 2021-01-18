@@ -281,5 +281,25 @@ void minr_join(struct minr_job *job)
 	sprintf(dst_path, "%s/dependencies.csv", destination);
 	csv_join(src_path, dst_path);
 
+	/* Join quality */
+	sprintf(src_path, "%s/quality.csv", source);
+	sprintf(dst_path, "%s/quality.csv", destination);
+	csv_join(src_path, dst_path);
+
+	/* Join copyright */
+	sprintf(src_path, "%s/copyrights.csv", source);
+	sprintf(dst_path, "%s/copyrights.csv", destination);
+	csv_join(src_path, dst_path);
+
+	/* Join quality */
+	sprintf(src_path, "%s/quality.csv", source);
+	sprintf(dst_path, "%s/quality.csv", destination);
+	csv_join(src_path, dst_path);
+
+	/* Join vulnerabilities */
+	sprintf(src_path, "%s/vulnerabilities.csv", source);
+	sprintf(dst_path, "%s/vulnerabilities.csv", destination);
+	csv_join(src_path, dst_path);
+
 	rmdir(source);
 }
