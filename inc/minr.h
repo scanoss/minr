@@ -6,7 +6,7 @@
  *
  * Global minr declarations
  *
- * Copyright (C) 2018-2020 SCANOSS.COM
+ * Copyright (C) 2018-2021 SCANOSS.COM
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,12 +29,7 @@
 #include <string.h>
 
 /* Definitions */
-#define MINR_VERSION "2.0.10"
-#define MZ_CACHE_SIZE 16384
-#define MZ_FILES 65536
-#define MZ_HEAD 18 // Head contains 14 bytes of the MD5 + 4 bytes for compressed SIZE
-#define MZ_MD5 14
-#define MZ_SIZE 4
+#define MINR_VERSION "2.1.0"
 #define FILE_FILES 256
 #define MAX_ARG_LEN 1024
 #define MIN_FILE_REC_LEN 70
@@ -69,42 +64,6 @@ typedef struct normalized_license
   char text[MAX_LICENSE_TEXT];
   int ln;
 } normalized_license;
-
-struct mz_cache_item
-{
-	uint16_t length;
-	uint8_t data[MZ_CACHE_SIZE];
-}; 
-
-struct mz_job
-{
-	char path[MAX_ARG_LEN]; // Path to mz file
-	uint8_t *mz;       // Pointer to entire mz file contents
-	uint64_t mz_ln;    // MZ file length
-	uint8_t mz_id[2];  // MZ file ID (first two bytes of MD5s)
-	uint8_t *id;       // MZ record ID
-	uint64_t ln;       // MZ record length
-	char md5[33];      // MZ record hex ID (MD5)
-	char *data;        // Pointer to uncompressed data
-	uint64_t data_ln;  // Uncompressed data length
-	uint8_t *zdata;    // Pointer to compressed data
-	uint64_t zdata_ln; // Compressed data length
-	void *ptr;         // Pointer to temporary data
-	uint64_t ptr_ln;   // Temporary data length
-	uint32_t dup_c;    // Duplicated counter
-	uint32_t bll_c;    // Blacklisted counter
-	uint32_t orp_c;    // Orphan file counter
-	uint32_t exc_c;    // Excluded file counter
-	uint32_t min_c;    // Under MIN_FILE_SIZE file counter
-	bool check_only;   // Perform only an mz validation (without list output)
-	bool dump_keys;    // Dump unique keys to STDOUT
-	bool orphan_rm;    // Remove orphans
-	uint8_t *key;      // File key to be printed via STDOUT (-k)
-	uint8_t *xkeys;    // List of keys to be excluded in (-o/-O)ptimisation
-	uint64_t xkeys_ln; // Length of xkeys
-	normalized_license *licenses; // Array of known license identifiers
-	int license_count;            // Number of known license identifiers
-};
 
 struct minr_job
 {
@@ -163,5 +122,6 @@ void minr_join_mz(char *source, char *destination);
 void mine_license(char *mined_path, char *md5, char *src, uint64_t src_ln, normalized_license *licenses, int license_count);
 void mine_copyright(char *mined_path, char *md5, char *src, uint64_t src_ln);
 void mine_quality(char *mined_path, char *md5, char *src, long size);
+normalized_license *load_licenses(int *count);
 
 #endif

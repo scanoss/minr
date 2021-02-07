@@ -4,7 +4,7 @@
  *
  * Data importation into LDB Knowledge Base
  *
- * Copyright (C) 2018-2020 SCANOSS.COM
+ * Copyright (C) 2018-2021 SCANOSS.COM
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -273,10 +273,10 @@ bool file_id_to_bin(char *line, uint8_t first_byte, bool got_1st_byte, uint8_t *
 			*itemid = first_byte;
 
 			/* Convert remaining 15 bytes */
-			hex_to_bin(line, MD5_LEN_HEX - 2, itemid + 1);
+			ldb_hex_to_bin(line, MD5_LEN_HEX - 2, itemid + 1);
 
 			/* Convert componentid if needed (file table) */
-			if (is_file_table) hex_to_bin(line + (MD5_LEN_HEX - 2 + 1), MD5_LEN_HEX, field2);
+			if (is_file_table) ldb_hex_to_bin(line + (MD5_LEN_HEX - 2 + 1), MD5_LEN_HEX, field2);
 		}
 	}
 
@@ -284,10 +284,10 @@ bool file_id_to_bin(char *line, uint8_t first_byte, bool got_1st_byte, uint8_t *
 	else
 	{
 		/* Convert item id */
-		hex_to_bin(line, 32, itemid);
+		ldb_hex_to_bin(line, 32, itemid);
 
 		/* Convert component id if needed (file table) */
-		if (is_file_table) hex_to_bin(field_n(2, line), 32, field2);
+		if (is_file_table) ldb_hex_to_bin(field_n(2, line), 32, field2);
 	}
 
 	return true;
@@ -338,7 +338,7 @@ bool ldb_import_csv(char *filename, char *table, int expected_fields, bool is_fi
 	uint8_t first_byte = 0;
 	bool got_1st_byte = false;
 	if (valid_hex(basename(filename), 2)) got_1st_byte = true;
-	hex_to_bin(basename(filename), 2, &first_byte);
+	ldb_hex_to_bin(basename(filename), 2, &first_byte);
 
 	/* Create table if it doesn't exist */
 	if (!ldb_database_exists("oss")) ldb_create_database("oss");
@@ -665,7 +665,7 @@ void import_popularity(char *mined_path, bool skip_sort)
 	{
 		if (csv_sort(path, skip_sort))
 		{
-			/* 7 CSV fields expected (id, 3 date_stamps, 3 integers) */
+			/* 7 CSV fields expected (id, created, latest, updated, star, watch, fork */
 			ldb_import_csv(path, "popularity", 7, false);
 		}
 	}
@@ -695,6 +695,7 @@ void mined_import(char *mined_path, bool skip_sort)
 	import_copyrights(mined_path, skip_sort);
 	import_vulnerabilities(mined_path, skip_sort);
 	import_quality(mined_path, skip_sort);
+	import_popularity(mined_path, skip_sort);
 
 	/* Import MZ archives */
 	import_mz(mined_path);

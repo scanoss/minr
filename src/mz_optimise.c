@@ -4,7 +4,7 @@
  *
  * SCANOSS .mz optimisation functions
  *
- * Copyright (C) 2018-2020 SCANOSS.COM
+ * Copyright (C) 2018-2021 SCANOSS.COM
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@
 #include "ldb.h"
 #include "hex.h"
 #include "blacklist.h"
-#include "mz.h"
+#include "ldb.h"
 
 /* Check if job->id is found in job->xkeys (see -X) */
 bool mz_id_excluded(struct mz_job *job)
@@ -60,7 +60,7 @@ bool mz_id_exists_in_ldb(struct mz_job *job)
 	oss_file.tmp = false;
 
 	uint8_t file_id[16];
-	hex_to_bin(job->md5, 4, file_id);
+	ldb_hex_to_bin(job->md5, 4, file_id);
 	memcpy(file_id + 2, job->id, MZ_MD5);
 
 	if (!ldb_key_exists(oss_file, file_id)) return false;
@@ -129,7 +129,7 @@ void mz_optimise(struct mz_job *job)
 {
 	/* Extract first two MD5 bytes from the file name */
 	memcpy(job->md5, basename(job->path), 4);
-	hex_to_bin(job->md5, 4, job->mz_id);
+	ldb_hex_to_bin(job->md5, 4, job->mz_id);
 
 	/* Read source mz file into memory */
 	job->mz = file_read(job->path, &job->mz_ln);

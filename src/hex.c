@@ -4,7 +4,7 @@
  *
  * Hexadecimal and numeric conversions
  *
- * Copyright (C) 2018-2020 SCANOSS.COM
+ * Copyright (C) 2018-2021 SCANOSS.COM
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -78,22 +78,3 @@ void uint32_reverse(uint8_t *data)
 	data[1] = data[2];
 	data[2] = tmp;
 }
-
-uint32_t h2d(uint32_t h)
-{
-    if (h >= '0' && h <= '9')
-        return h - 48;
-    else if (h >= 'a' && h <= 'f')
-        return h - 97 + 10;
-    else if (h >= 'A' && h <= 'F')
-        return h - 65 + 10;
-    return 0;
-}
-
-void hex_to_bin(char *hex, uint32_t len, uint8_t *out)
-{
-    uint32_t ptr = 0;
-    for (uint32_t i = 0; i < len; i += 2)
-        out[ptr++] = 16 * h2d(hex[i]) + h2d(hex[i + 1]);
-}
-

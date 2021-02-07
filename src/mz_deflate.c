@@ -4,7 +4,7 @@
  *
  * MZ decompression, validation and listing functions
  *
- * Copyright (C) 2018-2020 SCANOSS.COM
+ * Copyright (C) 2018-2021 SCANOSS.COM
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,8 +21,8 @@
  */
 #include <libgen.h>
 
+#include "ldb.h"
 #include "minr.h"
-#include "mz.h"
 #include "md5.h"
 #include "hex.h"
 
@@ -47,7 +47,7 @@ bool mz_dump_keys_handler(struct mz_job *job)
 	/* Fill MD5 with item id */
 	mz_id_fill(job->md5, job->id);
 
-	hex_to_bin(job->md5, MD5_LEN * 2, job->ptr + job->ptr_ln);
+	ldb_hex_to_bin(job->md5, MD5_LEN * 2, job->ptr + job->ptr_ln);
 	job->ptr_ln += MD5_LEN;
 
 	return true;
@@ -151,7 +151,7 @@ void mz_cat(struct mz_job *job, char *key)
 
 	/* Save path and key on job */
 	job->key = calloc(MD5_LEN, 1);
-	hex_to_bin(key, MD5_LEN * 2, job->key);	
+	ldb_hex_to_bin(key, MD5_LEN * 2, job->key);
 
 	/* Read source mz file into memory */
 	job->mz = file_read(mz_path, &job->mz_ln);

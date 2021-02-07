@@ -4,7 +4,7 @@
  *
  * Meta functions to mine data from MZ archives
  *
- * Copyright (C) 2018-2020 SCANOSS.COM
+ * Copyright (C) 2018-2021 SCANOSS.COM
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 
 #include <libgen.h>
 #include "minr.h"
-#include "mz.h"
+#include "ldb.h"
 #include "copyright.h"
 #include "quality.h"
 #include "license.h"

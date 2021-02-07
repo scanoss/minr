@@ -1,9 +1,9 @@
 CWD=$(shell pwd)
 CC=gcc
 # Enable all compiler warnings. 
-CCFLAGS=-g -Wall -std=gnu99 -I./inc -I./external/inc  -D_LARGEFILE64_SOURCE
+CCFLAGS=-g -Wall -std=gnu99 -I./inc -I./external/inc -D_LARGEFILE64_SOURCE
 # Linker flags
-LDFLAGS=-lz -L. -lldb -lpthread -lcrypto
+LDFLAGS= -lz -lldb -lpthread -lcrypto
 
 BUILD_DIR =build
 SOURCES=$(wildcard src/*.c) $(wildcard src/**/*.c)  $(wildcard external/*.c) $(wildcard external/**/*.c)

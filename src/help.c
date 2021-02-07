@@ -4,7 +4,7 @@
  *
  * Minr help
  *
- * Copyright (C) 2018-2020 SCANOSS.COM
+ * Copyright (C) 2018-2021 SCANOSS.COM
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -83,7 +83,7 @@ void show_help ()
 	printf("-v      Display version and exit\n");
 	printf("-h      Display this help and exit\n");
 	printf("\n");
-	printf("Copyright (C) 2018-2020 SCANOSS.COM\n");
+	printf("Copyright (C) 2018-2021 SCANOSS.COM\n");
 	printf("\n");
 }
 

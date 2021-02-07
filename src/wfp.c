@@ -4,7 +4,7 @@
  *
  * Functions handling wfp extraction
  *
- * Copyright (C) 2018-2020 SCANOSS.COM
+ * Copyright (C) 2018-2021 SCANOSS.COM
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,13 +24,13 @@
 #include <stdbool.h>
 #include <fcntl.h>
 #include <zlib.h>
+#include "ldb.h"
 #include "minr.h"
 #include "md5.h"
 #include "blacklist.h"
 #include "winnowing.h"
 #include "hex.h"
 #include "wfp.h"
-
 
 void extract_wfp(uint8_t *md5, char *src, int length, bool check_mz)
 {
@@ -84,79 +84,55 @@ void extract_wfp(uint8_t *md5, char *src, int length, bool check_mz)
 				printf("Warning: error writing snippet sector\n");
 }
 
+bool mz_wfp_extract_handler(struct mz_job *job)
+{
+	/* Fill MD5 with item id */
+	memcpy(job->ptr + 2, job->id, MZ_MD5);
+
+	/* Decompress */
+	mz_deflate(job);
+
+	job->data[job->data_ln] = 0;
+	extract_wfp(job->ptr, job->data, job->data_ln, true);
+
+	return true;
+}
+
 /* Extracts wfps from the given mz file path */
 void mz_wfp_extract(char *path)
 {
-	/* Open mz file */
-	int mzfile = open(path, O_RDONLY);
-	if (mzfile < 0)
-	{
-		printf("Cannot open file %s\n", path);
-		exit(EXIT_FAILURE);
-	}
+	char *src = calloc(MAX_FILE_SIZE + 1, 1);
+	uint8_t *zsrc = calloc((MAX_FILE_SIZE + 1) * 2, 1);
+	uint8_t mzid[MD5_LEN] = "\0";
+	uint8_t mzkey[MD5_LEN] = "\0";
+
+	/* Create job structure */
+	struct mz_job job;
+	strcpy(job.path, path);
+	memset(job.mz_id, 0, 2);
+	job.mz = NULL;
+	job.mz_ln = 0;
+	job.id = mzid;
+	job.ln = 0;
+	job.data = src;        // Uncompressed data
+	job.data_ln = 0;
+	job.zdata = zsrc;      // Compressed data
+	job.zdata_ln = 0;
+	job.md5[MD5_LEN * 2 + 1] = 0;
+	job.key = NULL;
+	job.ptr = mzkey;
 
 	/* Extract first two MD5 bytes from the file name */
-	uint8_t actual_md5[16] = "\0";
-	uint8_t md5[16] = "\0";
-	hex_to_bin(basename(path), 4, md5);
+	memcpy(job.md5, basename(job.path), 4);
+	ldb_hex_to_bin(job.md5, 4, job.ptr);
 
-	/* Obtain file size */
-	uint64_t size = lseek64(mzfile, 0, SEEK_END);
-	if (!size)
-	{
-		printf("File %s is empty\n", path);
-		exit(EXIT_FAILURE);
-	}
+	/* Read source mz file into memory */
+	job.mz = file_read(job.path, &job.mz_ln);
 
-	/* Read entire .mz file to memory */
-	char *src = malloc(MAX_FILE_SIZE + 1);
-	uint8_t *mz = malloc(size);	
-	lseek64 (mzfile, 0, SEEK_SET);
-	if (!read(mzfile, mz, size)) printf("Warning: error reading %s\n", path);
-	close(mzfile);
+	/* Launch wfp extraction */
+	mz_parse(&job, mz_wfp_extract_handler);
 
-	/* Recurse mz contents */
-	uint64_t ptr = 0;
-	int corrupted = 0;
-	while (ptr < size)
-	{
-		/* Read 14 remaining bytes of the MD5 */
-		memcpy(md5 + 2, mz + ptr, 14);
-
-		/* Read compressed data length */
-		uint32_t tmpln;
-		memcpy((uint8_t*)&tmpln, mz + ptr + 14, 4);
-
-		/* Uncompress data */
-		uint64_t zsrc_ln = tmpln;
-		uint64_t src_ln = 1024 * 1024 * 4;
-
-		/* Uncompress */
-		if (Z_OK != uncompress((uint8_t *)src, &src_ln, mz + ptr + MZ_HEAD, zsrc_ln))
-		{
-			corrupted++;
-		}
-
-		else
-		{
-			src_ln--;
-
-			/* Check resulting file integrity */
-			calc_md5(src, src_ln, actual_md5);
-			if (memcmp(md5, actual_md5, 16))
-			{
-				printf("Record failed verification\n");
-				exit(EXIT_FAILURE);
-			}
-
-			extract_wfp(md5, src, src_ln, true);
-		}
-
-		/* Increment ptr */
-		ptr += (MZ_HEAD + zsrc_ln);
-	}
-	if (corrupted) fprintf(stderr, "Warning! %d files corrupted\n", corrupted);
-	close(mzfile);
-	free(mz);
+	free(job.mz);
 	free(src);
+	free(zsrc);
 }
