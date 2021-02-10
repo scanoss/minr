@@ -29,7 +29,7 @@
 #include <string.h>
 
 /* Definitions */
-#define MINR_VERSION "2.1.0"
+#define MINR_VERSION "2.1.1"
 #define FILE_FILES 256
 #define MAX_ARG_LEN 1024
 #define MIN_FILE_REC_LEN 70
@@ -67,6 +67,8 @@ typedef struct normalized_license
 
 struct minr_job
 {
+	uint8_t md5[MD5_LEN];
+	uint8_t pair_md5[MD5_LEN]; // vendor/component md5
 	char path[MAX_PATH_LEN];
 	char url[MAX_ARG_LEN];
 	char urlid[MD5_LEN * 2 + 1];
@@ -113,6 +115,7 @@ int *out_snippet;
 
 extern char tmp_path[MAX_ARG_LEN];
 extern int min_file_size;
+extern char *ATTRIBUTION_NOTICES[];
 
 bool check_dependencies(void);
 bool download(struct minr_job *job);

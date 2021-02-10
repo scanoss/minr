@@ -23,7 +23,9 @@
 /* Returns the command needed to decompress the "url" */
 #include "minr.h"
 #include <dirent.h>
+#include <libgen.h>
 #include <sys/stat.h>
+#include <zlib.h>
 #include "file.h"
 #include "md5.h"
 #include "hex.h"
@@ -34,6 +36,49 @@
 char mined_path[MAX_ARG_LEN] = ".";
 char tmp_path[MAX_ARG_LEN] = "/dev/shm";
 int min_file_size = MIN_FILE_SIZE;
+
+char *ATTRIBUTION_NOTICES[] =
+{
+"COPYING",
+"COPYING.lib",
+"LICENSE",
+"LICENSE.md",
+"LICENSE.txt",
+"LICENSES",
+"NOTICE",
+NULL
+};
+
+/* Return true if file in path is an attribution notice */
+bool is_attribution_notice(char *path)
+{
+	char *file = basename(path);
+	if (!file) return true;
+	if (!*file) return true;
+
+	int i=0;
+	while (ATTRIBUTION_NOTICES[i])
+		if (stricmp(ATTRIBUTION_NOTICES[i++], file))
+			return true;
+
+	return false;
+}
+
+/* Returns the pair md5 of "component/vendor" */
+void component_vendor_md5(char *component, char *vendor, uint8_t *out)
+{
+	char pair[MAX_PATH_LEN] = "\0";
+	if (strlen(component) + strlen(vendor) + 2 >= 1024) return;
+
+	/* Calculate pair_md5 */
+	sprintf(pair, "%s/%s", component, vendor);
+	for (int i = 0; i < strlen(pair); i++) pair[i] = tolower(pair[i]);
+	MD5((uint8_t *)pair, strlen(pair), out);
+
+	/* Log pair_md5 */
+	char hex[MD5_LEN * 2 + 1] = "\0";
+	ldb_bin_to_hex(out, MD5_LEN, hex);
+}
 
 uint32_t execute_command(char *command)
 {
@@ -194,13 +239,8 @@ bool download(struct minr_job *job)
 	return true;
 }
 
-/* Mine the given path */
-void mine(struct minr_job *job, char *path)
+bool load_file(struct minr_job *job, char *path)
 {
-	/* File discrimination check #2: Is the extension blacklisted or path not wanted? */
-	if (!job->all_extensions) if (blacklisted_extension(path)) return;
-	if (unwanted_path(path)) return;
-
 	/* Open file and obtain file length */
 	FILE *fp = fopen(path, "rb");
 	fseeko64(fp, 0, SEEK_END);
@@ -210,7 +250,7 @@ void mine(struct minr_job *job, char *path)
 	if (job->src_ln < min_file_size || job->src_ln >= MAX_FILE_SIZE)
 	{
 		if (fp) fclose (fp);
-		return;
+		return false;
 	}
 
 	/* Read file contents into src and close it */
@@ -220,8 +260,143 @@ void mine(struct minr_job *job, char *path)
 	fclose(fp);
 
 	/* Calculate MD5 */
-	uint8_t md5[16] = "\0";
-	calc_md5(job->src, job->src_ln, md5);
+	calc_md5(job->src, job->src_ln, job->md5);
+
+	return true;
+}
+
+/* Extracts the "n"th value from the comma separated "in" string */
+void extract_csv(char *out, char *in, int n, long limit)
+{
+	*out = 0;
+	if (!in) return;
+	if (!*in) return;
+
+	int strln = strlen(in);
+	if (strln < limit) limit = strln;
+
+	limit--; // need an extra byte for chr(0)
+
+	char *tmp = in;
+	int n_counter = 1;
+	int out_ptr = 0;
+
+	do
+	{
+		if (*tmp == ',')
+			n_counter++;
+		else if (n_counter == n)
+			out[out_ptr++] = *tmp;
+	} while (*tmp++ && (n_counter <= n) && ((out_ptr + 1) < limit));
+
+	out[out_ptr] = 0;
+}
+
+/* Calculate vendor/component md5 */
+void get_vendor_component_id(struct minr_job *job)
+{
+	/* Extract vendor and component */
+	char vendor[MAX_ARG_LEN] = "\0";
+	char component[MAX_ARG_LEN] = "\0";
+
+	/* Clear memory */
+	memset(job->pair_md5, 0, 16);
+
+	/* Extract vendor and component from metadata */
+	extract_csv(vendor, job->metadata, 1, MAX_ARG_LEN);
+	extract_csv(component, job->metadata, 1, MAX_ARG_LEN);
+	if (!*vendor || !*component) return;
+
+	/* Calculate md5 */
+	component_vendor_md5(component, vendor, job->pair_md5);
+}
+
+/* Write entry id to attribution.csv */
+void attribution_add(struct minr_job *job)
+{
+	char path[MAX_PATH_LEN]="\0";
+	sprintf(path, "%s/attribution.csv", job->mined_path);
+
+	char pair_id[MD5_LEN * 2 + 1] = "\0";
+	char notice_id[MD5_LEN * 2 + 1] = "\0";
+	ldb_bin_to_hex(job->pair_md5, MD5_LEN, pair_id);
+	ldb_bin_to_hex(job->md5, MD5_LEN, notice_id);
+
+	FILE *fp = fopen(path, "a");
+	if (!fp)
+	{
+		printf("Cannot create file %s\n", path);
+		exit(EXIT_FAILURE);
+	}
+	fprintf(fp, "%s,%s\n", pair_id, notice_id);
+	fclose(fp);
+}
+
+/* Appends attribution notice to archive */
+void mine_attribution_notice(struct minr_job *job, char *path)
+{
+
+	if (!load_file(job,path)) return;
+
+	/* Obtain vendor/component md5 */
+	get_vendor_component_id(job);
+
+	/* Write entry to mined/attribution.csv */
+	attribution_add(job);
+
+	/* Create sources directory */
+	char mzpath[LDB_MAX_PATH * 2];
+	sprintf(mzpath, "%s/notices", job->mined_path);
+
+	ldb_prepare_dir(mzpath);
+
+	/* Compress data */
+	job->zsrc_ln = compressBound(job->src_ln + 1);
+
+	/* Save the first bytes of zsrc to accomodate the MZ header */
+	compress(job->zsrc + MZ_HEAD, &job->zsrc_ln, (uint8_t *) job->src, job->src_ln + 1);
+	uint32_t zln = job->zsrc_ln;
+
+	/* Only the last 14 bytes of the MD5 go to the mz record (first two bytes are the file name) */
+	memcpy(job->zsrc, job->md5 + 2, MZ_MD5);
+
+	/* Add the 32-bit compressed file length */
+	memcpy(job->zsrc + MZ_MD5, (char *) &zln, MZ_SIZE);
+
+	int mzid = uint16(job->md5);
+	int mzlen = job->zsrc_ln + MZ_HEAD;
+
+	sprintf(mzpath, "%s/notices/%04x.mz", job->mined_path, mzid);
+	FILE *f = fopen(mzpath, "a");
+	if (f)
+	{
+		size_t written = fwrite(job->zsrc, mzlen, 1, f);
+		if (!written)
+		{
+			printf("Error writing %s\n", mzpath);
+			exit(EXIT_FAILURE);
+		}
+		fclose(f);
+	}
+}
+
+/* Mine the given path */
+void mine(struct minr_job *job, char *path)
+{
+
+	/* Mine attribution notice */
+	if (is_attribution_notice(path))
+	{
+		mine_attribution_notice(job, path);
+		return;
+	}
+
+	/* File discrimination check #2: Is the extension blacklisted or path not wanted? */
+	if (!job->all_extensions) if (blacklisted_extension(path)) return;
+	if (unwanted_path(path)) return;
+
+	/* Load file contents and calculate md5 */
+	if (!load_file(job,path)) return;
 
 	/* File discrimination check: Unwanted header? */
 	if (unwanted_header(job->src)) return;
@@ -231,12 +406,12 @@ void mine(struct minr_job *job, char *path)
 	{
 		/* File discrimination check: Binary? */
 		int src_ln = strlen(job->src);
-		if (job->src_ln == src_ln) mz_add(job->mined_path, md5, job->src, job->src_ln, true, job->zsrc, job->mz_cache);
+		if (job->src_ln == src_ln) mz_add(job->mined_path, job->md5, job->src, job->src_ln, true, job->zsrc, job->mz_cache);
 
 	}
 
 	/* Convert md5 to hex */
-	char *hex_md5 = bin_to_hex(md5, 16);
+	char *hex_md5 = bin_to_hex(job->md5, 16);
 
 	/* Mine more */
 	if (!job->exclude_detection)
@@ -247,7 +422,7 @@ void mine(struct minr_job *job, char *path)
 	}
 
 	/* Output file information */
-	fprintf(out_file[*md5], "%s,%s,%s\n", hex_md5 + 2, job->urlid, path + strlen(job->tmp_dir) + 1);
+	fprintf(out_file[*job->md5], "%s,%s,%s\n", hex_md5 + 2, job->urlid, path + strlen(job->tmp_dir) + 1);
 	free(hex_md5);
 }
 

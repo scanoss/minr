@@ -32,10 +32,10 @@ char *BLACKLISTED_EXTENSIONS[] = {
 	"hex", "htm", "html", "ico", "in", "inc", "info", "ini", "ipynb",
 	"jpeg", "jpg", "json", "jsonld", "license", "log", "m4", "makefile", "map",
 	"markdown", "md", "md5", "meta", "mk", "mxml", "notice", "o", "otf", "out",
-	"pbtxt", "pdf", "pem", "phtml", "png", "po", "ppt", "prefs", "properties",
-	"pyc", "readme", "result", "rgb", "rst", "scss", "sha", "sha1", "sha2",
-	"sha256", "sln", "spec", "sql", "sub", "svg", "svn-base", "tab", "template",
-	"test", "tex", "tiff", "todo", "ttf", "txt", "utf-8", "version", "vim",
-	"wav", "whl", "woff", "xht", "xhtml", "xls", "xml", "xpm", "xsd",
-	"xul", "yaml", "yml", NULL
+	"pbtxt", "pdf", "pem", "phtml", "plist", "png", "po", "ppt", "prefs",
+	"properties", "pyc", "readme", "result", "rgb", "rst", "scss", "sha",
+	"sha1", "sha2", "sha256", "sln", "spec", "sql", "sub", "svg", "svn-base",
+	"tab", "template", "test", "tex", "tiff", "todo", "ttf", "txt", "utf-8",
+	"version", "vim", "wav", "whl", "woff", "xht", "xhtml", "xls", "xml",
+	"xpm", "xsd", "xul", "yaml", "yml", NULL
 };

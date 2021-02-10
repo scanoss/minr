@@ -52,6 +52,27 @@ bool ignore_copyright(char *str)
 	return false;
 }
 
+/* Return true if src contains a @author doxygen tag */
+bool is_author(char *src)
+{
+	int tag_len = 0;
+
+	if (strn_icmp(src,"@author", 7))
+	{
+		tag_len = 7; // length of "@author"
+	}
+
+	if (!tag_len) return false;
+
+	if (linelen(src) > MAX_COPYRIGHT_LEN) return false;
+
+	if (count_alnum(src + tag_len) < MIN_ALNUM_IN_COPYRIGHT) return false;
+	if (count_nonalnum(src + tag_len) > MAX_NONALNUM_IN_COPYRIGHT) return false;
+
+	return true;
+}
+
+
 /* Return true if src contains a copyright declaration */
 bool is_copyright(char *src)
 {
@@ -125,8 +146,23 @@ void mine_copyright(char *mined_path, char *md5, char *src, uint64_t src_ln)
 	char *s = src;
 	while (*s)
 	{
+		bool extract = false;
+
+		/* If we find an opening bracket, we assume the header already ended */
+		if (*s == '{') break;
 		if (*s == '\n') line++;
-		else if (is_copyright(s))
+
+		else
+		{
+			if (is_copyright(s)) extract = true;
+			if (!extract) if (is_author(s))
+			{
+				extract = true;
+				s += 8; // Skip "@author "
+			}
+		}
+
+		if (extract)
 		{
 			char *copyright = extract_copyright(s);
 			if (copyright)
@@ -143,6 +179,7 @@ void mine_copyright(char *mined_path, char *md5, char *src, uint64_t src_ln)
 				return;
 			}
 		}
+
 		if (((s++)-src) > max_bytes || line > max_lines) return;
 	}
 	return;

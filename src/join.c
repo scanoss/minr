@@ -212,6 +212,15 @@ void minr_join_mz(char *source, char *destination)
 	}
 	sprintf(src_path, "%s/sources", source);
 	rmdir(src_path);
+
+	for (int i = 0; i < 65536; i++)
+	{
+		sprintf(src_path, "%s/notices/%04x.mz", source, i);
+		sprintf(dst_path, "%s/notices/%04x.mz", destination, i);
+		bin_join(src_path, dst_path, false);
+	}
+	sprintf(src_path, "%s/notices", source);
+	rmdir(src_path);
 }
 
 /* Join snippets */
@@ -268,7 +277,7 @@ void minr_join(struct minr_job *job)
 	/* Join snippets */
 	minr_join_snippets(source, destination);
 
-	/* Join MZ */
+	/* Join MZ (sources/ and notices/) */
 	minr_join_mz(source, destination);
 
 	/* Join licenses */
@@ -300,6 +309,12 @@ void minr_join(struct minr_job *job)
 	sprintf(src_path, "%s/vulnerabilities.csv", source);
 	sprintf(dst_path, "%s/vulnerabilities.csv", destination);
 	csv_join(src_path, dst_path);
+
+	/* Join attribution */
+	sprintf(src_path, "%s/attribution.csv", source);
+	sprintf(dst_path, "%s/attribution.csv", destination);
+	csv_join(src_path, dst_path);
+
 
 	rmdir(source);
 }

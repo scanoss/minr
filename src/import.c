@@ -656,6 +656,21 @@ void import_quality(char *mined_path, bool skip_sort)
 	}
 }
 
+/* Import attribution pointers */
+void import_attribution(char *mined_path, bool skip_sort)
+{
+	char path[MAX_PATH_LEN] = "\0";
+	sprintf(path, "%s/attribution.csv", mined_path);
+	if (is_file(path))
+	{
+		if (csv_sort(path, skip_sort))
+		{
+			/* 2 CSV fields expected (id, notice ID) */
+			ldb_import_csv(path, "attribution", 2, false);
+		}
+	}
+}
+
 /* Import popularity */
 void import_popularity(char *mined_path, bool skip_sort)
 {
@@ -696,6 +711,7 @@ void mined_import(char *mined_path, bool skip_sort)
 	import_vulnerabilities(mined_path, skip_sort);
 	import_quality(mined_path, skip_sort);
 	import_popularity(mined_path, skip_sort);
+	import_attribution(mined_path, skip_sort);
 
 	/* Import MZ archives */
 	import_mz(mined_path);
