@@ -689,7 +689,14 @@ void import_popularity(char *mined_path, bool skip_sort)
 void import_mz(char *mined_path)
 {
 	char path[MAX_PATH_LEN] = "\0";
+
 	sprintf(path, "%s/sources", mined_path);
+	if (is_dir(path))
+	{
+		minr_join_mz(mined_path, "/var/lib/ldb/oss");
+	}
+
+	sprintf(path, "%s/notices", mined_path);
 	if (is_dir(path))
 	{
 		minr_join_mz(mined_path, "/var/lib/ldb/oss");
