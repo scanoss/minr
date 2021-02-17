@@ -1,0 +1,6 @@
+name=Blum-Goldwasser
+coding=320
+blumgoldwasser.py
+BlumGoldwasser
+sage.crypto.public_key.blum_goldwasser.BlumGoldwasser
+

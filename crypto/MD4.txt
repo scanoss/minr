@@ -1,0 +1,10 @@
+name=MD4
+coding=128
+MD4.h
+MD4_HMAC_BLOCK_SIZE
+MD4_BLOCK_WORDS
+MD4_HASH_WORDS
+MD4_DIGEST_SIZE
+md4_update
+md4_init
+md4_final

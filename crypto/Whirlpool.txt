@@ -1,0 +1,8 @@
+name=Whirpool
+coding=128
+whirlpool.New
+whirpool.go
+rhash_whirlpool_init
+rhash_whirlpool_sbox
+rhash_whirlpool_process_block
+WHIRLPOOL_OP

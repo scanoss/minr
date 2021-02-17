@@ -1,0 +1,4 @@
+name=QUAD
+coding=128
+QUAD.pack
+QUAD.unpack

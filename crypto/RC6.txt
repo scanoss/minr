@@ -1,0 +1,6 @@
+name=RC6
+coding=128
+AlgorithmRC6
+RC6.encrypt
+RC6.decript
+RC6_HPP__

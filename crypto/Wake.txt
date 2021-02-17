@@ -1,0 +1,7 @@
+name=Wake
+coding=64
+WAKE.h
+WAKE_TestInstantiations
+WAKE_Base
+WAKE_Policy
+WAKE_Output

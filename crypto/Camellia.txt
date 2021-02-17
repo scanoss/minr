@@ -1,0 +1,6 @@
+name=Camellia
+coding=256
+camellia.core
+CIPHERCAMELLIA256
+CAMELLIA-256-CBC
+camellia

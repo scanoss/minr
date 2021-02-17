@@ -1,0 +1,4 @@
+name=Lucifer
+coding=128
+lucifer.h
+lucifer

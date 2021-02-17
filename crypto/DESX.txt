@@ -1,0 +1,7 @@
+name=DESX
+coding=64
+desx
+desx.go
+desx.py
+des_x
+un_des_x

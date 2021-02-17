@@ -1,0 +1,6 @@
+name=RC4
+coding=2048
+RC4_H
+RC4_KEY_S
+RC4_key
+RC4

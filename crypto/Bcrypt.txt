@@ -1,0 +1,6 @@
+name=Bcrypt
+coding=320
+bcrypt
+pycabcrypt.h
+BCrypt.java
+jBCrypt

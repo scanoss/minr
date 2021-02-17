@@ -1,0 +1,6 @@
+name=ECDH
+coding=128
+ecdh_generate_keys
+ecdh_shared_secret
+ECC_PRV_KEY_SIZE
+

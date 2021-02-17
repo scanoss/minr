@@ -1,0 +1,6 @@
+name=HC128
+coding=128
+CRYPTOPP_HC128_H
+HC-128
+HC128Info
+Hc128Rng

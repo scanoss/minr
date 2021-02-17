@@ -1,0 +1,3 @@
+name=Anubis
+coding=128
+#include "tomcrypt.h"

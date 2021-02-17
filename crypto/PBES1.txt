@@ -1,0 +1,7 @@
+name=PBES1
+coding=128
+PBEWithMD5AndDES
+getPBES1EncryptionObject
+getPBES1Hash
+getPBES1KDF
+PKCS5_SCHEME_PBES1

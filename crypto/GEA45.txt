@@ -1,0 +1,8 @@
+name=GEA4-5
+coding=128
+LL_GEA4
+LL_GEA5
+LL_GEA6
+hf_nas_eps_emm_gea5
+hf_nas_eps_emm_gea6
+hf_nas_eps_emm_gea4

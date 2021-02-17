@@ -1,0 +1,4 @@
+name=Fortuna
+coding=64
+fortuna
+crypto/fortuna

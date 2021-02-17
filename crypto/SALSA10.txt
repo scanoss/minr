@@ -1,0 +1,5 @@
+name=SALSA10
+coding=64
+salsa10
+salsa10-src.bin
+salsa10-nonce.bin

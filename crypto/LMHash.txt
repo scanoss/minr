@@ -1,0 +1,5 @@
+name=Feal
+coding=64
+lmhashConstant
+unKnownLMHashes
+createLMHash

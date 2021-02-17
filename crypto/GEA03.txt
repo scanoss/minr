@@ -1,0 +1,10 @@
+name=GEA0-3
+coding=64
+LL_GEA0
+LL_GEA1
+LL_GEA2
+LL_GEA3
+hf_nas_eps_emm_gea0
+hf_nas_eps_emm_gea1
+hf_nas_eps_emm_gea2
+hf_nas_eps_emm_gea3

@@ -1,0 +1,6 @@
+name=Sapphire
+coding=256
+sapphire.h
+sapphire::keyrand
+sapphire::initialize
+sapphire::init_hash

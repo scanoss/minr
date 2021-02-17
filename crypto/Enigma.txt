@@ -1,0 +1,3 @@
+name=Enigma
+coding=48
+EnigmaMachine

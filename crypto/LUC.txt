@@ -1,0 +1,5 @@
+name=LUC
+coding=64
+CRYPTOPP_LUC_H
+LUCFunction
+luc.h

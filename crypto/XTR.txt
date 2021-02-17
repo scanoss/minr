@@ -1,0 +1,5 @@
+name=XTR
+coding=64
+CRYPTOPP_XTR_H
+XTR_FindPrimesAndGenerator
+XTR_Exponentiate

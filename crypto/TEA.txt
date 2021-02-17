@@ -1,0 +1,6 @@
+name=TEA
+coding=128
+tea_encrypt
+tea_decrypt
+tea_cbc_mode
+tea_ofb_mode

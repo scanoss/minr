@@ -1,0 +1,6 @@
+name=2DES
+coding=96
+pyDes
+javax.crypto.*
+javax.crypto.spec.DESKeySpec
+DES.h

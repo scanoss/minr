@@ -1,0 +1,15 @@
+name=ICE
+coding=128
+node-ice
+iceKey
+__RUBY_ICE_KEY_H
+ice_cipher_create_key
+ice_cipher_deallocate
+ice_cipher_allocate
+ice_cipher_initialize
+ice_cipher_set_key
+ice_cipher_key_size
+ice_cipher_block_size
+ice_cipher_encrypt
+ice_cipher_decrypt
+IceSubkey

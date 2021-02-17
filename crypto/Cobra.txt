@@ -1,0 +1,4 @@
+name=Cobra
+coding=128
+Cobra_algorithm
+cobra.java

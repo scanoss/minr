@@ -1,0 +1,6 @@
+name=Rabbit
+coding=128
+Rabbit_Util
+Rabbit_ctx
+Rabbit_state
+Rabbit_Cipher.py

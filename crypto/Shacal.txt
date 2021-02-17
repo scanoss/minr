@@ -1,0 +1,7 @@
+name=SHACAL
+coding=128
+Shacal
+isShacal1
+CRYPTOPP_SHACAL2_H
+SHACAL2Encryption
+SHACAL2

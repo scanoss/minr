@@ -1,0 +1,9 @@
+name=SHS
+coding=128
+secret-handshake
+shsInit
+shs1
+shsInit
+SHS_CTX
+shsUpdate
+shs.h

@@ -1,0 +1,9 @@
+name=RC2
+coding=128
+rc2_LTX__mcrypt_set_key
+rc2_LTX__mcrypt_encrypt
+rc2_LTX__mcrypt_decrypt
+rc2_LTX__mcrypt_get_size
+rc2_LTX__mcrypt_get_block_size
+rc2_LTX__is_block_algorithm
+rc2_LTX__mcrypt_get_key_size

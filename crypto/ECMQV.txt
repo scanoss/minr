@@ -1,0 +1,6 @@
+name=ECMQV
+coding=128
+ECMQV
+IEEEP1363
+
+

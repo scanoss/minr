@@ -1,0 +1,3 @@
+name=pbkdf1
+coding=128
+pbkdf1.js

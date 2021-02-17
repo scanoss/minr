@@ -1,0 +1,6 @@
+name=Feal
+coding=64
+FEAL_key_schedule
+FEAL_Encrypt
+FEAL_Decrypt
+feal8.h

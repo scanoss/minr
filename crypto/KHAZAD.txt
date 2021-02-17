@@ -1,0 +1,14 @@
+name=Khazad
+coding=16
+KHAZAD_ROUNDS
+khazad_setkey
+khazad_crypt
+khazad_encrypt
+khazad_decrypt
+khazad_mod_fini
+khazad-min.h
+KHAZAD_H
+KHAZAD_BLOCK_SIZE
+KHAZAD_NUM_ROUNDS
+KHAZAD_KEY_SIZE
+KHAZAD_KEY_SCHEDULE_SIZE   

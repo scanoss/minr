@@ -1,0 +1,4 @@
+name=Seed
+coding=256
+seed128Cipher
+seed.go

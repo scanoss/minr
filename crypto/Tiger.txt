@@ -1,0 +1,6 @@
+name=Tiger
+coding=256
+tiger_compress_macro
+tiger_compress
+ausTigerTokens1
+

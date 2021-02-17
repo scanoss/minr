@@ -1,0 +1,7 @@
+name=BlakeX
+coding=512
+blake3.h
+blake3_hasher_update
+blake3_impl.h
+BLAKE2b512
+BLAKE2b256

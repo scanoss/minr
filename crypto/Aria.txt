@@ -1,0 +1,6 @@
+name=Aria
+coding=256
+aria.cpp
+aria.h
+r.re.nsri.aria
+ARIAEngine

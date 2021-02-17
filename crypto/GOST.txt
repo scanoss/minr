@@ -1,0 +1,8 @@
+name=GOST
+coding=64
+gost_28147_89
+gost.hpp
+GOST28147_COMPRESSED_SBOX
+GOST28147EncryptCycle
+GOST28147EncryptBlock
+GOST28147SBoxTransformation

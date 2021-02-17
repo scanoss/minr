@@ -1,0 +1,7 @@
+name=Grain
+coding=128
+grain128aead.h
+Grain-128AEAD
+grain_data
+grain_state
+Grain128Engine

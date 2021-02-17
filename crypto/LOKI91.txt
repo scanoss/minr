@@ -1,0 +1,7 @@
+name=LOKI91
+coding=64
+loki.h
+loki.i
+loki_lib_ver
+setlokikey
+setlokikey

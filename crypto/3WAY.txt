@@ -1,0 +1,5 @@
+name=3Way
+coding=128
+3way.h
+CRYPTOPP_THREEWAY_H
+

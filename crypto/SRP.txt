@@ -1,0 +1,8 @@
+name=SRP
+coding=128
+SRPClient
+SRPServer
+libsrp
+srp
+_pysrp
+_ctsrp

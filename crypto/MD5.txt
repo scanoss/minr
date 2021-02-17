@@ -1,0 +1,7 @@
+name=MD5
+coding=128
+md5_file
+md5
+md5crypt
+aprcrypt
+md5_encrypt

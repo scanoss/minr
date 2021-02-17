@@ -1,0 +1,3 @@
+name=CAST5
+coding=320
+cast5.h
