@@ -46,6 +46,8 @@
 #include "wfp.h"
 #include "import.h"
 
+extern bool local_copy_result;
+extern bool local_license_result;
 void component_add(struct minr_job *job)
 {
 	char path[MAX_PATH_LEN]="\0";
@@ -245,12 +247,16 @@ int main(int argc, char *argv[])
 				break;
 			
 			case 'C':
+				
+				 local_copy_result=true;
 				strcpy(job.url, optarg);
 				job.local_mining = 4;
 				strcpy(job.url, optarg);
 				break;
 			
 			case 'L':
+				
+				local_license_result =true;
 				strcpy(job.url, optarg);
 				job.local_mining = 2;
 				strcpy(job.url, optarg);
