@@ -65,13 +65,13 @@ bool is_attribution_notice(char *path)
 }
 
 /* Returns the pair md5 of "component/vendor" */
-void component_vendor_md5(char *component, char *vendor, uint8_t *out)
+void vendor_component_md5(char *vendor, char *component, uint8_t *out)
 {
 	char pair[MAX_PATH_LEN] = "\0";
 	if (strlen(component) + strlen(vendor) + 2 >= 1024) return;
 
 	/* Calculate pair_md5 */
-	sprintf(pair, "%s/%s", component, vendor);
+	sprintf(pair, "%s/%s", vendor, component);
 	for (int i = 0; i < strlen(pair); i++) pair[i] = tolower(pair[i]);
 	MD5((uint8_t *)pair, strlen(pair), out);
 
@@ -304,11 +304,11 @@ void get_vendor_component_id(struct minr_job *job)
 
 	/* Extract vendor and component from metadata */
 	extract_csv(vendor, job->metadata, 1, MAX_ARG_LEN);
-	extract_csv(component, job->metadata, 1, MAX_ARG_LEN);
+	extract_csv(component, job->metadata, 2, MAX_ARG_LEN);
 	if (!*vendor || !*component) return;
 
 	/* Calculate md5 */
-	component_vendor_md5(component, vendor, job->pair_md5);
+	vendor_component_md5(vendor, component, job->pair_md5);
 }
 
 /* Write entry id to attribution.csv */
