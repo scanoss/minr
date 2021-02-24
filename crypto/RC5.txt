@@ -1,0 +1,8 @@
+name=RC5
+coding=128
+RC5.new
+rc5.rb
+RC5Enc
+RC5Dec
+RC5Enc.java
+RC5Dec.java

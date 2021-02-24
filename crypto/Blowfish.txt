@@ -1,0 +1,4 @@
+name=Blowfish
+coding=320
+egoroof-blowfish
+/dist/blowfish

@@ -1,0 +1,6 @@
+name=CRC32
+coding=32
+crc32h.h
+crc32.c
+crc32_table
+xcrc32

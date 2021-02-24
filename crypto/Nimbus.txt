@@ -1,0 +1,4 @@
+name=Nimbus
+coding=256
+nimbusds.jose
+JOSEObjectType 

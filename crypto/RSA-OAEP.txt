@@ -1,0 +1,6 @@
+name=RSA-OAEP
+coding=128
+encryptRSAWithOAEP
+decryptRSAWithOAEP
+RSA_OAEP_H
+RSA_OAEP

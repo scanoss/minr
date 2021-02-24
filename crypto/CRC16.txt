@@ -1,0 +1,6 @@
+name=CRC16
+coding=16
+CRC_16
+CRC_16CCITT
+CRC_16XModem
+CRC16

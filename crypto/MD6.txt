@@ -1,0 +1,7 @@
+name=MD6
+coding=512
+MD6.py
+md6_encrypt
+CatMD6Crypto
+md6Crypto.hash
+

@@ -1,0 +1,4 @@
+name=ZipCrypt
+coding=64
+zipcloak
+zipbare

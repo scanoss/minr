@@ -1,0 +1,6 @@
+name=Skipjack
+coding=32
+FastSkipJack
+SkipJack
+skipjackCipher
+skipjack.go

@@ -1,0 +1,5 @@
+name=Keccak
+coding=256
+KeccakHash.h
+Keccak_HashFinal
+KeccakSum

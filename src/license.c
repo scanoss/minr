@@ -35,6 +35,8 @@ bool is_dir(char *path);
 bool not_a_dot(char *path);
 void normalize_src(char *src, uint64_t src_ln, char *out, int max_in, int max_out);
 bool strn_icmp(char *a, char *b, int len);
+bool local_license_result = false;
+
 
 /* Check if SPDX-License-Identifier is found at *src */
 bool is_spdx_license_identifier(char *src)
@@ -42,6 +44,7 @@ bool is_spdx_license_identifier(char *src)
 	int tag_len = 24; // length of "SPDX-License-Identifier:"
 	return strn_icmp(src,"SPDX-License-Identifier:", tag_len);
 }
+
 
 /* Returns pointer to SPDX-License-Identifier tag (null if not found) */
 char *spdx_license_identifier(char *src)
@@ -254,6 +257,7 @@ void mine_license(char *mined_path, char *md5, char *src, uint64_t src_ln, norma
 			fprintf(fp, "%s,1,%s\n", md5, license);
 			fclose(fp);
 		}
+		else if(local_license_result) printf("%s,%s\n", md5, license);
 		else printf("%s,1,%s\n", md5, license);
 	}
 
@@ -269,6 +273,7 @@ void mine_license(char *mined_path, char *md5, char *src, uint64_t src_ln, norma
 				fprintf(fp, "%s,2,%s\n", md5, license);
 				fclose(fp);
 			}
+			else if(local_license_result) printf("%s,%s\n", md5, license);
 			else printf("%s,2,%s\n", md5, license);
 		}
 	}

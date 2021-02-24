@@ -1,0 +1,7 @@
+name=Seal
+coding=128
+SEALContext
+seal.h
+SEALWrapper
+toSealObject
+fromSealObject

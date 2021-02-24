@@ -1,0 +1,6 @@
+name=Shark
+coding=64
+voipshark
+shark.h
+SHARKTransform
+CRYPTOPP_SHARK_H

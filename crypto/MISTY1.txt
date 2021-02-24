@@ -1,0 +1,5 @@
+name=MISTY1
+coding=32
+misty1_keyinit
+misty1_encrypt_block
+MISTY1_KEYSIZE

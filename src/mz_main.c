@@ -39,6 +39,7 @@
 #include "blacklist.h"
 #include "quality.h"
 #include "mz_mine.h"
+#include "crypto.h"
 
 void help()
 {
@@ -65,6 +66,7 @@ void help()
 
 	printf("Data mining:\n");
 	printf("-L MZ   detect license (SPDX ID) declarations (text and SPDX-License-Identifier tags)\n");
+	printf("-Y MZ   detect cryptographic algorithms usage\n");
 	printf("-C MZ   detect copyright declarations\n");
 	printf("-Q MZ   extract code quality (best practices) information\n");
 	printf("\n");
@@ -149,8 +151,8 @@ int main(int argc, char *argv[])
 	job.xkeys_ln = 0;
 	job.licenses = NULL;
 	job.license_count = 0;
-
-	while ((option = getopt(argc, argv, ":p:k:c:x:K:l:C:Q:L:o:O:X:hv")) != -1)
+	load_crypto_definitions();
+	while ((option = getopt(argc, argv, ":p:k:c:x:K:l:C:Q:L:o:O:Y:X:hv")) != -1)
 	{
 		/* Check valid alpha is entered */
 		if (optarg)
@@ -233,6 +235,10 @@ int main(int argc, char *argv[])
 				argcpy(job.path, optarg);
 				mz_mine_license(&job);
 				free(job.licenses);
+				break;
+			case 'Y':
+				argcpy(job.path, optarg);
+				mz_mine_crypto(&job);
 				break;
 
 			case 'h':

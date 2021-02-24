@@ -1,0 +1,6 @@
+name=MD160
+coding=64
+ripemd160.h
+ripemd160_Init
+ripemd160_process
+ripemd160_update

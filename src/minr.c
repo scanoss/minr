@@ -31,6 +31,7 @@
 #include "hex.h"
 #include "blacklist.h"
 #include "ldb.h"
+#include "crypto.h"
 
 /* Paths */
 char mined_path[MAX_ARG_LEN] = ".";
@@ -242,7 +243,14 @@ bool download(struct minr_job *job)
 bool load_file(struct minr_job *job, char *path)
 {
 	/* Open file and obtain file length */
-	FILE *fp = fopen(path, "rb");
+	FILE *fp;
+	 
+	 if ((fp = fopen(path,"rb")) == NULL){
+	       printf("Error! No pudo cargar definitions file");
+	       exit(1);
+	}
+	 
+	
 	fseeko64(fp, 0, SEEK_END);
 	job->src_ln = ftello64(fp);
 
@@ -255,6 +263,7 @@ bool load_file(struct minr_job *job, char *path)
 
 	/* Read file contents into src and close it */
 	fseeko64(fp, 0, SEEK_SET);
+	//job->src=(char *)malloc(job->src_ln+1);
 	if (!fread(job->src, 1, job->src_ln, fp)) printf("Error reading %s\n", path);
 	job->src[job->src_ln] = 0;
 	fclose(fp);
@@ -383,7 +392,7 @@ void mine_attribution_notice(struct minr_job *job, char *path)
 /* Mine the given path */
 void mine(struct minr_job *job, char *path)
 {
-
+printf("Path es: %s\r\n",path);
 	/* Mine attribution notice */
 	if (is_attribution_notice(path))
 	{
@@ -416,6 +425,7 @@ void mine(struct minr_job *job, char *path)
 	/* Mine more */
 	if (!job->exclude_detection)
 	{
+		mine_crypto(job->mined_path, hex_md5, job->src, job->src_ln);
 		mine_license(job->mined_path, hex_md5, job->src, job->src_ln, job->licenses, job->license_count);
 		mine_quality(job->mined_path, hex_md5, job->src, job->src_ln);
 		mine_copyright(job->mined_path, hex_md5, job->src, job->src_ln);
@@ -425,6 +435,89 @@ void mine(struct minr_job *job, char *path)
 	fprintf(out_file[*job->md5], "%s,%s,%s\n", hex_md5 + 2, job->urlid, path + strlen(job->tmp_dir) + 1);
 	free(hex_md5);
 }
+
+void mine_local_file(struct minr_job *job, char *path)
+{
+
+
+job->src = calloc(MAX_FILE_SIZE + 1, 1);
+
+
+	
+	if (is_attribution_notice(path))
+	{
+		mine_attribution_notice(job, path);
+		return;
+	}
+
+	/* File discrimination check #2: Is the extension blacklisted or path not wanted? */
+	if (!job->all_extensions) if (blacklisted_extension(path)) return;
+	if (unwanted_path(path)) return;
+
+	/* Load file contents and calculate md5 */
+	if (!load_file(job,path)) return;
+	
+	/* File discrimination check: Unwanted header? */
+	if (unwanted_header(job->src)) return;	
+	
+	switch(job->local_mining){
+		case 1:
+			mine_crypto(NULL,path, job->src, job->src_ln); 
+		break;
+		case 2: 
+			mine_license(NULL, 
+					path, job->src,
+					job->src_ln, 
+					job->licenses, 
+					job->license_count);
+		break;
+		case 3: 
+			mine_quality(NULL, 
+					path,
+					job->src,
+					job->src_ln);
+		break;
+		case 4: 
+			mine_copyright(NULL,
+					path,
+					job->src,
+					job->src_ln);
+		break;
+		default:printf("Default\r\n"); break;
+		}
+
+
+	
+}
+
+
+
+
+void mine_local_directory(struct minr_job *job, char* root){
+	
+    DIR *dir;
+    struct dirent *entry;
+
+    if (!(dir = opendir(root)))
+        return;
+
+    while ((entry = readdir(dir)) != NULL) {
+          char path[1024];
+          if (entry->d_type == DT_DIR) {
+          
+            if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
+                continue;
+            snprintf(path, sizeof(path), "%s/%s", root, entry->d_name);
+             mine_local_directory(job,path);
+        } else {
+        sprintf(path,"%s/%s",root,entry->d_name);
+            mine_local_file(job,path);
+        }
+    }
+    closedir(dir);
+
+}
+
 
 /* Recursive directory reading */
 void recurse(struct minr_job *job, char *path)
@@ -458,7 +551,7 @@ void recurse(struct minr_job *job, char *path)
 /* Verify that required binaries are installed */
 bool check_dependencies()
 {
-
+	load_crypto_definitions();
 	struct stat sb;
 	char *dependencies[] = 
 	{

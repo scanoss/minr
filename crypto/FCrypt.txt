@@ -1,0 +1,7 @@
+name=FCrypt
+coding=128
+fcrypt.encrypt
+fcrypt.decrypt
+fcrypt_ctx
+fcrypt_mod_init
+F_ENCRYPT

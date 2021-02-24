@@ -1,0 +1,4 @@
+name=Serpent
+coding=128
+serpent_subkey_t
+serpent_blk

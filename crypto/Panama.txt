@@ -1,0 +1,9 @@
+name=Panama
+coding=128
+panama.h
+panama_LTX__mcrypt_set_key
+panama_LTX__mcrypt_encrypt
+panama_LTX__mcrypt_decrypt
+panama_LTX__mcrypt_get_size
+panama_LTX__mcrypt_get_block_size
+panama_LTX__is_block_algorithm

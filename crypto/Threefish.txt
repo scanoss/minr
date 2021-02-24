@@ -1,0 +1,11 @@
+name=Threefish
+coding=1024
+Crypto.Threefish.Common
+newThreefish256
+newThreefish512
+newThreefish1024
+threefish_mod_fini
+threefish_algs
+threefish_round
+threefish_roundinv
+threefish_encrypt_generic

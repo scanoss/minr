@@ -1,0 +1,9 @@
+name=3DES
+coding=128
+botan-3.dll
+botan.dll
+libbotan-3.dylib
+libbotan-2.dylib
+libbotan-3.so
+libbotan-2.so
+libbotan-2.s

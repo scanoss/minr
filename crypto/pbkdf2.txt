@@ -1,0 +1,5 @@
+name=pbkdf2
+coding=128
+pbkdf2.js
+Ikonoshirt_Pbkdf2_Model_Encryption
+_pbkdf2

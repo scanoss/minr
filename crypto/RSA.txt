@@ -1,0 +1,6 @@
+name=RSA
+coding=128
+RSACRYPT_H
+RSAcrypt
+RSAdecrypt
+JSEncryptRSAKey

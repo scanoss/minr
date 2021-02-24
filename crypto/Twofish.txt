@@ -1,0 +1,9 @@
+name=Twofish
+coding=64
+twofish.h
+Twofish_fatal
+Twofish_Byte
+exp_Twofish_prepare_key
+Twofish_prepare_key
+twofish.h
+

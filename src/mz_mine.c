@@ -27,6 +27,7 @@
 #include "quality.h"
 #include "license.h"
 #include "mz_mine.h"
+#include "crypto.h"
 
 bool mz_quality_handler(struct mz_job *job)
 {
@@ -116,3 +117,32 @@ void mz_mine_copyright(struct mz_job *job)
 
 	free(job->mz);
 }
+
+bool mz_crypto_handler(struct mz_job *job)
+{
+	/* Decompress */
+	mz_deflate(job);
+
+	/* Fill MD5 with item id */
+	mz_id_fill(job->md5, job->id);
+	unsigned char aux[10];
+	memcpy(aux,job->data, 10);
+	/* Mine cryptographic algorithms */
+	mine_crypto(NULL, job->md5, job->data, job->data_ln);
+	return true;
+}
+
+void mz_mine_crypto(struct mz_job *job)
+{
+	/* Extract first two MD5 bytes from the file name */
+	memcpy(job->md5, basename(job->path), 4);
+
+	/* Read source mz file into memory */
+	job->mz = file_read(job->path, &job->mz_ln);
+
+	/* Launch crypto mining */
+	mz_parse(job, mz_crypto_handler);
+
+	free(job->mz);
+}
+

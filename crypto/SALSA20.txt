@@ -1,0 +1,5 @@
+name=Salsa20
+coding=128
+ESTREAM_SALSA20
+wrap_salsa20_set_nonce
+c_salsa20_crypt

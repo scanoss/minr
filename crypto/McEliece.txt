@@ -1,0 +1,7 @@
+name=McEliece
+coding=64
+MCELIECE_H
+mceliece.h
+mceliece_init
+delete_mceliece
+mceliececipher.py

@@ -1,0 +1,7 @@
+name=TNEPRES
+coding=256
+TnepresEngine
+Cipher.Tnepres
+KeyGenerator.Tnepres
+AlgorithmParameters.Tnepres
+

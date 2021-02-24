@@ -1,0 +1,6 @@
+name=RIPEMD
+coding=128
+RIPEMD160_CTX
+ripemd160_Init
+ripemd160_process
+ripemd160_Update

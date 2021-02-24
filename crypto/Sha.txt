@@ -1,0 +1,3 @@
+name=SHA1
+coding=128
+SHA-1

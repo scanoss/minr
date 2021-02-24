@@ -1,0 +1,3 @@
+name=MSCash2
+coding=128
+mascash2

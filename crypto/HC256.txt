@@ -1,0 +1,6 @@
+name=HC256
+coding=256
+hc256_generate
+hc256_setkey
+hc256_crypt
+CRYPTOPP_HC256_H

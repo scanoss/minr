@@ -1,0 +1,5 @@
+name=Fortezza
+coding=64
+kFZA
+aFZA
+eFZA

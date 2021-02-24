@@ -79,7 +79,8 @@ struct minr_job
 	bool all_extensions;
 	bool exclude_mz;
 	bool exclude_detection;
-
+	char local_mining;
+	
 	// minr -i
 	char import_path[MAX_PATH_LEN];
 	bool skip_sort; // Do not sort before importing
@@ -126,5 +127,6 @@ void mine_license(char *mined_path, char *md5, char *src, uint64_t src_ln, norma
 void mine_copyright(char *mined_path, char *md5, char *src, uint64_t src_ln);
 void mine_quality(char *mined_path, char *md5, char *src, long size);
 normalized_license *load_licenses(int *count);
+void mine_local_directory(struct minr_job *job, char* root);
 
 #endif

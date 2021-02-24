@@ -1,0 +1,3 @@
+name=SNERFU
+coding=256
+Snefru

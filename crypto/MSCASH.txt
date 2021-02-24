@@ -1,0 +1,4 @@
+name=MSCash
+coding=256
+mscash.x.gz
+mscash

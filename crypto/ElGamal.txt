@@ -1,0 +1,9 @@
+name=ElGamal
+coding=128
+egKey
+elgamal.py
+elgamal.h
+ElGamalEncryptor
+ElGamalDecryptor
+CRYPTOPP_ELGAMAL_H
+

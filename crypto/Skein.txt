@@ -1,0 +1,7 @@
+name=Skein
+coding=256
+skeincrypto.h
+skein
+sk_init
+sk_encrypt
+sk_decrypt

@@ -1,0 +1,6 @@
+name=Blake2
+coding=256
+blake2
+pycabcrypt.h
+BCrypt.java
+jBCrypt

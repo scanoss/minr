@@ -1,0 +1,8 @@
+name=SSHA
+coding=128
+checkssha
+SSHA
+SSHA224PasswordEncoder
+SSHA224PasswordDecoder
+SSHA256PasswordEncoder
+SSHA256PasswordDecoder

@@ -46,6 +46,8 @@
 #include "wfp.h"
 #include "import.h"
 
+extern bool local_copy_result;
+extern bool local_license_result;
 void component_add(struct minr_job *job)
 {
 	char path[MAX_PATH_LEN]="\0";
@@ -135,6 +137,7 @@ void url_download(struct minr_job *job)
 	free(job->zsrc);
 }
 
+
 int main(int argc, char *argv[])
 {
 	if (!check_dependencies()) exit(1);
@@ -172,13 +175,14 @@ int main(int argc, char *argv[])
 
 	// License info
 	job.license_count = 0;
+	job.local_mining = 0;
 
 
 	/* Parse arguments */
 	int option;
 	bool invalid_argument = false;
 
-	while ((option = getopt(argc, argv, ":o:m:g:w:t:f:T:i:l:z:u:d:xXseahv")) != -1)
+	while ((option = getopt(argc, argv, ":C:L:Q:Y:o:m:g:w:t:f:T:i:l:z:u:d:xXseahv")) != -1)
 	{
 		/* Check valid alpha is entered */
 		if (optarg)
@@ -239,7 +243,36 @@ int main(int argc, char *argv[])
 
 			case 'u':
 				strcpy(job.url, optarg);
+				
 				break;
+			
+			case 'C':
+				
+				 local_copy_result=true;
+				strcpy(job.url, optarg);
+				job.local_mining = 4;
+				strcpy(job.url, optarg);
+				break;
+			
+			case 'L':
+				
+				local_license_result =true;
+				strcpy(job.url, optarg);
+				job.local_mining = 2;
+				strcpy(job.url, optarg);
+				break;
+			
+			case 'Q':
+				strcpy(job.url, optarg);
+				job.local_mining = 3;
+				strcpy(job.url, optarg);
+				break;
+			case 'Y':
+				strcpy(job.url, optarg);
+				job.local_mining = 1;
+				strcpy(job.url, optarg);
+				break;
+				
 
 			case 'd':
 				strcpy(job.metadata, optarg);
@@ -303,7 +336,11 @@ int main(int argc, char *argv[])
 
 	/* Join mined/ structures */
 	else if (*job.join_from && *job.join_to) minr_join(&job);
-
+	else if (job.local_mining!=0) {
+	job.licenses = load_licenses(&job.license_count);
+		mine_local_directory(&job,job.url);
+		free(job.licenses);
+		}
 	/* Process mz file */
 	else if (*job.mz)
 	{
@@ -355,9 +392,10 @@ int main(int argc, char *argv[])
 		/* Load licenses */
 		job.licenses = load_licenses(&job.license_count);
 
-		/* Mine URL */
-		url_download(&job);
-
+		/* Mine URL or folder */
+		
+			url_download(&job);
+			
 		free(job.licenses);
 
 	}

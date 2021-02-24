@@ -1,0 +1,5 @@
+name=RC4-HMAC
+coding=2048
+RC4-HMAC-MD5
+RC4HMAC
+RC4-HMAC.go

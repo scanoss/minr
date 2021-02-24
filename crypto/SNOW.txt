@@ -1,0 +1,6 @@
+name=SNOW
+coding=128
+snow5_aes_round
+snow-3g.h
+RTE_CRYPTO_CIPHER_SNOW3G_UEA2
+RTE_CRYPTO_AUTH_SNOW3G_UIA2

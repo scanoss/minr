@@ -1,0 +1,5 @@
+name=DESEde
+coding=168
+javax.crypto.spec.DESedeKeySpec
+DESedeKeySpec
+DES_EDE_KEY_LEN

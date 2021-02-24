@@ -1,0 +1,4 @@
+name=ISAAC
+coding=256
+isaacCSPRNG
+isaacRandomPool.h

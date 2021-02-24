@@ -1,0 +1,4 @@
+name=Rijndael
+coding=256
+Rijndael.h
+Rijndael256

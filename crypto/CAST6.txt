@@ -1,0 +1,3 @@
+name=CAST6
+coding=320
+pyCast6

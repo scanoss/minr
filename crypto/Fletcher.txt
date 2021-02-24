@@ -1,0 +1,5 @@
+name=Fletcher
+coding=64
+fletcher64
+fletcher32
+fletcher16

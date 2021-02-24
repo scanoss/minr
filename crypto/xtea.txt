@@ -1,0 +1,7 @@
+name=XTEA
+coding=128
+xtea_setkey
+xtea.h
+xtea_encodeecb
+xtea_decodecbc
+xtea_declen

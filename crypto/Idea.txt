@@ -1,0 +1,10 @@
+name=Idea
+coding=64
+IdeaMode_h
+IdeaEncryptStreamStatus
+IdeaStreamEncryptInit
+IdeaStreamDecryptInit
+IdeaStreamCTRRandomAccessInit
+IdeaStreamEncryptDelete
+IdeaStreamPCBCDecrypt
+IdeaStreamCFBEncrypt

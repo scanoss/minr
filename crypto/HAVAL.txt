@@ -1,0 +1,9 @@
+name=Haval
+coding=128
+haval.h
+haval_context
+Haval-160
+Haval-192
+Haval-224
+Haval-256
+Haval-128

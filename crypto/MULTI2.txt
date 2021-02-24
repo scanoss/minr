@@ -1,0 +1,8 @@
+name=MULTI2
+coding=128
+multi2.h
+LTC_MULTI2
+multi2_desc
+multi2_setup
+multi2_ecb_encrypt
+multi2_ecb_decrypt
