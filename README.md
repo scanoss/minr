@@ -1,6 +1,6 @@
 # minr
 
-Minr is a multi-purpose command line tool used for data mining. Minr downloads, indexes and imports source code metadata into the knowledge base.
+Minr is a multi-purpose command line tool used for data mining. Minr downloads, indexes and imports source code metadata into the knowledge base. Minr can be also used locally for detecting licences,copyright,code quality and cryptographic algorithms usage.
 
 # Usage (downloading)
 
@@ -22,6 +22,32 @@ The target metadata is a comma delimited list of the following fields:
 * Version 
 
 Note: Commas are not admitted in any of these fields.  
+
+# Usage (Local)
+Minr can also be used to scan for licenses, quality code, copyrights and cryptographic algorithms from a local directory.
+
+Usage example: 
+
+```
+$ minr -Y /home/johndoe/os-projects
+```
+
+Mines the **os-projects** directory (and recursively, its subfolders) searching for cyptographic algorithms usage declaration. The output is presented at the standard output using a CSV format.
+Available options are
+* **-L** Scans for licences
+* **-C** Scans for copyrights
+* **-Q** Scans for code quality
+* **-Y** Scans for cryptographic algorithms
+
+For the given example using the **-Y** option, the output is like:
+```
+/home/johndoe/os-projects/myPersonalWallet/main.c,SHA,128
+/home/johndoe/os-projects/fileMgmt/fileordering/unique.c,MD5,128
+/home/johndoe/os-projects/fileMgmt/fileochecking/mycrc32.c,CRC32,128
+```
+
+Where each algorithm is reported once for each file. The first data of each row is the file path and its name, the second is the algorithm name and the last is the coding strenght for that algorithm.
+
 
 ## File Discrimination 
 
