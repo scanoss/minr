@@ -151,7 +151,7 @@ int main(int argc, char *argv[])
 	job.xkeys_ln = 0;
 	job.licenses = NULL;
 	job.license_count = 0;
-	load_crypto_definitions();
+	
 	while ((option = getopt(argc, argv, ":p:k:c:x:K:l:C:Q:L:o:O:Y:X:hv")) != -1)
 	{
 		/* Check valid alpha is entered */
@@ -238,7 +238,9 @@ int main(int argc, char *argv[])
 				break;
 			case 'Y':
 				argcpy(job.path, optarg);
+				load_crypto_definitions();
 				mz_mine_crypto(&job);
+				clean_crypto_definitions();
 				break;
 
 			case 'h':
@@ -267,6 +269,7 @@ int main(int argc, char *argv[])
 
 		if (invalid_argument)
 		{
+			
 			exit_status = EXIT_FAILURE;
 			break;
 		}
@@ -291,6 +294,6 @@ int main(int argc, char *argv[])
 	{
 		printf("Error parsing arguments\n");
 	}
-
+	
 	return exit_status;
 }

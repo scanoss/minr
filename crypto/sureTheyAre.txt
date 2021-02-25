@@ -1,4 +1,0 @@
-name=TEST
-coding=128
-USBH_OK
-USBH_HandleTypeDef

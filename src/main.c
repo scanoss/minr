@@ -45,6 +45,7 @@
 #include "help.h"
 #include "wfp.h"
 #include "import.h"
+#include "crypto.h"
 
 extern bool local_copy_result;
 extern bool local_license_result;
@@ -404,7 +405,7 @@ int main(int argc, char *argv[])
 		exit_code = EXIT_FAILURE;
 		printf("Invalid input. Please try -h\n");
 	}
-
+	clean_crypto_definitions();
 	exit(exit_code);
 }
 

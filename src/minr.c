@@ -440,16 +440,7 @@ void mine_local_file(struct minr_job *job, char *path)
 {
 
 
-job->src = calloc(MAX_FILE_SIZE + 1, 1);
-
-
-	
-	if (is_attribution_notice(path))
-	{
-		mine_attribution_notice(job, path);
-		return;
-	}
-
+	job->src = calloc(MAX_FILE_SIZE + 1, 1);
 	/* File discrimination check #2: Is the extension blacklisted or path not wanted? */
 	if (!job->all_extensions) if (blacklisted_extension(path)) return;
 	if (unwanted_path(path)) return;
@@ -489,7 +480,11 @@ job->src = calloc(MAX_FILE_SIZE + 1, 1);
 
 	
 }
-
+/**
+@brief Local mining
+@description Mines for Licenses, Crypto definitions and Copyrigths from a local directory. Results are presented at stdio.
+@since 2.1.2
+*/
 
 
 

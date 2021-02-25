@@ -22,13 +22,12 @@ struct T_TrieNode{
 	int type;
 	int ocurrences;
 	unsigned short coding;
-	struct T_TrieNode * next;
-	struct T_TrieNode * nodos[39];
+	struct T_TrieNode * nodos[40];
 	char algorithmName[10];
 };
 
 FILE 		*fp;
-char		currentName[50];
+char		currentName[100];
 unsigned short	currentCode=0;
 extern struct 	T_TrieNode * root;
 char currWord[50];
@@ -93,9 +92,9 @@ void insert(char *token, struct T_TrieNode *currNode,char* algorithmName, unsign
 	}
 	if(currNode->nodos[realIndex]==0){
 		struct T_TrieNode *newLeaf;
-		newLeaf=(struct T_TrieNode *) malloc (sizeof (struct T_TrieNode));
+		newLeaf=(struct T_TrieNode *) calloc (1,sizeof (struct T_TrieNode));
 		for(int i =0;i<39;i++)
-				newLeaf->nodos[i]=0;
+				newLeaf->nodos[i]=NULL;
 		newLeaf->ocurrences=0;
 		newLeaf->type = -1;
 		currNode->nodos[realIndex]=newLeaf;
@@ -112,9 +111,13 @@ void insert(char *token, struct T_TrieNode *currNode,char* algorithmName, unsign
 *		Otherwise, is just a sub string of an algorithm 
 *		(coincidence) */
 struct T_TrieNode * searchAlgorithm(char *token, struct T_TrieNode *node){
+	
+		
 	if(token[0]=='\0') {
-		if(node->type==-1) 
-			return NULL; 
+		if((node!=NULL) && (node->type==-1)) {
+		//printf("no es terminal\r\n");
+			return NULL;
+			} 
 		else 
 			return node;
 	}
@@ -167,7 +170,7 @@ void trimAndLow(char *strToLow){
 	aux[index]='\0';
 	strToLow=aux;
 }
-
+/*
 int parseChar(char currChar){
 
 	switch (defState){
@@ -191,7 +194,7 @@ int parseChar(char currChar){
 
 }
 
-
+*/
  /**
  * @brief Loads algotithm definitions from a file
  * @param path Scanning directory
@@ -256,6 +259,13 @@ void parseDirectory(char* root){
     }
     closedir(dr);
    // All files have been parsed
+}
+
+void cleanCrypto(struct T_TrieNode *node){
+for(int i=0;i<39;i++)
+if(node->nodos[i]!=NULL)
+	cleanCrypto(node->nodos[i]);
+free(node);
 }
 
 

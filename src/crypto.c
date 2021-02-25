@@ -39,62 +39,43 @@ struct T_SearchResult{
 };
 /**/
 struct T_TrieNode * root;
-//struct T_SearchResult * results;
-struct T_TrieNode * results[100];
-unsigned int resultsCount=0;
-/*
-int appendToResultsOld(struct T_TrieNode *element){
+struct T_SearchResult * results;
 
-struct T_SearchResult *auxFirst=results;
 
-struct T_SearchResult *current=auxFirst;
+/**
+@brief Appends a new result
+@description Insert a new element in the result linked list ordered by algorithm name. If the algorithm already exists, the result is discarded
+@param element Structure that contains an existing algorithm leaf
+*/
 
-struct T_SearchResult *last =auxFirst;
 
-int res =-1;
-while((current!=NULL)){
-	res= strcmp(current->element->algorithmName,element->algorithmName);
-	if(res==0) return 0; 
-	if(res<0) {
-		last=current;
-		current=current->nextElement;
-			
-	} 
-	if(res>0) break;
-}
-struct T_SearchResult *link;
-link = (struct T_SearchResult*) malloc(sizeof(struct T_SearchResult));
-	link->element=element;	
-	link->nextElement=current;
-	if(results==NULL) 
-		results= link; 
-	if(last!=NULL)
-		last->nextElement=link;
-	
-		
-	
-return 1;
-}*/
-
-int res=-1;
 int appendToResults(struct T_TrieNode *element){
-int actual = 0;
-while(actual<resultsCount){
-	res= strcmp(results[actual]->algorithmName,element->algorithmName);
-	if(res==0) return 0; 
-	if(res<0) actual++;
-	if(res>0) break;
+
+struct T_SearchResult* temp = (struct T_SearchResult*) calloc(1,sizeof(struct T_SearchResult));
+
+temp->element= element;
+temp->nextElement=NULL;
+
+struct T_SearchResult* temp2 = results;
+struct T_SearchResult** temp3 = &results;
+int res =0;
+while((temp2 != NULL) && (res<1) )
+{
+	if(temp->element==NULL) return 0; 
+	if(temp2->element->algorithmName==NULL) return 0;
+	res = strcmp(temp2->element->algorithmName,temp->element->algorithmName);
+	if(res==0) return 0;
+	
+
+   temp3 = &temp2->nextElement;
+   temp2 = temp2->nextElement;
+  
 }
-for(int i=resultsCount;i>actual;i--)
-	results[i]=results[i-1];
-results[actual]=element;
-resultsCount++;
+
+*temp3 = temp;
+
 return 1;
 }
-
-
-
-
 
 
 bool is_file(char *path);
@@ -107,7 +88,7 @@ bool not_a_dot(char *path);
 */
 void load_crypto_definitions(void){
 
-     root=(struct T_TrieNode *) malloc (sizeof (struct T_TrieNode));
+     root=(struct T_TrieNode *) calloc (1,sizeof (struct T_TrieNode));
      parseDirectory("./crypto");
  
 }
@@ -121,10 +102,12 @@ void load_crypto_definitions(void){
 */
 
 
+
 char *getNextToken(char * text,uint64_t *start,uint64_t *end,uint64_t maxLen){
 	uint64_t startToken=*start;
 	uint64_t endToken=0;
 	char *aux;
+	
 	while((startToken<maxLen)&&(indexOf(text[startToken])==-1))
 		startToken++;
 	endToken=startToken;
@@ -136,7 +119,7 @@ char *getNextToken(char * text,uint64_t *start,uint64_t *end,uint64_t maxLen){
 	*end=endToken;
 	return NULL;
 	}
-	aux =(char *) malloc(endToken-startToken+1);
+	aux =(char *) calloc(1,endToken-startToken+1);
 
 	memcpy(aux,&text[startToken],endToken-startToken);
 	aux[endToken-startToken]='\0';
@@ -145,8 +128,34 @@ char *getNextToken(char * text,uint64_t *start,uint64_t *end,uint64_t maxLen){
 	return aux;
 
 }
-/*
-	 */
+
+/**
+@description Gets a token from a valid portion of a char array 
+@param	text The text to search from
+@param	start Begining of search area. If a valid token is found, the effective begining is returned;
+@param	end Effective index of token end.
+@param	maxLen Bounds the search to a limited index 
+	
+*/
+void clean_crypto_definitions(void)
+{
+//printf("cleaning\r\n");
+cleanCrypto(root);
+//printf("cleaned\r\n");
+
+}
+
+
+/**
+@description Mines a given path that contains MD5 Files. 
+@param	mined_path 
+@param	md5 name of file to be mined.
+@param	src The contents of the MD5 file.
+@param	src_ln Size of the buffer to be mined (equal to filesize)
+@since 2.1.2	
+*/
+
+
 void mine_crypto(char *mined_path, char *md5, char *src, uint64_t src_ln)
 {
 	//FILE *fp;
@@ -156,49 +165,60 @@ void mine_crypto(char *mined_path, char *md5, char *src, uint64_t src_ln)
 	/* Assemble csv path */
 	char csv_path[MAX_PATH_LEN] = "\0";
 	char dumpToFile=0;
-	
+	//printf("Procesando %s ",md5);	
 	if (mined_path)
 	{	dumpToFile=1;
 		strcpy(csv_path, mined_path);
 		strcat(csv_path, "/crypto.csv");
 	}
 	 FILE * fp;
-	 resultsCount = 0;
-	
+	 
 	if (dumpToFile) {
 		fp = fopen(csv_path, "a");
 		dumpToFile=1;
 	}
-			
+	results=NULL;
+	
 	while(start<src_ln){
 		auxLn=getNextToken(src,&start, &end,src_ln);
-		if(start==end) 
+		if((start==end)) 
 			break;
 		 else {
 			start=end;
+			if((auxLn!=NULL)&&(strlen(auxLn)>2)){
 			toLower(auxLn);
 			
 			struct T_TrieNode * nodo = searchAlgorithm(auxLn, root) ;
-			if(nodo!=NULL){
+			if(nodo!=NULL && nodo->algorithmName!=NULL){
 				appendToResults(nodo);
+				
+			}
 			}
 		}
+		if(auxLn!=NULL) free(auxLn);
 	}
-		
-for(int i=0;i<resultsCount;i++){
+	
+	struct T_SearchResult * aux=results; 
+ 	struct T_SearchResult * old=aux;
+	
+	while(aux!=NULL){
+	old=aux;
 	if(dumpToFile) 
 		fprintf(fp,"%s,%s,%d\r\n",md5,
-					results[i]->algorithmName,
-					results[i]->coding); 
+					aux->element->algorithmName,
+					aux->element->coding); 
 	else {
 		printf("%s,%s,%d\r\n",md5,
-					results[i]->algorithmName,
-					results[i]->coding);
+					aux->element->algorithmName,
+					aux->element->coding);
 					 }	
-	
+	aux=aux->nextElement;
+	free(old);
 	}
-	
+		
 	if (dumpToFile)
 		fclose(fp);
+			
+	
 	
 }
