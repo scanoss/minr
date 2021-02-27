@@ -656,6 +656,21 @@ void import_quality(char *mined_path, bool skip_sort)
 	}
 }
 
+/* Import cryptography data */
+void import_cryptography(char *mined_path, bool skip_sort)
+{
+	char path[MAX_PATH_LEN] = "\0";
+	sprintf(path, "%s/cryptography.csv", mined_path);
+	if (is_file(path))
+	{
+		if (csv_sort(path, skip_sort))
+		{
+			/* 3 CSV fields expected (id, algorithm, strength) */
+			ldb_import_csv(path, "cryptography", 3, false);
+		}
+	}
+}
+
 /* Import attribution pointers */
 void import_attribution(char *mined_path, bool skip_sort)
 {
@@ -719,6 +734,7 @@ void mined_import(char *mined_path, bool skip_sort)
 	import_quality(mined_path, skip_sort);
 	import_popularity(mined_path, skip_sort);
 	import_attribution(mined_path, skip_sort);
+	import_cryptography(mined_path, skip_sort);
 
 	/* Import MZ archives */
 	import_mz(mined_path);

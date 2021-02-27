@@ -315,6 +315,10 @@ void minr_join(struct minr_job *job)
 	sprintf(dst_path, "%s/attribution.csv", destination);
 	csv_join(src_path, dst_path);
 
+	/* Join cryptography */
+	sprintf(src_path, "%s/cryptography.csv", source);
+	sprintf(dst_path, "%s/cryptography.csv", destination);
+	csv_join(src_path, dst_path);
 
 	rmdir(source);
 }
