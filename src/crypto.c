@@ -204,11 +204,11 @@ void mine_crypto(char *mined_path, char *md5, char *src, uint64_t src_ln)
 	while(aux!=NULL){
 	old=aux;
 	if(dumpToFile) 
-		fprintf(fp,"%s,%s,%d\r\n",md5,
+		fprintf(fp,"%s,%s,%d\n",md5,
 					aux->element->algorithmName,
 					aux->element->coding); 
 	else {
-		printf("%s,%s,%d\r\n",md5,
+		printf("%s,%s,%d\n",md5,
 					aux->element->algorithmName,
 					aux->element->coding);
 					 }	
