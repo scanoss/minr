@@ -169,7 +169,7 @@ void mine_crypto(char *mined_path, char *md5, char *src, uint64_t src_ln)
 	if (mined_path)
 	{	dumpToFile=1;
 		strcpy(csv_path, mined_path);
-		strcat(csv_path, "/crypto.csv");
+		strcat(csv_path, "/cryptography.csv");
 	}
 	 FILE * fp;
 	 
