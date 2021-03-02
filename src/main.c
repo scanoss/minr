@@ -154,6 +154,8 @@ int main(int argc, char *argv[])
 	*job.metadata = 0;
 	*job.url = 0;
 	*job.urlid = 0;
+	*job.fileid = 0;
+	*job.pairid = 0;
 	job.all_extensions = false;
 	job.exclude_mz = false;
 	job.exclude_detection = false;

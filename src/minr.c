@@ -246,11 +246,10 @@ bool load_file(struct minr_job *job, char *path)
 	FILE *fp;
 	 
 	 if ((fp = fopen(path,"rb")) == NULL){
-	       printf("Error! No pudo cargar definitions file");
+	       printf("Error! Cannot load the definitions file");
 	       exit(1);
 	}
 	 
-	
 	fseeko64(fp, 0, SEEK_END);
 	job->src_ln = ftello64(fp);
 
@@ -268,8 +267,9 @@ bool load_file(struct minr_job *job, char *path)
 	job->src[job->src_ln] = 0;
 	fclose(fp);
 
-	/* Calculate MD5 */
+	/* Calculate file MD5 */
 	calc_md5(job->src, job->src_ln, job->md5);
+	ldb_bin_to_hex(job->md5, MD5_LEN, job->fileid);
 
 	return true;
 }
@@ -318,6 +318,7 @@ void get_vendor_component_id(struct minr_job *job)
 
 	/* Calculate md5 */
 	vendor_component_md5(vendor, component, job->pair_md5);
+	ldb_bin_to_hex(job->pair_md5, MD5_LEN, job->pairid);
 }
 
 /* Write entry id to attribution.csv */
@@ -326,9 +327,7 @@ void attribution_add(struct minr_job *job)
 	char path[MAX_PATH_LEN]="\0";
 	sprintf(path, "%s/attribution.csv", job->mined_path);
 
-	char pair_id[MD5_LEN * 2 + 1] = "\0";
 	char notice_id[MD5_LEN * 2 + 1] = "\0";
-	ldb_bin_to_hex(job->pair_md5, MD5_LEN, pair_id);
 	ldb_bin_to_hex(job->md5, MD5_LEN, notice_id);
 
 	FILE *fp = fopen(path, "a");
@@ -337,18 +336,18 @@ void attribution_add(struct minr_job *job)
 		printf("Cannot create file %s\n", path);
 		exit(EXIT_FAILURE);
 	}
-	fprintf(fp, "%s,%s\n", pair_id, notice_id);
+	fprintf(fp, "%s,%s\n", job->pairid, notice_id);
 	fclose(fp);
 }
 
 /* Appends attribution notice to archive */
 void mine_attribution_notice(struct minr_job *job, char *path)
 {
-
 	if (!load_file(job,path)) return;
 
 	/* Obtain vendor/component md5 */
 	get_vendor_component_id(job);
+	mine_license(job->mined_path, job->pairid, job->src, job->src_ln, job->licenses, job->license_count);
 
 	/* Write entry to mined/attribution.csv */
 	attribution_add(job);
@@ -392,7 +391,6 @@ void mine_attribution_notice(struct minr_job *job, char *path)
 /* Mine the given path */
 void mine(struct minr_job *job, char *path)
 {
-printf("Path es: %s\r\n",path);
 	/* Mine attribution notice */
 	if (is_attribution_notice(path))
 	{
@@ -419,21 +417,17 @@ printf("Path es: %s\r\n",path);
 
 	}
 
-	/* Convert md5 to hex */
-	char *hex_md5 = bin_to_hex(job->md5, 16);
-
 	/* Mine more */
 	if (!job->exclude_detection)
 	{
-		mine_crypto(job->mined_path, hex_md5, job->src, job->src_ln);
-		mine_license(job->mined_path, hex_md5, job->src, job->src_ln, job->licenses, job->license_count);
-		mine_quality(job->mined_path, hex_md5, job->src, job->src_ln);
-		mine_copyright(job->mined_path, hex_md5, job->src, job->src_ln);
+		mine_crypto(job->mined_path, job->fileid, job->src, job->src_ln);
+		mine_license(job->mined_path, job->fileid, job->src, job->src_ln, job->licenses, job->license_count);
+		mine_quality(job->mined_path, job->fileid, job->src, job->src_ln);
+		mine_copyright(job->mined_path, job->fileid, job->src, job->src_ln);
 	}
 
 	/* Output file information */
-	fprintf(out_file[*job->md5], "%s,%s,%s\n", hex_md5 + 2, job->urlid, path + strlen(job->tmp_dir) + 1);
-	free(hex_md5);
+	fprintf(out_file[*job->md5], "%s,%s,%s\n", job->fileid + 2, job->urlid, path + strlen(job->tmp_dir) + 1);
 }
 
 void mine_local_file(struct minr_job *job, char *path)

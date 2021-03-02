@@ -29,7 +29,7 @@
 #include <string.h>
 
 /* Definitions */
-#define MINR_VERSION "2.1.3"
+#define MINR_VERSION "2.1.4"
 #define FILE_FILES 256
 #define MAX_ARG_LEN 1024
 #define MIN_FILE_REC_LEN 70
@@ -68,11 +68,12 @@ typedef struct normalized_license
 struct minr_job
 {
 	uint8_t md5[MD5_LEN];
-	uint8_t pair_md5[MD5_LEN]; // vendor/component md5
+	char fileid[MD5_LEN * 2 + 1];
+	uint8_t pair_md5[MD5_LEN];      // vendor/component md5
+	char pairid[MD5_LEN * 2 + 1]; // vendor/component md5 hex
 	char path[MAX_PATH_LEN];
 	char url[MAX_ARG_LEN];
 	char urlid[MD5_LEN * 2 + 1];
-	char fileid[MD5_LEN * 2 + 1];
 	char metadata[MAX_ARG_LEN];
 	char mined_path[MAX_ARG_LEN]; // Location of output mined/ directory
 	char tmp_dir[MAX_ARG_LEN];    // Temporary directory for decompressing files
