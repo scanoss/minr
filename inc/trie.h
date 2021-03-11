@@ -170,48 +170,34 @@ void trimAndLow(char *strToLow){
 	aux[index]='\0';
 	strToLow=aux;
 }
-/*
-int parseChar(char currChar){
-
-	switch (defState){
-	case SINIT: 
-		if(isValidChar(currChar)) {
-			currWord[currWordLen++]=currChar;
-			defState=SWORD;
-		}
-		break;
-	case SWORD:
-		if(isValidChar(currChar)) {
-			currWord[currWordLen++]=currChar;
-		} else { 
-			toLower(currWord);
-			defState = SINIT;
-			currWordLen = 0;
-			return 1;
-		} break;
- 	} 
- 	return 0;
-
-}
-
-*/
  /**
  * @brief Loads algotithm definitions from a file
  * @param path Scanning directory
  * @param fileName name of the file to be scanned. 
  * @note The absolute path is formed by path/filename. File content is as follows:
- * name=<algorithm Name>. Spaces are allowed. Ends with <cr><lf>
+ * name=<algorithm Name>. Spaces are NOT allowed. Ends with <cr><lf>
  coding=<algorithm strenght> a number in bits. There is no validation on this number
  */
-void parseFile(char *path,char *fileName){char include[50];
+void parseFile(char *path,char *fileName,bool destIsSrc)
+{
+	
+	char include[50];
 	char absolutePath[256];
 	sprintf(absolutePath,"%s/%s",path,fileName);
-	
+	FILE *fp2;
 	if ((fp = fopen(absolutePath,"r")) == NULL){
-	       printf("Error! crypto definitions file");
+	       printf("Error loading crypto definitions file\n");
 	       exit(1);
 	}
 
+	if(destIsSrc==true)
+	{
+		if ((fp2 = fopen("./inc/crypto_loads.h","a")) == NULL){
+	       printf("Error creating source definitions file");
+	       exit(1);
+		}
+		
+	}
 	while(!feof(fp)){
 		char auxName[50];
 		char auxLn[50];
@@ -232,21 +218,28 @@ void parseFile(char *path,char *fileName){char include[50];
 				if(match==-1) break;
 				if(match==1){
 					toLower(include);
-							insert(include,root,currentName,currentCode);
+					
+					if(destIsSrc==true) 
+						fprintf(fp2,"\tinsert(\"%s\",root,\"%s\",%d);\n", include,currentName,currentCode);
+					else
+						insert(include,root,currentName,currentCode);
 				}
 			}
 		}
 	}
 	fclose(fp);
+	if(destIsSrc) fclose(fp2);
+		
 }
 /**
 @brief Parses a system directory looking for files containing
 *	cryptographic keywords
 */
-void parseDirectory(char* root){
+void parseDirectory(char* root,bool destIsSrc){
 	struct dirent *de;  // Pointer for directory entry
     DIR *dr = opendir(root);
-    if (dr == NULL) {
+   printf("Scanning %s\n",root);
+   if (dr == NULL) {
 	        printf("Could not open current directory" );
 	        return ;
 	}
@@ -255,9 +248,10 @@ void parseDirectory(char* root){
     while ((de = readdir(dr)) != NULL){
     	if(de->d_name[0]=='.')
     		continue;
-	parseFile(root,de->d_name);
+	parseFile(root,de->d_name,destIsSrc);
     }
     closedir(dr);
+    printf("Done!\n");
    // All files have been parsed
 }
 

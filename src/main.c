@@ -185,7 +185,7 @@ int main(int argc, char *argv[])
 	int option;
 	bool invalid_argument = false;
 
-	while ((option = getopt(argc, argv, ":C:L:Q:Y:o:m:g:w:t:f:T:i:l:z:u:d:xXseahv")) != -1)
+	while ((option = getopt(argc, argv, ":c:C:L:Q:Y:o:m:g:w:t:f:T:i:l:z:u:dxXseahv")) != -1)
 	{
 		/* Check valid alpha is entered */
 		if (optarg)
@@ -239,7 +239,11 @@ int main(int argc, char *argv[])
 			case 'l':
 				generate_license_ids_c(optarg);
 				exit(EXIT_SUCCESS);
-
+			case 'c':
+				strcpy(tmp_path, optarg);
+				create_crypto_definitions(tmp_path);
+				exit(EXIT_SUCCESS);
+				break;
 			case 'z':
 				strcpy(job.mz, optarg);
 				break;

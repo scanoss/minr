@@ -1,6 +1,6 @@
 name=AES
 coding=256
-#include "aes.h"
+aes.h
 tiny-AES-c
 _AES_HPP_
 aesInit
