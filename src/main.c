@@ -185,8 +185,9 @@ int main(int argc, char *argv[])
 	int option;
 	bool invalid_argument = false;
 
-	while ((option = getopt(argc, argv, ":c:C:L:Q:Y:o:m:g:w:t:f:T:i:l:z:u:dxXseahv")) != -1)
+	while ((option = getopt(argc, argv, ":c:C:L:Q:Y:o:m:g:w:t:f:T:i:l:z:u:d:xXseahv")) != -1)
 	{
+
 		/* Check valid alpha is entered */
 		if (optarg)
 		{
@@ -250,7 +251,6 @@ int main(int argc, char *argv[])
 
 			case 'u':
 				strcpy(job.url, optarg);
-				
 				break;
 			
 			case 'C':

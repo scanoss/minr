@@ -539,8 +539,9 @@ void recurse(struct minr_job *job, char *path)
 
 /* Verify that required binaries are installed */
 bool check_dependencies()
-{
+{	
 	load_crypto_definitions();
+	
 	struct stat sb;
 	char *dependencies[] = 
 	{
