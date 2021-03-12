@@ -232,97 +232,97 @@ normalized_license *load_licenses(int *count)
   strcpy(licenses[53].text,"thissourcecodeformissubjecttothetermsofthemozillapubliclicensev20ifacopyofthemplwasnotdistributedwiththisfileyoucanobtainoneathttpmozillaorgmpl20");
   licenses[53].ln = 145;
 
-  strcpy(licenses[54].spdx_id, "SSDL");
-  strcpy(licenses[54].text,"serversidepubliclicense");
-  licenses[54].ln = 23;
+  strcpy(licenses[54].spdx_id, "HPND");
+  strcpy(licenses[54].text,"historicalpermissionnoticeanddisclaimer");
+  licenses[54].ln = 39;
 
-  strcpy(licenses[55].spdx_id, "SSDL");
-  strcpy(licenses[55].text,"ssdl");
-  licenses[55].ln = 4;
+  strcpy(licenses[55].spdx_id, "HPND");
+  strcpy(licenses[55].text,"permissiontousecopymodifyanddistributethissoftwareanditsdocumentationforanypurposeandwithoutfeeisherebygrantedprovidedthattheabovecopyrightnoticeappearinallcopiesandthatboththatthecopyrightnoticeandthispermissionnoticeappearinsupportingdocumentationandthatthenameofcopyrightholderorrelatedentitiesnotbeusedinadvertisingorpublicitypertainingtodistributionofthesoftwarewithoutspecificwrittenpriorpermissioncopyrightholdermakesnorepresentationsaboutthesuitabilityofthissoftwareforanypurposeitisprovidedasiswithoutexpressorimpliedwarrantycopyrightholderdisclaimsallwarrantieswithregardtothissoftwareincludingallimpliedwarrantiesofmerchantabilityandfitnessinnoeventshallcopyrightholderbeliableforanyspecialindirectorconsequentialdamagesoranydamageswhatsoeverresultingfromlossofusedataorprofitswhetherinanactionofcontractnegligenceorothertortiousactionarisingoutoforinconnectionwiththeuseorperformanceofthissoftware");
+  licenses[55].ln = 909;
 
-  strcpy(licenses[56].spdx_id, "HPND");
-  strcpy(licenses[56].text,"historicalpermissionnoticeanddisclaimer");
-  licenses[56].ln = 39;
+  strcpy(licenses[56].spdx_id, "zlib-acknowledgement");
+  strcpy(licenses[56].text,"thissoftwareisprovidedasiswithoutanyexpressorimpliedwarrantyinnoeventwilltheauthorsbeheldliableforanydamagesarisingfromtheuseofthissoftwarepermissionisgrantedtoanyonetousethissoftwareforanypurposeincludingcommercialapplicationsandtoalteritandredistributeitfreelysubjecttothefollowingrestrictions1theoriginofthissoftwaremustnotbemisrepresentedyoumustnotclaimthatyouwrotetheoriginalsoftwareifyouusethissoftwareinaproductanacknowledgmentseethefollowingintheproductdocumentationisrequiredportionscopyrightc20022007charliepooleorcopyrightc20022004jameswnewkirkmichaelctwoalexeiavorontsovorcopyrightc20002002philipacraig2alteredsourceversionsmustbeplainlymarkedassuchandmustnotbemisrepresentedasbeingtheoriginalsoftware3thisnoticemaynotberemovedoralteredfromanysourcedistribution");
+  licenses[56].ln = 773;
 
-  strcpy(licenses[57].spdx_id, "HPND");
-  strcpy(licenses[57].text,"permissiontousecopymodifyanddistributethissoftwareanditsdocumentationforanypurposeandwithoutfeeisherebygrantedprovidedthattheabovecopyrightnoticeappearinallcopiesandthatboththatthecopyrightnoticeandthispermissionnoticeappearinsupportingdocumentationandthatthenameofcopyrightholderorrelatedentitiesnotbeusedinadvertisingorpublicitypertainingtodistributionofthesoftwarewithoutspecificwrittenpriorpermissioncopyrightholdermakesnorepresentationsaboutthesuitabilityofthissoftwareforanypurposeitisprovidedasiswithoutexpressorimpliedwarrantycopyrightholderdisclaimsallwarrantieswithregardtothissoftwareincludingallimpliedwarrantiesofmerchantabilityandfitnessinnoeventshallcopyrightholderbeliableforanyspecialindirectorconsequentialdamagesoranydamageswhatsoeverresultingfromlossofusedataorprofitswhetherinanactionofcontractnegligenceorothertortiousactionarisingoutoforinconnectionwiththeuseorperformanceofthissoftware");
-  licenses[57].ln = 909;
+  strcpy(licenses[57].spdx_id, "bzip2-1.0.6");
+  strcpy(licenses[57].text,"redistributionanduseinsourceandbinaryformswithorwithoutmodificationarepermittedprovidedthatthefollowingconditionsaremet1redistributionsofsourcecodemustretaintheabovecopyrightnoticethislistofconditionsandthefollowingdisclaimer2theoriginofthissoftwaremustnotbemisrepresentedyoumustnotclaimthatyouwrotetheoriginalsoftwareifyouusethissoftwareinaproductanacknowledgmentintheproductdocumentationwouldbeappreciatedbutisnotrequired3alteredsourceversionsmustbeplainlymarkedassuchandmustnotbemisrepresentedasbeingtheoriginalsoftware4thenameoftheauthormaynotbeusedtoendorseorpromoteproductsderivedfromthissoftwarewithoutspecificpriorwrittenpermissionthissoftwareisprovidedbytheauthorasisandanyexpressorimpliedwarrantiesincludingbutnotlimitedtotheimpliedwarrantiesofmerchantabilityandfitnessforaparticularpurposearedisclaimedinnoeventshalltheauthorbeliableforanydirectindirectincidentalspecialexemplaryorconsequentialdamagesincludingbutnotlimitedtoprocurementofsubstitutegoodsorserviceslossofusedataorprofitsorbusinessinterruptionhowev");
+  licenses[57].ln = 1023;
 
-  strcpy(licenses[58].spdx_id, "zlib-acknowledgement");
-  strcpy(licenses[58].text,"thissoftwareisprovidedasiswithoutanyexpressorimpliedwarrantyinnoeventwilltheauthorsbeheldliableforanydamagesarisingfromtheuseofthissoftwarepermissionisgrantedtoanyonetousethissoftwareforanypurposeincludingcommercialapplicationsandtoalteritandredistributeitfreelysubjecttothefollowingrestrictions1theoriginofthissoftwaremustnotbemisrepresentedyoumustnotclaimthatyouwrotetheoriginalsoftwareifyouusethissoftwareinaproductanacknowledgmentseethefollowingintheproductdocumentationisrequiredportionscopyrightc20022007charliepooleorcopyrightc20022004jameswnewkirkmichaelctwoalexeiavorontsovorcopyrightc20002002philipacraig2alteredsourceversionsmustbeplainlymarkedassuchandmustnotbemisrepresentedasbeingtheoriginalsoftware3thisnoticemaynotberemovedoralteredfromanysourcedistribution");
-  licenses[58].ln = 773;
+  strcpy(licenses[58].spdx_id, "AFL-2.1");
+  strcpy(licenses[58].text,"licensedundertheacademicfreelicenseversion21");
+  licenses[58].ln = 44;
 
-  strcpy(licenses[59].spdx_id, "bzip2-1.0.6");
-  strcpy(licenses[59].text,"redistributionanduseinsourceandbinaryformswithorwithoutmodificationarepermittedprovidedthatthefollowingconditionsaremet1redistributionsofsourcecodemustretaintheabovecopyrightnoticethislistofconditionsandthefollowingdisclaimer2theoriginofthissoftwaremustnotbemisrepresentedyoumustnotclaimthatyouwrotetheoriginalsoftwareifyouusethissoftwareinaproductanacknowledgmentintheproductdocumentationwouldbeappreciatedbutisnotrequired3alteredsourceversionsmustbeplainlymarkedassuchandmustnotbemisrepresentedasbeingtheoriginalsoftware4thenameoftheauthormaynotbeusedtoendorseorpromoteproductsderivedfromthissoftwarewithoutspecificpriorwrittenpermissionthissoftwareisprovidedbytheauthorasisandanyexpressorimpliedwarrantiesincludingbutnotlimitedtotheimpliedwarrantiesofmerchantabilityandfitnessforaparticularpurposearedisclaimedinnoeventshalltheauthorbeliableforanydirectindirectincidentalspecialexemplaryorconsequentialdamagesincludingbutnotlimitedtoprocurementofsubstitutegoodsorserviceslossofusedataorprofitsorbusinessinterruptionhowev");
-  licenses[59].ln = 1023;
+  strcpy(licenses[59].spdx_id, "AFL-2.1");
+  strcpy(licenses[59].text,"theacademicfreelicensev21");
+  licenses[59].ln = 25;
 
-  strcpy(licenses[60].spdx_id, "AFL-2.1");
-  strcpy(licenses[60].text,"licensedundertheacademicfreelicenseversion21");
-  licenses[60].ln = 44;
+  strcpy(licenses[60].spdx_id, "EFL-2.0");
+  strcpy(licenses[60].text,"1permissionisherebygrantedtousecopymodifyandordistributethispackageprovidedthatcopyrightnoticesareretainedunchangedanydistributionofthispackagewhethermodifiedornotincludesthislicensetext2permissionisherebyalsograntedtodistributebinaryprogramswhichdependonthispackageifthebinaryprogramdependsonamodifiedversionofthispackageyouareencouragedtopubliclyreleasethemodifiedversionofthispackagethispackageisprovidedasisandwithoutwarrantyanyexpressorimpliedwarrantiesincludingbutnotlimitedtotheimpliedwarrantiesofmerchantabilityandfitnessforaparticularpurposearedisclaimedinnoeventshalltheauthorsbeliabletoanypartyforanydirectindirectincidentalspecialexemplaryorconsequentialdamagesarisinginanywayoutoftheuseofthispackage");
+  licenses[60].ln = 712;
 
-  strcpy(licenses[61].spdx_id, "AFL-2.1");
-  strcpy(licenses[61].text,"theacademicfreelicensev21");
-  licenses[61].ln = 25;
+  strcpy(licenses[61].spdx_id, "EFL-2.0");
+  strcpy(licenses[61].text,"eiffelforumlicenseversion2");
+  licenses[61].ln = 26;
 
-  strcpy(licenses[62].spdx_id, "EFL-2.0");
-  strcpy(licenses[62].text,"1permissionisherebygrantedtousecopymodifyandordistributethispackageprovidedthatcopyrightnoticesareretainedunchangedanydistributionofthispackagewhethermodifiedornotincludesthislicensetext2permissionisherebyalsograntedtodistributebinaryprogramswhichdependonthispackageifthebinaryprogramdependsonamodifiedversionofthispackageyouareencouragedtopubliclyreleasethemodifiedversionofthispackagethispackageisprovidedasisandwithoutwarrantyanyexpressorimpliedwarrantiesincludingbutnotlimitedtotheimpliedwarrantiesofmerchantabilityandfitnessforaparticularpurposearedisclaimedinnoeventshalltheauthorsbeliabletoanypartyforanydirectindirectincidentalspecialexemplaryorconsequentialdamagesarisinginanywayoutoftheuseofthispackage");
-  licenses[62].ln = 712;
+  strcpy(licenses[62].spdx_id, "GPL-3.0-only");
+  strcpy(licenses[62].text,"youcanredistributeitandormodifyitunderthetermsofthegnugeneralpubliclicenseversion3aspublishedbythefreesoftwarefoundation");
+  licenses[62].ln = 120;
 
-  strcpy(licenses[63].spdx_id, "EFL-2.0");
-  strcpy(licenses[63].text,"eiffelforumlicenseversion2");
-  licenses[63].ln = 26;
+  strcpy(licenses[63].spdx_id, "GPL-3.0-only");
+  strcpy(licenses[63].text,"youcanredistributeitandormodifyitunderthetermsofthegnugeneralpubliclicenseaspublishedbythefreesoftwarefoundationversion3thisprogram");
+  licenses[63].ln = 131;
 
-  strcpy(licenses[64].spdx_id, "GPL-3.0-only");
-  strcpy(licenses[64].text,"youcanredistributeitandormodifyitunderthetermsofthegnugeneralpubliclicenseversion3aspublishedbythefreesoftwarefoundation");
-  licenses[64].ln = 120;
+  strcpy(licenses[64].spdx_id, "Libpng");
+  strcpy(licenses[64].text,"thiscopyofthelibpngnoticesisprovidedforyourconvenienceincaseofanydiscrepancybetweenthiscopyandthenoticesinthefilepnghthatisincludedinthelibpngdistributionthelattershallprevail");
+  licenses[64].ln = 175;
 
-  strcpy(licenses[65].spdx_id, "GPL-3.0-only");
-  strcpy(licenses[65].text,"youcanredistributeitandormodifyitunderthetermsofthegnugeneralpubliclicenseaspublishedbythefreesoftwarefoundationversion3thisprogram");
-  licenses[65].ln = 131;
+  strcpy(licenses[65].spdx_id, "MS-PL");
+  strcpy(licenses[65].text,"microsoftpubliclicense");
+  licenses[65].ln = 22;
 
-  strcpy(licenses[66].spdx_id, "Libpng");
-  strcpy(licenses[66].text,"thiscopyofthelibpngnoticesisprovidedforyourconvenienceincaseofanydiscrepancybetweenthiscopyandthenoticesinthefilepnghthatisincludedinthelibpngdistributionthelattershallprevail");
-  licenses[66].ln = 175;
+  strcpy(licenses[66].spdx_id, "WTFPL");
+  strcpy(licenses[66].text,"dowhatthefuckyouwanttopubliclicense");
+  licenses[66].ln = 35;
 
-  strcpy(licenses[67].spdx_id, "MS-PL");
-  strcpy(licenses[67].text,"microsoftpubliclicense");
-  licenses[67].ln = 22;
+  strcpy(licenses[67].spdx_id, "LGPL-3.0-or-later");
+  strcpy(licenses[67].text,"youcanredistributeitandormodifyitunderthetermsofthegnulessergeneralpubliclicenseaspublishedbythefreesoftwarefoundationeitherversion3");
+  licenses[67].ln = 132;
 
-  strcpy(licenses[68].spdx_id, "WTFPL");
-  strcpy(licenses[68].text,"dowhatthefuckyouwanttopubliclicense");
-  licenses[68].ln = 35;
+  strcpy(licenses[68].spdx_id, "MPL-2.0-no-copyleft-exception");
+  strcpy(licenses[68].text,"33distributionofalargerworkyoumaycreateanddistributealargerworkundertermsofyourchoiceprovidedthatyoualsocomplywiththerequirementsofthislicenseforthecoveredsoftwareifthelargerworkisacombinationofcoveredsoftwarewithaworkgovernedbyoneormoresecondarylicensesandthecoveredsoftwareisnotincompatiblewithsecondarylicensesthislicensepermitsyoutoadditionallydistributesuchcoveredsoftwareunderthetermsofsuchsecondarylicensessothattherecipientofthelargerworkmayattheiroptionfurtherdistributethecoveredsoftwareunderthetermsofeitherthislicenseorsuchsecondarylicenses");
+  licenses[68].ln = 552;
 
-  strcpy(licenses[69].spdx_id, "LGPL-3.0-or-later");
-  strcpy(licenses[69].text,"youcanredistributeitandormodifyitunderthetermsofthegnulessergeneralpubliclicenseaspublishedbythefreesoftwarefoundationeitherversion3");
-  licenses[69].ln = 132;
+  strcpy(licenses[69].spdx_id, "MIT");
+  strcpy(licenses[69].text,"thesoftwareisprovidedasiswithoutwarrantyofanykindexpressorimpliedincludingbutnotlimitedtothewarrantiesofmerchantabilityfitnessforaparticularpurposeandnoninfringementinnoeventshalltheauthorsorcopyrightholdersbeliableforanyclaimdamagesorotherliabilitywhetherinanactionofcontracttortorotherwisearisingfromoutoforinconnectionwiththesoftwareortheuseorotherdealingsinthesoftware");
+  licenses[69].ln = 372;
 
-  strcpy(licenses[70].spdx_id, "MPL-2.0-no-copyleft-exception");
-  strcpy(licenses[70].text,"33distributionofalargerworkyoumaycreateanddistributealargerworkundertermsofyourchoiceprovidedthatyoualsocomplywiththerequirementsofthislicenseforthecoveredsoftwareifthelargerworkisacombinationofcoveredsoftwarewithaworkgovernedbyoneormoresecondarylicensesandthecoveredsoftwareisnotincompatiblewithsecondarylicensesthislicensepermitsyoutoadditionallydistributesuchcoveredsoftwareunderthetermsofsuchsecondarylicensessothattherecipientofthelargerworkmayattheiroptionfurtherdistributethecoveredsoftwareunderthetermsofeitherthislicenseorsuchsecondarylicenses");
-  licenses[70].ln = 552;
+  strcpy(licenses[70].spdx_id, "MIT");
+  strcpy(licenses[70].text,"mitlicense");
+  licenses[70].ln = 10;
 
   strcpy(licenses[71].spdx_id, "MIT");
-  strcpy(licenses[71].text,"thesoftwareisprovidedasiswithoutwarrantyofanykindexpressorimpliedincludingbutnotlimitedtothewarrantiesofmerchantabilityfitnessforaparticularpurposeandnoninfringementinnoeventshalltheauthorsorcopyrightholdersbeliableforanyclaimdamagesorotherliabilitywhetherinanactionofcontracttortorotherwisearisingfromoutoforinconnectionwiththesoftwareortheuseorotherdealingsinthesoftware");
-  licenses[71].ln = 372;
+  strcpy(licenses[71].text,"permissiontousecopymodifyanddistributethissoftwareforanypurposewithorwithoutfeeisherebygrantedprovidedthattheabovecopyrightnoticeandthispermissionnoticeappearinallcopies");
+  licenses[71].ln = 169;
 
   strcpy(licenses[72].spdx_id, "MIT");
-  strcpy(licenses[72].text,"mitlicense");
-  licenses[72].ln = 10;
+  strcpy(licenses[72].text,"todealinthesoftwarewithoutrestrictionincludingwithoutlimitationtherightstousecopymodifymergepublishdistributesublicenseandorsellcopiesofthesoftwareandtopermitpersonstowhomthesoftwareisfurnishedtodososubjecttothefollowingconditionstheabovecopyrightnoticeandthispermissionnotice");
+  licenses[72].ln = 276;
 
-  strcpy(licenses[73].spdx_id, "MIT");
-  strcpy(licenses[73].text,"permissiontousecopymodifyanddistributethissoftwareforanypurposewithorwithoutfeeisherebygrantedprovidedthattheabovecopyrightnoticeandthispermissionnoticeappearinallcopies");
-  licenses[73].ln = 169;
+  strcpy(licenses[73].spdx_id, "Artistic-1.0-Perl");
+  strcpy(licenses[73].text,"artisticlicense10");
+  licenses[73].ln = 17;
 
-  strcpy(licenses[74].spdx_id, "MIT");
-  strcpy(licenses[74].text,"todealinthesoftwarewithoutrestrictionincludingwithoutlimitationtherightstousecopymodifymergepublishdistributesublicenseandorsellcopiesofthesoftwareandtopermitpersonstowhomthesoftwareisfurnishedtodososubjecttothefollowingconditionstheabovecopyrightnoticeandthispermissionnotice");
-  licenses[74].ln = 276;
+  strcpy(licenses[74].spdx_id, "Artistic-1.0-Perl");
+  strcpy(licenses[74].text,"preambletheintentofthisdocumentistostatetheconditionsunderwhichapackagemaybecopiedsuchthatthecopyrightholdermaintainssomesemblanceofartisticcontroloverthedevelopmentofthepackagewhilegivingtheusersofthepackagetherighttouseanddistributethepackageinamoreorlesscustomaryfashionplustherighttomakereasonablemodificationsdefinitionspackagereferstothecollectionoffilesdistributedbythecopyrightholderandderivativesofthatcollectionoffilescreatedthroughtextualmodificationstandardversionreferstosuchapackageifithasnotbeenmodifiedorhasbeenmodifiedinaccordancewiththewishesofthecopyrightholderasspecifiedbelowcopyrightholderiswhoeverisnamedinthecopyrightorcopyrightsforthepackageyouisyouifyourethinkingaboutcopyingordistributingthispackagereasonablecopyingfeeiswhateveryoucanjustifyonthebasisofmediacostduplicationchargestimeofpeopleinvolvedandsoonyouwillnotberequiredtojustifyittothecopyrightholderbutonlytothecomputingcommunityatlargeasamarketthatmustbearthefeefreelyavailablemeansthatnofeeischargedfortheitemitselfthoughtheremaybefee");
+  licenses[74].ln = 1023;
 
-  strcpy(licenses[75].spdx_id, "Artistic-1.0-Perl");
-  strcpy(licenses[75].text,"artisticlicense10");
-  licenses[75].ln = 17;
+  strcpy(licenses[75].spdx_id, "SSPL");
+  strcpy(licenses[75].text,"serversidepubliclicense");
+  licenses[75].ln = 23;
 
-  strcpy(licenses[76].spdx_id, "Artistic-1.0-Perl");
-  strcpy(licenses[76].text,"preambletheintentofthisdocumentistostatetheconditionsunderwhichapackagemaybecopiedsuchthatthecopyrightholdermaintainssomesemblanceofartisticcontroloverthedevelopmentofthepackagewhilegivingtheusersofthepackagetherighttouseanddistributethepackageinamoreorlesscustomaryfashionplustherighttomakereasonablemodificationsdefinitionspackagereferstothecollectionoffilesdistributedbythecopyrightholderandderivativesofthatcollectionoffilescreatedthroughtextualmodificationstandardversionreferstosuchapackageifithasnotbeenmodifiedorhasbeenmodifiedinaccordancewiththewishesofthecopyrightholderasspecifiedbelowcopyrightholderiswhoeverisnamedinthecopyrightorcopyrightsforthepackageyouisyouifyourethinkingaboutcopyingordistributingthispackagereasonablecopyingfeeiswhateveryoucanjustifyonthebasisofmediacostduplicationchargestimeofpeopleinvolvedandsoonyouwillnotberequiredtojustifyittothecopyrightholderbutonlytothecomputingcommunityatlargeasamarketthatmustbearthefeefreelyavailablemeansthatnofeeischargedfortheitemitselfthoughtheremaybefee");
-  licenses[76].ln = 1023;
+  strcpy(licenses[76].spdx_id, "SSPL");
+  strcpy(licenses[76].text,"ssdl");
+  licenses[76].ln = 4;
 
   strcpy(licenses[77].spdx_id, "GPL-3.0-or-later");
   strcpy(licenses[77].text,"youcanredistributeitandormodifyitunderthetermsofthegnulessergeneralpubliclicenseaspublishedbythefreesoftwarefoundationeitherversion3");
