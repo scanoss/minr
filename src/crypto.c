@@ -194,6 +194,7 @@ cleanCrypto(root);
 
 void mine_crypto(char *mined_path, char *md5, char *src, uint64_t src_ln)
 {
+	
 	//FILE *fp;
 	char *auxLn;
 	uint64_t start = 0;
@@ -227,7 +228,7 @@ void mine_crypto(char *mined_path, char *md5, char *src, uint64_t src_ln)
 			struct T_TrieNode * nodo = searchAlgorithm(auxLn, root) ;
 			if(nodo!=NULL && nodo->algorithmName!=NULL){
 				appendToResults(nodo);
-				
+								
 			}
 			}
 		}
