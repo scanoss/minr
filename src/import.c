@@ -275,7 +275,7 @@ bool file_id_to_bin(char *line, uint8_t first_byte, bool got_1st_byte, uint8_t *
 			/* Convert remaining 15 bytes */
 			ldb_hex_to_bin(line, MD5_LEN_HEX - 2, itemid + 1);
 
-			/* Convert componentid if needed (file table) */
+			/* Convert urlid if needed (file table) */
 			if (is_file_table) ldb_hex_to_bin(line + (MD5_LEN_HEX - 2 + 1), MD5_LEN_HEX, field2);
 		}
 	}
@@ -286,7 +286,7 @@ bool file_id_to_bin(char *line, uint8_t first_byte, bool got_1st_byte, uint8_t *
 		/* Convert item id */
 		ldb_hex_to_bin(line, 32, itemid);
 
-		/* Convert component id if needed (file table) */
+		/* Convert url id if needed (file table) */
 		if (is_file_table) ldb_hex_to_bin(field_n(2, line), 32, field2);
 	}
 
@@ -381,7 +381,7 @@ bool ldb_import_csv(char *filename, char *table, int expected_fields, bool is_fi
 		char *data = field_n(2, line);
 		bool skip = false;
 
-		/* File table will have the component id as the second field, which will be
+		/* File table will have the url id as the second field, which will be
 			converted to binary. Data then starts on the third field. Also file extensions
 			are checked and ruled out if blacklisted */
 		if (is_file_table)
@@ -454,7 +454,7 @@ bool ldb_import_csv(char *filename, char *table, int expected_fields, bool is_fi
 			uint16_write(item_buf + item_ptr, r_size + field2_ln);
 			item_ptr += REC_SIZE_LEN;
 
-			/* Add component id to record */
+			/* Add url id to record */
 			memcpy (item_buf + item_ptr, field2, field2_ln);
 			item_ptr += field2_ln;
 
@@ -523,17 +523,17 @@ bool bin_sort(char * file_path, bool skip_sort)
 }
 
 
-/* Import components */
-void import_components(char *mined_path, bool skip_sort)
+/* Import urls */
+void import_urls(char *mined_path, bool skip_sort)
 {
 	char path[MAX_PATH_LEN] = "\0";
-	sprintf(path, "%s/components.csv", mined_path);
+	sprintf(path, "%s/urls.csv", mined_path);
 
 	if (is_file(path))
 	{
 		if (csv_sort(path, skip_sort))
-			/* 5 fields expected (component id, vendor, component, version, url) */
-			ldb_import_csv(path, "component", 5, false);
+			/* 7 fields expected (url id, vendor, component, version, release_date, license, url) */
+			ldb_import_csv(path, "url", 7, false);
 	}
 }
 
@@ -550,7 +550,7 @@ void import_files(char *mined_path, bool skip_sort)
 			sprintf(path, "%s/files/%02x.csv", mined_path, i);
 			if (csv_sort(path, skip_sort))
 			{
-				/* 3 fields expected (file id, component id, URL) */
+				/* 3 fields expected (file id, url id, URL) */
 				ldb_import_csv(path, "file", 3, true);
 			}
 		}
@@ -724,7 +724,7 @@ void mined_import(char *mined_path, bool skip_sort)
 	import_snippets(mined_path, skip_sort);
 
 	/* Import CSVs */
-	import_components(mined_path, skip_sort);
+	import_urls(mined_path, skip_sort);
 	import_files(mined_path, skip_sort);
 	import_licenses(mined_path, skip_sort);
 	import_dependencies(mined_path, skip_sort);

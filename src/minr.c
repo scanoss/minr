@@ -20,7 +20,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-/* Returns the command needed to decompress the "url" */
 #include "minr.h"
 #include <dirent.h>
 #include <libgen.h>
@@ -93,6 +92,7 @@ uint32_t execute_command(char *command)
 	return pclose(fp);
 }
 
+/* Returns the command needed to decompress the "url" */
 char *decompress(char *url)
 {
 
@@ -432,8 +432,6 @@ void mine(struct minr_job *job, char *path)
 
 void mine_local_file(struct minr_job *job, char *path)
 {
-
-
 	job->src = calloc(MAX_FILE_SIZE + 1, 1);
 	/* File discrimination check #2: Is the extension blacklisted or path not wanted? */
 	if (!job->all_extensions) if (blacklisted_extension(path)) return;
@@ -445,68 +443,66 @@ void mine_local_file(struct minr_job *job, char *path)
 	/* File discrimination check: Unwanted header? */
 	if (unwanted_header(job->src)) return;	
 	
-	switch(job->local_mining){
+	switch(job->local_mining)
+	{
 		case 1:
 			mine_crypto(NULL,path, job->src, job->src_ln); 
-		break;
+			break;
+
 		case 2: 
 			mine_license(NULL, 
 					path, job->src,
 					job->src_ln, 
 					job->licenses, 
 					job->license_count);
-		break;
+			break;
+
 		case 3: 
 			mine_quality(NULL, 
 					path,
 					job->src,
 					job->src_ln);
-		break;
+			break;
+
 		case 4: 
 			mine_copyright(NULL,
 					path,
 					job->src,
 					job->src_ln);
-		break;
-		default:printf("Default\r\n"); break;
-		}
-
-
-	
+			break;
+	}
 }
+
 /**
-@brief Local mining
-@description Mines for Licenses, Crypto definitions and Copyrigths from a local directory. Results are presented at stdio.
-@since 2.1.2
-*/
-
-
+  @brief Local mining
+  @description Mines for Licenses, Crypto definitions and Copyrigths from a local directory. Results are presented at stdio.
+  @since 2.1.2
+  */
 
 void mine_local_directory(struct minr_job *job, char* root){
-	
-    DIR *dir;
-    struct dirent *entry;
 
-    if (!(dir = opendir(root)))
-        return;
+	DIR *dir;
+	struct dirent *entry;
 
-    while ((entry = readdir(dir)) != NULL) {
-          char path[1024];
-          if (entry->d_type == DT_DIR) {
-          
-            if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
-                continue;
-            snprintf(path, sizeof(path), "%s/%s", root, entry->d_name);
-             mine_local_directory(job,path);
-        } else {
-        sprintf(path,"%s/%s",root,entry->d_name);
-            mine_local_file(job,path);
-        }
-    }
-    closedir(dir);
+	if (!(dir = opendir(root)))
+		return;
+
+	while ((entry = readdir(dir)) != NULL) {
+		char path[1024];
+		if (entry->d_type == DT_DIR) {
+
+			if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
+				continue;
+			snprintf(path, sizeof(path), "%s/%s", root, entry->d_name);
+			mine_local_directory(job,path);
+		} else {
+			sprintf(path,"%s/%s",root,entry->d_name);
+			mine_local_file(job,path);
+		}
+	}
+	closedir(dir);
 
 }
-
 
 /* Recursive directory reading */
 void recurse(struct minr_job *job, char *path)
@@ -541,7 +537,7 @@ void recurse(struct minr_job *job, char *path)
 bool check_dependencies()
 {	
 	load_crypto_definitions();
-	
+
 	struct stat sb;
 	char *dependencies[] = 
 	{

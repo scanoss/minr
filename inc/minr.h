@@ -29,7 +29,7 @@
 #include <string.h>
 
 /* Definitions */
-#define MINR_VERSION "2.1.4"
+#define MINR_VERSION "2.1.5"
 #define FILE_FILES 256
 #define MAX_ARG_LEN 1024
 #define MIN_FILE_REC_LEN 70
@@ -69,12 +69,18 @@ struct minr_job
 {
 	uint8_t md5[MD5_LEN];
 	char fileid[MD5_LEN * 2 + 1];
+
 	uint8_t pair_md5[MD5_LEN];      // vendor/component md5
 	char pairid[MD5_LEN * 2 + 1]; // vendor/component md5 hex
+
+	uint8_t version_md5[MD5_LEN];      // vendor/component/version md5
+	char versionid[MD5_LEN * 2 + 1]; // vendor/component/version md5 hex
+
 	char path[MAX_PATH_LEN];
 	char url[MAX_ARG_LEN];
 	char urlid[MD5_LEN * 2 + 1];
 	char metadata[MAX_ARG_LEN];
+	char license[MAX_ARG_LEN];    // Declared url license
 	char mined_path[MAX_ARG_LEN]; // Location of output mined/ directory
 	char tmp_dir[MAX_ARG_LEN];    // Temporary directory for decompressing files
 	bool all_extensions;
@@ -129,5 +135,6 @@ void mine_copyright(char *mined_path, char *md5, char *src, uint64_t src_ln);
 void mine_quality(char *mined_path, char *md5, char *src, long size);
 normalized_license *load_licenses(int *count);
 void mine_local_directory(struct minr_job *job, char* root);
+void extract_csv(char *out, char *in, int n, long limit);
 
 #endif

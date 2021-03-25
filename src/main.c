@@ -46,98 +46,10 @@
 #include "wfp.h"
 #include "import.h"
 #include "crypto.h"
+#include "url.h"
 
 extern bool local_copy_result;
 extern bool local_license_result;
-void component_add(struct minr_job *job)
-{
-	char path[MAX_PATH_LEN]="\0";
-	sprintf(path, "%s/components.csv", job->mined_path);
-
-	FILE *fp = fopen(path, "a");
-	if (!fp)
-	{
-		printf("Cannot create file %s\n", path);
-		exit(EXIT_FAILURE);
-	}
-	fprintf(fp, "%s,%s,%s\n", job->urlid, job->metadata, job->url);
-	fclose(fp);
-}
-
-void rm_tmpdir(struct minr_job *job)
-{
-		/* Assemble command */
-		char command[MAX_PATH_LEN] = "\0";
-		sprintf(command, "rm -rf %s", job->tmp_dir);
-
-		/* Execute command */
-		FILE *fp = popen(command, "r");
-		pclose(fp);
-}
-
-void url_download(struct minr_job *job)
-{
-	job->src = calloc(MAX_FILE_SIZE + 1, 1);
-	job->zsrc = calloc((MAX_FILE_SIZE + 1) * 2, 1);
-
-	/* Reserve memory for snippet fingerprinting */
-	if (!job->exclude_mz)
-	{
-		buffer = malloc(BUFFER_SIZE * 256);
-		hashes = malloc(MAX_FILE_SIZE);
-		lines  = malloc(MAX_FILE_SIZE);
-
-		/* Reserve memory for mz_cache for mined/sources (65536 files) */
-		job->mz_cache = malloc(MZ_FILES * sizeof(struct mz_cache_item));
-		for (int i = 0; i < MZ_FILES; i++) job->mz_cache[i].length = 0;
-	}
-
-	/* Open all file handlers in mined/files (256 files) */
-	out_file = open_file(job->mined_path);
-
-	/* Create temporary component directory */
-	sprintf(job->tmp_dir,"%s/minr-%d", tmp_path, getpid());
-	mkdir(job->tmp_dir, 0755);
-
-	/* urlid will contain the hex md5 of the entire component */
-	bool downloaded = download(job);
-
-	/* Process downloaded/expanded directory */
-	if (is_dir(job->tmp_dir) && downloaded)
-	{
-		/* Add info to components.csv */
-		component_add(job);
-
-		recurse(job, job->tmp_dir);
-
-		rm_tmpdir(job);
-	}
-
-	else
-	{
-		printf("Capture failed\n");
-		exit(EXIT_FAILURE);
-	}
-
-	/* Close files */
-	for (int i=0; i < 256; i++) fclose(out_file[i]);
-
-	if (!job->exclude_mz)
-	{
-		/* Flush mz cache */
-		mz_flush(job->mined_path, job->mz_cache);
-
-		free(job->mz_cache);
-		free(buffer);
-		free(hashes);
-		free(lines);
-	}
-
-	free(out_file);
-	free(job->src);
-	free(job->zsrc);
-}
-
 
 int main(int argc, char *argv[])
 {
@@ -156,6 +68,7 @@ int main(int argc, char *argv[])
 	*job.urlid = 0;
 	*job.fileid = 0;
 	*job.pairid = 0;
+	*job.license = 0;
 	job.all_extensions = false;
 	job.exclude_mz = false;
 	job.exclude_detection = false;
@@ -240,11 +153,13 @@ int main(int argc, char *argv[])
 			case 'l':
 				generate_license_ids_c(optarg);
 				exit(EXIT_SUCCESS);
+
 			case 'c':
 				strcpy(tmp_path, optarg);
 				create_crypto_definitions(tmp_path);
 				exit(EXIT_SUCCESS);
 				break;
+
 			case 'z':
 				strcpy(job.mz, optarg);
 				break;
@@ -254,33 +169,27 @@ int main(int argc, char *argv[])
 				break;
 			
 			case 'C':
-				
-				 local_copy_result=true;
-				strcpy(job.url, optarg);
+				local_copy_result = true;
 				job.local_mining = 4;
 				strcpy(job.url, optarg);
 				break;
 			
 			case 'L':
-				
-				local_license_result =true;
+				local_license_result = true;
 				strcpy(job.url, optarg);
 				job.local_mining = 2;
-				strcpy(job.url, optarg);
 				break;
 			
 			case 'Q':
 				strcpy(job.url, optarg);
 				job.local_mining = 3;
-				strcpy(job.url, optarg);
 				break;
+
 			case 'Y':
 				strcpy(job.url, optarg);
 				job.local_mining = 1;
-				strcpy(job.url, optarg);
 				break;
 				
-
 			case 'd':
 				strcpy(job.metadata, optarg);
 				break;
@@ -343,11 +252,15 @@ int main(int argc, char *argv[])
 
 	/* Join mined/ structures */
 	else if (*job.join_from && *job.join_to) minr_join(&job);
-	else if (job.local_mining!=0) {
-	job.licenses = load_licenses(&job.license_count);
+
+	/* Mine local files */
+	else if (job.local_mining != 0)
+	{
+		job.licenses = load_licenses(&job.license_count);
 		mine_local_directory(&job,job.url);
 		free(job.licenses);
-		}
+	}
+
 	/* Process mz file */
 	else if (*job.mz)
 	{
@@ -400,9 +313,9 @@ int main(int argc, char *argv[])
 		job.licenses = load_licenses(&job.license_count);
 
 		/* Mine URL or folder */
-		
-			url_download(&job);
-			
+
+		url_download(&job);
+
 		free(job.licenses);
 
 	}

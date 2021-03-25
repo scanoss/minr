@@ -38,7 +38,7 @@ void show_help ()
 	printf("Mining URLs: Minr performs download, extraction, indexing and archive of files for the provided URL.\n");
 	printf("minr -d METADATA -u URL\n");
 	printf("\n");
-	printf("-d METADATA  Comma separated list of vendor,component,version\n");
+	printf("-d METADATA  Comma separated list of vendor,component,version,release_date,license\n");
 	printf("-u URL       Url to be mined \n");
 	printf("\n");
 
@@ -55,7 +55,7 @@ void show_help ()
 	printf("\n");
 
 	printf("Merging mined/ data: Mined data is organized in directories and contained in files with:\n");
-	printf(".csv (components and files),\n");
+	printf(".csv (components, files, licenses, vulnerabilities, quality, etc),\n");
 	printf(".bin (wfp snippets)\n");
 	printf(".mz  (original source code).\n");
 	printf("\n");

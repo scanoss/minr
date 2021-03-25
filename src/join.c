@@ -259,9 +259,9 @@ void minr_join(struct minr_job *job)
 	char src_path[MAX_PATH_LEN] = "\0";
 	char dst_path[MAX_PATH_LEN] = "\0";
 
-	/* Join components */
-	sprintf(src_path, "%s/components.csv", source);
-	sprintf(dst_path, "%s/components.csv", destination);
+	/* Join urls */
+	sprintf(src_path, "%s/urls.csv", source);
+	sprintf(dst_path, "%s/urls.csv", destination);
 	csv_join(src_path, dst_path);
 
 	/* Join files */
