@@ -61,6 +61,7 @@ void mz_mine_quality(struct mz_job *job)
    0 = Declared in component
    1 = Declared in file with SPDX-License-Identifier
    2 = Detected in header
+   3 = Detected in LICENSE file
    */
 bool mz_license_handler(struct mz_job *job)
 {
@@ -71,7 +72,13 @@ bool mz_license_handler(struct mz_job *job)
 	mz_id_fill(job->md5, job->id);
 
 	/* Mine license */
-	mine_license(NULL, job->md5, job->data, job->data_ln, job->licenses, job->license_count);
+	struct minr_job license_job;
+	license_job.local_mining = true;
+	license_job.licenses = job->licenses;
+	license_job.license_count = job->license_count;
+	license_job.src = job->data;
+	license_job.src_ln = job->data_ln;
+	mine_license(&license_job, job->md5, false);
 
 	return true;
 }

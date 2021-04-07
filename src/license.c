@@ -35,7 +35,6 @@ bool is_dir(char *path);
 bool not_a_dot(char *path);
 void normalize_src(char *src, uint64_t src_ln, char *out, int max_in, int max_out);
 bool strn_icmp(char *a, char *b, int len);
-bool local_license_result = false;
 
 
 /* Check if SPDX-License-Identifier is found at *src */
@@ -230,51 +229,52 @@ char *mine_license_header(char *src, uint64_t src_ln, normalized_license *licens
 	return NULL;
 }
 
-/* License types
-	 0 = Declared in component
-	 1 = Declared in file with SPDX-License-Identifier
-	 2 = Detected in header
-	 */
-void mine_license(char *mined_path, char *md5, char *src, uint64_t src_ln, normalized_license *licenses, int license_count)
+/* License sources
+   0 = Declared in component
+   1 = Declared in file with SPDX-License-Identifier
+   2 = Detected in header
+   3 = Declared in LICENSE file
+   */
+void mine_license(struct minr_job *job, char *id, bool license_file)
 {
 	FILE *fp;
 
 	/* Assemble csv path */
 	char csv_path[MAX_PATH_LEN] = "\0";
-	if (mined_path)
+	if (!job->local_mining)
 	{
-		strcpy(csv_path, mined_path);
+		strcpy(csv_path, job->mined_path);
 		strcat(csv_path, "/licenses.csv");
 	}
 
 	/* SPDX license tag detection */
-	char *license = mine_spdx_license_identifier(src, src_ln);
+	char *license = mine_spdx_license_identifier(job->src, job->src_ln);
 	if (license)
 	{
-		if (*csv_path)
+		if (!job->local_mining)
 		{
 			fp = fopen(csv_path, "a");
-			fprintf(fp, "%s,1,%s\n", md5, license);
+			fprintf(fp, "%s,1,%s\n", id, license);
 			fclose(fp);
 		}
-		else if(local_license_result) printf("%s,%s\n", md5, license);
-		else printf("%s,1,%s\n", md5, license);
+		else printf("%s,%s\n", id, license);
 	}
 
 	/* License header detection */
 	else
 	{
-		license = mine_license_header(src, src_ln, licenses, license_count);
+		license = mine_license_header(job->src, job->src_ln, job->licenses, job->license_count);
 		if (license)
 		{
-			if (*csv_path)
+			char license_source[] = "2";
+			if (license_file) *license_source = '3';
+			if (!job->local_mining)
 			{
 				fp = fopen(csv_path, "a");
-				fprintf(fp, "%s,2,%s\n", md5, license);
+				fprintf(fp, "%s,2,%s\n", id, license);
 				fclose(fp);
 			}
-			else if(local_license_result) printf("%s,%s\n", md5, license);
-			else printf("%s,2,%s\n", md5, license);
+			else printf("%s,%s\n", id, license);
 		}
 	}
 }

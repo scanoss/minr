@@ -48,9 +48,6 @@
 #include "crypto.h"
 #include "url.h"
 
-extern bool local_copy_result;
-extern bool local_license_result;
-
 int main(int argc, char *argv[])
 {
 	if (!check_dependencies()) exit(1);
@@ -169,13 +166,11 @@ int main(int argc, char *argv[])
 				break;
 			
 			case 'C':
-				local_copy_result = true;
 				job.local_mining = 4;
 				strcpy(job.url, optarg);
 				break;
 			
 			case 'L':
-				local_license_result = true;
 				strcpy(job.url, optarg);
 				job.local_mining = 2;
 				break;
@@ -257,7 +252,8 @@ int main(int argc, char *argv[])
 	else if (job.local_mining != 0)
 	{
 		job.licenses = load_licenses(&job.license_count);
-		mine_local_directory(&job,job.url);
+		if (is_file(job.url)) mine_local_file(&job, job.url);
+		else mine_local_directory(&job,job.url);
 		free(job.licenses);
 	}
 

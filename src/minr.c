@@ -64,22 +64,6 @@ bool is_attribution_notice(char *path)
 	return false;
 }
 
-/* Returns the pair md5 of "component/vendor" */
-void vendor_component_md5(char *vendor, char *component, uint8_t *out)
-{
-	char pair[MAX_PATH_LEN] = "\0";
-	if (strlen(component) + strlen(vendor) + 2 >= 1024) return;
-
-	/* Calculate pair_md5 */
-	sprintf(pair, "%s/%s", vendor, component);
-	for (int i = 0; i < strlen(pair); i++) pair[i] = tolower(pair[i]);
-	MD5((uint8_t *)pair, strlen(pair), out);
-
-	/* Log pair_md5 */
-	char hex[MD5_LEN * 2 + 1] = "\0";
-	ldb_bin_to_hex(out, MD5_LEN, hex);
-}
-
 uint32_t execute_command(char *command)
 {
 	/* Execute command */
@@ -301,26 +285,6 @@ void extract_csv(char *out, char *in, int n, long limit)
 	out[out_ptr] = 0;
 }
 
-/* Calculate vendor/component md5 */
-void get_vendor_component_id(struct minr_job *job)
-{
-	/* Extract vendor and component */
-	char vendor[MAX_ARG_LEN] = "\0";
-	char component[MAX_ARG_LEN] = "\0";
-
-	/* Clear memory */
-	memset(job->pair_md5, 0, 16);
-
-	/* Extract vendor and component from metadata */
-	extract_csv(vendor, job->metadata, 1, MAX_ARG_LEN);
-	extract_csv(component, job->metadata, 2, MAX_ARG_LEN);
-	if (!*vendor || !*component) return;
-
-	/* Calculate md5 */
-	vendor_component_md5(vendor, component, job->pair_md5);
-	ldb_bin_to_hex(job->pair_md5, MD5_LEN, job->pairid);
-}
-
 /* Write entry id to attribution.csv */
 void attribution_add(struct minr_job *job)
 {
@@ -345,9 +309,7 @@ void mine_attribution_notice(struct minr_job *job, char *path)
 {
 	if (!load_file(job,path)) return;
 
-	/* Obtain vendor/component md5 */
-	get_vendor_component_id(job);
-	mine_license(job->mined_path, job->pairid, job->src, job->src_ln, job->licenses, job->license_count);
+	mine_license(job, job->pairid, true);
 
 	/* Write entry to mined/attribution.csv */
 	attribution_add(job);
@@ -421,7 +383,7 @@ void mine(struct minr_job *job, char *path)
 	if (!job->exclude_detection)
 	{
 		mine_crypto(job->mined_path, job->fileid, job->src, job->src_ln);
-		mine_license(job->mined_path, job->fileid, job->src, job->src_ln, job->licenses, job->license_count);
+		mine_license(job, job->fileid, false);
 		mine_quality(job->mined_path, job->fileid, job->src, job->src_ln);
 		mine_copyright(job->mined_path, job->fileid, job->src, job->src_ln);
 	}
@@ -433,9 +395,6 @@ void mine(struct minr_job *job, char *path)
 void mine_local_file(struct minr_job *job, char *path)
 {
 	job->src = calloc(MAX_FILE_SIZE + 1, 1);
-	/* File discrimination check #2: Is the extension blacklisted or path not wanted? */
-	if (!job->all_extensions) if (blacklisted_extension(path)) return;
-	if (unwanted_path(path)) return;
 
 	/* Load file contents and calculate md5 */
 	if (!load_file(job,path)) return;
@@ -450,11 +409,7 @@ void mine_local_file(struct minr_job *job, char *path)
 			break;
 
 		case 2: 
-			mine_license(NULL, 
-					path, job->src,
-					job->src_ln, 
-					job->licenses, 
-					job->license_count);
+			mine_license(job, path, false);
 			break;
 
 		case 3: 
@@ -475,7 +430,7 @@ void mine_local_file(struct minr_job *job, char *path)
 
 /**
   @brief Local mining
-  @description Mines for Licenses, Crypto definitions and Copyrigths from a local directory. Results are presented at stdio.
+  @description Mines for Licenses, Crypto definitions and Copyrigths from a local directory. Results are presented via stdout.
   @since 2.1.2
   */
 

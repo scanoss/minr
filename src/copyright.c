@@ -32,7 +32,6 @@ bool strn_icmp(char *a, char *b, int len);
 int count_nonalnum(char *str);
 int count_alnum(char *str);
 int linelen(char *str);
-bool local_copy_result=false;
 
 bool string_starts_with(char *str, char *start)
 {
@@ -174,9 +173,7 @@ void mine_copyright(char *mined_path, char *md5, char *src, uint64_t src_ln)
 					fprintf(fp, "%s,1,%s\n", md5, copyright);
 					fclose(fp);
 				}
-				else if(local_copy_result ) 
-				 printf("%s,%s\n", md5, copyright);
-				else printf("%s,1,%s\n", md5, copyright);
+				else printf("%s,%s\n", md5, copyright);
 
 				free(copyright);
 				return;

@@ -74,10 +74,10 @@ void show_help ()
 	printf("        (data in DIR is wiped after imported)\n");
 	printf("\n\n");
 	printf("Local mining:\n\n");
-	printf("-L  DIR Scan DIR directory (and sub directories) to detect license (SPDX ID) declarations \n");
-	printf("-C  DIR Scan DIR directory (and sub directories) to detect copyrigths \n");
-	printf("-Q  DIR Scan DIR directory (and sub directories) for evaluating code quality\n");
-	printf("-Y  DIR Scan DIR directory (and sub directories) to detect cryptographic algorithms usage. \n");
+	printf("-L  TARGET Analyse file/directory (and sub directories) to detect license license declarations \n");
+	printf("-C  TARGET Analyse file/directory (and sub directories) to detect copyrigths \n");
+	printf("-Q  TARGET Analyse file/directory (and sub directories) for evaluating code quality\n");
+	printf("-Y  TARGET Analyse file/directory (and sub directories) to detect cryptographic algorithms usage. \n");
 	printf("\n");
 	printf("Misc options:\n");
 	printf("\n");

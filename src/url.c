@@ -31,6 +31,42 @@
 #include "minr.h"
 #include "ldb.h"
 
+/* Returns the pair md5 of "component/vendor" */
+void vendor_component_md5(char *vendor, char *component, uint8_t *out)
+{
+	char pair[MAX_PATH_LEN] = "\0";
+	if (strlen(component) + strlen(vendor) + 2 >= 1024) return;
+
+	/* Calculate pair_md5 */
+	sprintf(pair, "%s/%s", vendor, component);
+	for (int i = 0; i < strlen(pair); i++) pair[i] = tolower(pair[i]);
+	MD5((uint8_t *)pair, strlen(pair), out);
+
+	/* Log pair_md5 */
+	char hex[MD5_LEN * 2 + 1] = "\0";
+	ldb_bin_to_hex(out, MD5_LEN, hex);
+}
+
+/* Calculate vendor/component md5 */
+void get_vendor_component_id(struct minr_job *job)
+{
+	/* Extract vendor and component */
+	char vendor[MAX_ARG_LEN] = "\0";
+	char component[MAX_ARG_LEN] = "\0";
+
+	/* Clear memory */
+	memset(job->pair_md5, 0, 16);
+
+	/* Extract vendor and component from metadata */
+	extract_csv(vendor, job->metadata, 1, MAX_ARG_LEN);
+	extract_csv(component, job->metadata, 2, MAX_ARG_LEN);
+	if (!*vendor || !*component) return;
+
+	/* Calculate md5 */
+	vendor_component_md5(vendor, component, job->pair_md5);
+	ldb_bin_to_hex(job->pair_md5, MD5_LEN, job->pairid);
+}
+
 /* Calculate md5 of "component/vendor/version" */
 void version_md5(struct minr_job *job)
 {
@@ -74,13 +110,14 @@ void url_add(struct minr_job *job)
 	fprintf(fp, "%s,%s,%s\n", job->urlid, job->metadata, job->url);
 	fclose(fp);
 
+	/* Obtain vendor/component id and vendor/component/license id */
+	get_vendor_component_id(job);
+	version_md5(job);
+
 	/* Load license from metadata */
 	extract_csv(job->license, job->metadata, 5, MAX_ARG_LEN);
 	if (*job->license)
 	{
-		/* Load version_md5 and versionid */
-		version_md5(job);
-
 		sprintf(path, "%s/licenses.csv", job->mined_path);
 		FILE *fp = fopen(path, "a");
 		if (!fp)
@@ -89,6 +126,7 @@ void url_add(struct minr_job *job)
 			exit(EXIT_FAILURE);
 		}
 		fprintf(fp, "%s,0,%s\n", job->versionid, job->license);
+		fprintf(fp, "%s,0,%s\n", job->pairid, job->license);
 		fclose(fp);
 	}
 }

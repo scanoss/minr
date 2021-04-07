@@ -29,7 +29,7 @@
 #include <string.h>
 
 /* Definitions */
-#define MINR_VERSION "2.1.5"
+#define MINR_VERSION "2.1.6"
 #define FILE_FILES 256
 #define MAX_ARG_LEN 1024
 #define MIN_FILE_REC_LEN 70
@@ -130,11 +130,12 @@ bool download(struct minr_job *job);
 void recurse(struct minr_job *job, char *path);
 void minr_join(struct minr_job *job);
 void minr_join_mz(char *source, char *destination);
-void mine_license(char *mined_path, char *md5, char *src, uint64_t src_ln, normalized_license *licenses, int license_count);
+void mine_license(struct minr_job *job, char *id, bool license_file);
 void mine_copyright(char *mined_path, char *md5, char *src, uint64_t src_ln);
 void mine_quality(char *mined_path, char *md5, char *src, long size);
 normalized_license *load_licenses(int *count);
 void mine_local_directory(struct minr_job *job, char* root);
+void mine_local_file(struct minr_job *job, char *path);
 void extract_csv(char *out, char *in, int n, long limit);
 
 #endif
