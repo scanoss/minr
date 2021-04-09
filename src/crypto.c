@@ -120,14 +120,14 @@ printf("Creating definitions...\n");
 		
 		fclose(fp2);
 		}
-		root=(struct T_TrieNode *) calloc (1,sizeof (struct T_TrieNode));
+		//root=(struct T_TrieNode *) calloc (1,sizeof (struct T_TrieNode));
 		parseDirectory(path,true);
  		
  		fp2 = fopen("./inc/crypto_loads.h","a");
 		fprintf(fp2,"}\n");
 		fprintf(fp2,"#endif\n");
 		fclose(fp2);
-		 
+		// free(root);
 }
 
 /**

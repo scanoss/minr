@@ -228,12 +228,12 @@ bool load_file(struct minr_job *job, char *path)
 {
 	/* Open file and obtain file length */
 	FILE *fp;
-	 
+
 	 if ((fp = fopen(path,"rb")) == NULL){
 	       printf("Error! Cannot load the definitions file");
 	       exit(1);
 	}
-	 
+
 	fseeko64(fp, 0, SEEK_END);
 	job->src_ln = ftello64(fp);
 
@@ -397,35 +397,41 @@ void mine_local_file(struct minr_job *job, char *path)
 	job->src = calloc(MAX_FILE_SIZE + 1, 1);
 
 	/* Load file contents and calculate md5 */
-	if (!load_file(job,path)) return;
-	
+	if (!load_file(job,path))
+	{
+		free(job->src);
+		return;
+	}
 	/* File discrimination check: Unwanted header? */
-	if (unwanted_header(job->src)) return;	
-	
+	if (unwanted_header(job->src)) {
+		free(job->src);
+		return;
+	}
 	switch(job->local_mining)
 	{
 		case 1:
-			mine_crypto(NULL,path, job->src, job->src_ln); 
+			mine_crypto(NULL,path, job->src, job->src_ln);
 			break;
 
-		case 2: 
+		case 2:
 			mine_license(job, path, false);
 			break;
 
-		case 3: 
-			mine_quality(NULL, 
+		case 3:
+			mine_quality(NULL,
 					path,
 					job->src,
 					job->src_ln);
 			break;
 
-		case 4: 
+		case 4:
 			mine_copyright(NULL,
 					path,
 					job->src,
 					job->src_ln);
 			break;
 	}
+	free(job->src);
 }
 
 /**
@@ -494,7 +500,7 @@ bool check_dependencies()
 	load_crypto_definitions();
 
 	struct stat sb;
-	char *dependencies[] = 
+	char *dependencies[] =
 	{
 		"/bin/gunzip",
 		"/bin/tar",
@@ -566,7 +572,7 @@ bool valid_source_destination(char *file, char *destination)
 		return false;
 	}
 
-	/* Validate .mz files by checking .mz integrity */ 
+	/* Validate .mz files by checking .mz integrity */
 	if (!strcmp(extension(file), "mz"))
 	{
 		/* Check source file */

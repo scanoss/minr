@@ -23,7 +23,8 @@ struct T_TrieNode{
 	int ocurrences;
 	unsigned short coding;
 	struct T_TrieNode * nodos[40];
-	char algorithmName[10];
+	//char algorithmName[20];
+	char *algorithmName;
 };
 
 FILE 		*fp;
@@ -66,20 +67,21 @@ switch(c){
 	case '7':return sig+12;
 	case '8':return sig+13;
 	case '9':return sig+14;
-	default: 
+	default:
 	return -1;
 	}
 }
 /**
 @brief inserts a keyword into the seach structure
-@description Insert a keyword by following the branches of the tree until a \0 is found. 
+@description Insert a keyword by following the branches of the tree until a \0 is found.
 */
 
 
-void insert(char *token, struct T_TrieNode *currNode,char* algorithmName, unsigned short coding){
+void insert(char *token, struct T_TrieNode *currNode,char* algorithmName, unsigned short coding)
+{
 	
 	if(token[0]=='\0') {
-		sprintf(currNode->algorithmName,"%s",algorithmName);
+		asprintf(&currNode->algorithmName,algorithmName);
 		currNode->type=1;
 		currNode->coding=coding;
 		return;
@@ -87,17 +89,18 @@ void insert(char *token, struct T_TrieNode *currNode,char* algorithmName, unsign
 
 	unsigned int realIndex=indexOf(token[0]);
 	
-	if((realIndex<0)||(realIndex >39)) {
+	if((realIndex<0)||(realIndex >39))
+	{
 		return;
 	}
-	if(currNode->nodos[realIndex]==0){
-		struct T_TrieNode *newLeaf;
-		newLeaf=(struct T_TrieNode *) calloc (1,sizeof (struct T_TrieNode));
-		for(int i =0;i<39;i++)
-				newLeaf->nodos[i]=NULL;
-		newLeaf->ocurrences=0;
-		newLeaf->type = -1;
-		currNode->nodos[realIndex]=newLeaf;
+	if(currNode->nodos[realIndex]==0)
+	{
+		currNode->nodos[realIndex]= (struct T_TrieNode*)calloc (1,sizeof (struct T_TrieNode));
+		for(int i =0;i<40;i++)
+				currNode->nodos[realIndex]->nodos[i]=NULL;
+		currNode->nodos[realIndex]->ocurrences=0;
+		currNode->nodos[realIndex]->type = -1;
+
 	}
 	insert(&token[1],currNode->nodos[realIndex],algorithmName,coding);
 
@@ -108,26 +111,30 @@ void insert(char *token, struct T_TrieNode *currNode,char* algorithmName, unsign
 *		deep into the structure. If the whole token manages to
 *		reach a leaf (type!=-1), the keyword token belongs to an
 *		encryption algorithm.
-*		Otherwise, is just a sub string of an algorithm 
+*		Otherwise, is just a sub string of an algorithm
 *		(coincidence) */
-struct T_TrieNode * searchAlgorithm(char *token, struct T_TrieNode *node){
+struct T_TrieNode * searchAlgorithm(char *token, struct T_TrieNode *node)
+{
 	
 		
-	if(token[0]=='\0') {
-		if((node!=NULL) && (node->type==-1)) {
-		//printf("no es terminal\r\n");
+	if(token[0]=='\0')
+	{
+		if((node!=NULL) && (node->type==-1))
+		{
 			return NULL;
-			} 
-		else 
+		}
+		else
 			return node;
 	}
 	int indexValid=0;
-	while(indexOf(token[indexValid])==-1){
+	while(indexOf(token[indexValid])==-1)
+	{
 		indexValid++;
 		
-		}
+	}
 	unsigned char index = indexOf(token[indexValid]);
-	if((index<0)||(index >40)) {
+	if((index<0)||(index >40))
+	{
 		return NULL;
 	}
 	if(node->nodos[index]==0)
@@ -137,43 +144,27 @@ struct T_TrieNode * searchAlgorithm(char *token, struct T_TrieNode *node){
 }
 
 /**
-* @brief Normalizes the text to lower case. 
+* @brief Normalizes the text to lower case.
 * @note Expects a \0 to end the normalization.
 * It lowers only letters from a to z
 */
 
-void toLower(char *strToLow){
+void toLower(char *strToLow)
+{
 	int index=0;
 	int i=strlen(strToLow);
-	while(strToLow[index]!='\0'&& i<index){
+	while(strToLow[index]!='\0'&& i<index)
+	{
 		if ((strToLow[index] >= 'A') && (strToLow[index] <= 'Z'))
 			strToLow[index]=strToLow[index] + 32 ;
 		index++;
 	}
 }
 
-void trimAndLow(char *strToLow){
-	int index=0;
-		while(strToLow[index]!='\0'){
-		if((indexOf(strToLow[index])<0)
-		 ||(indexOf(strToLow[index])>39)) {
-			index++;
-			break;
-		}
-		if ((strToLow[index] >= 'A') && (strToLow[index] <= 'Z'))
-			strToLow[index]=strToLow[index] + 32 ;
-		index++;
-	}
-	char *aux = (char*) malloc (index+1);
-	strcpy(aux,strToLow);
-
-	aux[index]='\0';
-	strToLow=aux;
-}
  /**
  * @brief Loads algotithm definitions from a file
  * @param path Scanning directory
- * @param fileName name of the file to be scanned. 
+ * @param fileName name of the file to be scanned.
  * @note The absolute path is formed by path/filename. File content is as follows:
  * name=<algorithm Name>. Spaces are NOT allowed. Ends with <cr><lf>
  coding=<algorithm strenght> a number in bits. There is no validation on this number
@@ -182,11 +173,12 @@ void parseFile(char *path,char *fileName,bool destIsSrc)
 {
 	
 	char include[50];
-	char absolutePath[256];
-	sprintf(absolutePath,"%s/%s",path,fileName);
+	char *absolutePath;
+	asprintf(&absolutePath,"%s/%s",path,fileName);
 	FILE *fp2;
 	if ((fp = fopen(absolutePath,"r")) == NULL){
 	       printf("Error loading crypto definitions file\n");
+	       free(absolutePath);
 	       exit(1);
 	}
 
@@ -194,6 +186,7 @@ void parseFile(char *path,char *fileName,bool destIsSrc)
 	{
 		if ((fp2 = fopen("./inc/crypto_loads.h","a")) == NULL){
 	       printf("Error creating source definitions file");
+	       free(absolutePath);
 	       exit(1);
 		}
 		
@@ -219,7 +212,7 @@ void parseFile(char *path,char *fileName,bool destIsSrc)
 				if(match==1){
 					toLower(include);
 					
-					if(destIsSrc==true) 
+					if(destIsSrc==true)
 						fprintf(fp2,"\tinsert(\"%s\",root,\"%s\",%d);\n", include,currentName,currentCode);
 					else
 						insert(include,root,currentName,currentCode);
@@ -229,7 +222,7 @@ void parseFile(char *path,char *fileName,bool destIsSrc)
 	}
 	fclose(fp);
 	if(destIsSrc) fclose(fp2);
-		
+	free(absolutePath);
 }
 /**
 @brief Parses a system directory looking for files containing
@@ -256,9 +249,10 @@ void parseDirectory(char* root,bool destIsSrc){
 }
 
 void cleanCrypto(struct T_TrieNode *node){
-for(int i=0;i<39;i++)
+for(int i=0;i<40;i++)
 if(node->nodos[i]!=NULL)
 	cleanCrypto(node->nodos[i]);
+free (node->algorithmName);
 free(node);
 }
 
