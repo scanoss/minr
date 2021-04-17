@@ -64,13 +64,16 @@ char *spdx_license_identifier(char *src)
 	/* End string at end of tag */
 	while (*s)
 	{
-		if (*s == ' ' || *s == '\t' || *s == '\n')
+		if (*s == ' ' || *s == '\t' || *s == '\n' || *s == '\\')
 		{
 			*s = 0;
 			break;
 		}
 		s++;
 	}
+
+	/* Eliminate trailing punctuation */
+	if (*(--s) == '.') *s = 0;
 
 	return out;
 }
