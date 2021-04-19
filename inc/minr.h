@@ -36,6 +36,7 @@
 #define MAX_PATH_LEN 4096
 #define MAX_FILE_SIZE (4 * 1048576)
 #define MAX_FILE_HEADER 4096
+#define MAX_HEADER_LINES 30
 #define MAX_CSV_LINE_LEN 1024
 #define BUFFER_SIZE 1048576
 #define MIN_FILE_SIZE 256 // files below this size will be ignored

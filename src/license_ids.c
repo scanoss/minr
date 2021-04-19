@@ -14,7 +14,7 @@ typedef struct normalized_license
 
 normalized_license *load_licenses(int *count)
 {
-  normalized_license *licenses = calloc(109 + 1, sizeof(normalized_license));
+  normalized_license *licenses = calloc(108 + 1, sizeof(normalized_license));
 
   strcpy(licenses[0].spdx_id, "BSD-4-Clause");
   strcpy(licenses[0].text,"redistributionanduseinsourceandbinaryformswithorwithoutmodificationarepermittedprovidedthatthefollowingconditionsaremet1redistributionsofsourcecodemustretaintheabovecopyrightnoticethislistofconditionsandthefollowingdisclaimer2redistributionsinbinaryformmustreproducetheabovecopyrightnoticethislistofconditionsandthefollowingdisclaimerinthedocumentationandorothermaterialsprovidedwiththedistribution3alladvertisingmaterialsmentioningfeaturesoruseofthissoftwaremustdisplaythefollowingacknowledgementthisproductincludessoftwaredevelopedbytheorganization4neitherthenameofthecopyrightholdernorthenamesofitscontributorsmaybeusedtoendorseorpromoteproductsderivedfromthissoftwarewithoutspecificpriorwrittenpermissionthissoftwareisprovidedbycopyrightholderasisandanyexpressorimpliedwarrantiesincludingbutnotlimitedtotheimpliedwarrantiesofmerchantabilityandfitnessforaparticularpurposearedisclaimedinnoeventshallcopyrightholderbeliableforanydirectindirectincidentalspecialexemplaryorconsequentialdamagesincludingbutnotlimitedtoprocur");
@@ -433,26 +433,22 @@ normalized_license *load_licenses(int *count)
   licenses[103].ln = 552;
 
   strcpy(licenses[104].spdx_id, "SSPL");
-  strcpy(licenses[104].text,"sspl");
-  licenses[104].ln = 4;
+  strcpy(licenses[104].text,"serversidepubliclicense");
+  licenses[104].ln = 23;
 
-  strcpy(licenses[105].spdx_id, "SSPL");
-  strcpy(licenses[105].text,"serversidepubliclicense");
-  licenses[105].ln = 23;
+  strcpy(licenses[105].spdx_id, "GPL-2.0-or-later");
+  strcpy(licenses[105].text,"youcanredistributeitandormodifyitunderthetermsofthegnugeneralpubliclicenseaspublishedbythefreesoftwarefoundationeitherversion2");
+  licenses[105].ln = 126;
 
-  strcpy(licenses[106].spdx_id, "GPL-2.0-or-later");
-  strcpy(licenses[106].text,"youcanredistributeitandormodifyitunderthetermsofthegnugeneralpubliclicenseaspublishedbythefreesoftwarefoundationeitherversion2");
-  licenses[106].ln = 126;
+  strcpy(licenses[106].spdx_id, "NTP");
+  strcpy(licenses[106].text,"permissiontousecopymodifyanddistributethissoftwareanditsdocumentationforanypurposewithorwithoutfeeisherebygrantedprovidedthattheabovecopyrightnoticeappearsinallcopiesandthatboththecopyrightnoticeandthispermissionnoticeappearinsupportingdocumentationandthatthename");
+  licenses[106].ln = 263;
 
   strcpy(licenses[107].spdx_id, "NTP");
-  strcpy(licenses[107].text,"permissiontousecopymodifyanddistributethissoftwareanditsdocumentationforanypurposewithorwithoutfeeisherebygrantedprovidedthattheabovecopyrightnoticeappearsinallcopiesandthatboththecopyrightnoticeandthispermissionnoticeappearinsupportingdocumentationandthatthename");
-  licenses[107].ln = 263;
-
-  strcpy(licenses[108].spdx_id, "NTP");
-  strcpy(licenses[108].text,"ntplicense");
-  licenses[108].ln = 10;
+  strcpy(licenses[107].text,"ntplicense");
+  licenses[107].ln = 10;
 
 
-  *count = 109;
+  *count = 108;
   return licenses;
 }

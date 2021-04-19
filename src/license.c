@@ -88,7 +88,7 @@ char *mine_spdx_license_identifier(char *src, uint64_t src_ln)
 	/* Max bytes/lines to analyze */
 	int max_bytes = MAX_FILE_HEADER;
 	if (src_ln < max_bytes) max_bytes = src_ln;
-	int max_lines = 20;
+	int max_lines = MAX_HEADER_LINES;
 	int line = 0;
 
 	char *s = src;
