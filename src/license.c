@@ -73,7 +73,11 @@ char *spdx_license_identifier(char *src)
 	}
 
 	/* Eliminate trailing punctuation */
-	if (*(--s) == '.') *s = 0;
+	while (s > out)
+	{
+		if (!isalnum(*(--s))) *s = 0;
+		else break;
+	}
 
 	return out;
 }

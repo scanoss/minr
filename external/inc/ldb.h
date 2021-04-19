@@ -20,7 +20,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#define _GNU_SOURCE
 #include <ctype.h>
 #include <dirent.h>
 #include <errno.h>

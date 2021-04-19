@@ -1,7 +1,7 @@
 CWD=$(shell pwd)
 CC=gcc
 # Enable all compiler warnings. 
-CCFLAGS=-g -Wall -std=gnu99 -I./inc -I./external/inc -D_LARGEFILE64_SOURCE
+CCFLAGS=-g -Wall -std=gnu99 -I./inc -I./external/inc -D_LARGEFILE64_SOURCE -D_GNU_SOURCE
 # Linker flags
 LDFLAGS= -lz -lldb -lpthread -lcrypto
 
