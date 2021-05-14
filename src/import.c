@@ -532,8 +532,8 @@ void import_urls(char *mined_path, bool skip_sort)
 	if (is_file(path))
 	{
 		if (csv_sort(path, skip_sort))
-			/* 7 fields expected (url id, vendor, component, version, release_date, license, url) */
-			ldb_import_csv(path, "url", 7, false);
+			/* 8 fields expected (url id, vendor, component, version, release_date, license, purl, download_url) */
+			ldb_import_csv(path, "url", 8, false);
 	}
 }
 

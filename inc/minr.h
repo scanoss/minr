@@ -29,7 +29,7 @@
 #include <string.h>
 
 /* Definitions */
-#define MINR_VERSION "2.1.6"
+#define MINR_VERSION "2.1.7"
 #define FILE_FILES 256
 #define MAX_ARG_LEN 1024
 #define MIN_FILE_REC_LEN 70
@@ -138,5 +138,6 @@ normalized_license *load_licenses(int *count);
 void mine_local_directory(struct minr_job *job, char* root);
 void mine_local_file(struct minr_job *job, char *path);
 void extract_csv(char *out, char *in, int n, long limit);
+int count_chr(char chr, char *str);
 
 #endif

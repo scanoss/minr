@@ -298,6 +298,13 @@ int main(int argc, char *argv[])
 	else if (*job.metadata && *job.url)
 	{
 
+		/* -d expects 6 CSV values: vendor,component,version,release_date,license,purl */
+		if (count_chr(',', job.metadata) != 5)
+		{
+			printf("Wrong number of values passed with -d\n");
+			exit(EXIT_FAILURE);
+		}
+
 		if (!create_dir(job.mined_path))
 		{
 			printf("Cannot create output structure in %s\n", job.mined_path);

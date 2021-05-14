@@ -84,6 +84,19 @@ int count_alnum(char *str)
 	return count;
 }
 
+/* Count number of chr occurrences in str */
+int count_chr(char chr, char *str)
+{
+	char *s = str;
+	int count = 0;
+	while (*s)
+	{
+		if (*s == chr) count++;
+		s++;
+	}
+	return count;
+}
+
 /* Count number of chars in str until EOL */
 int linelen(char *str)
 {
