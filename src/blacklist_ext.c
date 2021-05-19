@@ -36,10 +36,11 @@ char *BLACKLISTED_EXTENSIONS[] = {
 	".log", ".m4", ".map", ".markdown", ".md", ".md5", ".meta", ".mk", ".mxml",
 	".o", ".otf", ".out", ".pbtxt", ".pdf", ".pem", ".phtml", ".plist", ".png",
 	".po", ".ppt", ".prefs", ".properties", ".pyc", ".qdoc", ".result", ".rgb",
-	".rst", ".scss", ".sha", ".sha1", ".sha2", ".sha256", ".sln", ".spec", ".sql",
-	".sub", ".svg", ".svn-base", ".tab", ".template", ".test", ".tex", ".tiff",
-	".toml", ".ttf", ".txt", ".utf-8", ".vim", ".wav", ".whl", ".woff", ".xht",
-	".xhtml", ".xls", ".xml", ".xpm", ".xsd", ".xul", ".yaml", ".yml",
+	".rst", ".rtf", ".scss", ".sha", ".sha1", ".sha2", ".sha256", ".sln",
+	".spec", ".sql", ".sub", ".svg", ".svn-base", ".tab", ".template", ".test",
+	".tex", ".tiff", ".toml", ".ttf", ".txt", ".utf-8", ".vim", ".wav", ".whl",
+	".woff", ".xht", ".xhtml", ".xls", ".xml", ".xpm", ".xsd", ".xul", ".yaml",
+	".yml",
 
 	/* File endings */
 	"-DOC", "CHANGELOG", "CONFIG", "COPYING", "COPYING.LIB", "LICENSE",
