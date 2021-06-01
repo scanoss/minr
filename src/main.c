@@ -34,8 +34,8 @@
 #include <sys/statvfs.h>
 #include <sys/time.h>
 #include <zlib.h>
-#include "blacklist.h"
-#include "blacklist_wfp.h"
+#include "ignorelist.h"
+#include "ignored_wfp.h"
 #include "minr.h"
 #include "winnowing.h"
 #include "file.h"

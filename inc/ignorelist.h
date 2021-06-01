@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 /*
- * src/blacklisted_wfp.h
+ * src/ignorelist.h
  *
- * Blacklisted snippet IDs
+ * Ignoring/skipping data structures and routines
  *
  * Copyright (C) 2018-2021 SCANOSS.COM
  *
@@ -20,12 +20,26 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef __BLACKLIST_WFP_H
-    #define __BLACKLIST_WFP_H
-
+/* File paths to be skipped in results */
+#ifndef __IGNORELIST_H
+    #define __IGNORELIST_H
+    
 #include <stdint.h>
+#include <stdbool.h>
+#include <stdio.h>
 
-extern uint8_t BLACKLISTED_WFP[];
-extern long BLACKLISTED_WFP_LN;
+extern char *IGNORED_PATHS[];
+extern char *IGNORED_HEADERS[];
+extern char *IGNORED_EXTENSIONS[];
+extern char *IGNORE_KEYWORDS[];
+
+char *extension(char *path);
+bool stricmp(char *a, char *b);
+bool ignored_extension(char *name);
+bool unwanted_path(char *path);
+bool headicmp(char *a, char *b);
+bool unwanted_header(char *src);
+
+
 
 #endif

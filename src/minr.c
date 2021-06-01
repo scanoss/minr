@@ -28,7 +28,8 @@
 #include "file.h"
 #include "md5.h"
 #include "hex.h"
-#include "blacklist.h"
+#include "ignorelist.h"
+#include "ignored_files.h"
 #include "ldb.h"
 #include "crypto.h"
 
@@ -255,6 +256,8 @@ bool load_file(struct minr_job *job, char *path)
 	calc_md5(job->src, job->src_ln, job->md5);
 	ldb_bin_to_hex(job->md5, MD5_LEN, job->fileid);
 
+	if (ignored_file(job->fileid)) return false;
+
 	return true;
 }
 
@@ -360,8 +363,8 @@ void mine(struct minr_job *job, char *path)
 		return;
 	}
 
-	/* File discrimination check #2: Is the extension blacklisted or path not wanted? */
-	if (!job->all_extensions) if (blacklisted_extension(path)) return;
+	/* File discrimination check #2: Is the extension ignored or path not wanted? */
+	if (!job->all_extensions) if (ignored_extension(path)) return;
 	if (unwanted_path(path)) return;
 
 	/* Load file contents and calculate md5 */

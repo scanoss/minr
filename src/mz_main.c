@@ -35,7 +35,7 @@
 #include <zlib.h>
 #include "minr.h"
 #include "ldb.h"
-#include "blacklist.h"
+#include "ignorelist.h"
 #include "quality.h"
 #include "mz_mine.h"
 #include "crypto.h"
@@ -138,7 +138,7 @@ int main(int argc, char *argv[])
 	job.ptr = NULL;        // Temporary data
 	job.ptr_ln = 0;
 	job.dup_c = 0;
-	job.bll_c = 0;
+	job.igl_c = 0;
 	job.orp_c = 0;
 	job.min_c = 0;
 	job.md5[32] = 0;

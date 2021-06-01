@@ -57,7 +57,7 @@ Where each algorithm is reported once for each file. The first data of each row 
 The following criteria will be use to discriminate files: 
 
 * File is not a physical file (no symlinks, etc) 
-* File extension is blacklisted 
+* File extension is ignored
 * File size is below a predefined limit
 * File header has unwanted contents 
 

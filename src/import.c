@@ -25,12 +25,12 @@
 
 #include "import.h"
 #include "ldb.h"
-#include "blacklist_wfp.h"
+#include "ignored_wfp.h"
 #include "minr.h"
 #include "bsort.h"
 #include "file.h"
 #include "hex.h"
-#include "blacklist.h"
+#include "ignorelist.h"
 #include "join.h"
 
 double progress_timer = 0;
@@ -115,11 +115,11 @@ bool ldb_import_snippets(char *filename)
 		exit(EXIT_FAILURE);
 	}
 
-	/* Load blacklisted wfps into boolean array */
+	/* Load ignored wfps into boolean array */
 	bool *bl = calloc(256*256*256,1);
-	for (int i = 0; i < BLACKLISTED_WFP_LN; i += 4)
-		if (BLACKLISTED_WFP[i] == key1)
-			bl[BLACKLISTED_WFP[i+1]+BLACKLISTED_WFP[i+2]*256+BLACKLISTED_WFP[i+3]*256*256] = true;
+	for (int i = 0; i < IGNORED_WFP_LN; i += 4)
+		if (IGNORED_WFP[i] == key1)
+			bl[IGNORED_WFP[i+1]+IGNORED_WFP[i+2]*256+IGNORED_WFP[i+3]*256*256] = true;
 
 	FILE *in, *out;
 	out = NULL;
@@ -131,7 +131,7 @@ bool ldb_import_snippets(char *filename)
 	ldb_lock();
 
 	uint64_t wfp_counter = 0;
-	uint64_t bl_counter = 0;
+	uint64_t ignore_counter = 0;
 	
 	/* We keep the last read key to group wfp records */
 	uint8_t last_wfp[4] = "\0\0\0\0";
@@ -171,7 +171,7 @@ bool ldb_import_snippets(char *filename)
 
 			if (bl[wfp[0]+wfp[1]*256+wfp[2]*256*256])
 			{
-				bl_counter++;
+				ignore_counter++;
 				continue;
 			}
 
@@ -218,7 +218,7 @@ bool ldb_import_snippets(char *filename)
 		}
 	}
 	progress("Importing: ", 100, 100, true);
-	printf ("%'lu wfp imported, %'lu blacklisted\n", wfp_counter, bl_counter);
+	printf ("%'lu wfp imported, %'lu ignored\n", wfp_counter, ignore_counter);
 
 	if (record_ln) ldb_node_write(oss_wfp, out, last_wfp, record, record_ln, (uint16_t) (record_ln/rec_ln));
 	if (out) fclose (out);
@@ -311,7 +311,7 @@ bool ldb_import_csv(char *filename, char *table, int expected_fields, bool is_fi
 	ssize_t lineln;
 
 	/* A CSV line should contain at least an MD5, a comma separator per field and a LF */
-	int min_line_size = 2 * MD5_LEN + expected_fields;
+	int min_line_size = 2 * MD5_LEN + expected_fields + 1;
 
 	/* Node size is a 16-bit int */
 	int node_limit = 65536;
@@ -383,16 +383,16 @@ bool ldb_import_csv(char *filename, char *table, int expected_fields, bool is_fi
 
 		/* File table will have the url id as the second field, which will be
 			converted to binary. Data then starts on the third field. Also file extensions
-			are checked and ruled out if blacklisted */
+			are checked and ruled out if ignored */
 		if (is_file_table)
 		{
 			data = field_n(3, line);
 			if (!data) skip = true;
-			else if (blacklisted_extension(data)) skip = true;
+			else if (ignored_extension(data)) skip = true;
 		}
 
 		/* Check if number of fields matches the expectation */
-		if (csv_fields(line) != expected_fields) skip = true;
+		if (expected_fields) if (csv_fields(line) != expected_fields) skip = true;
 
 		if (skip) skipped++;
 
@@ -566,7 +566,7 @@ void import_snippets(char *mined_path, bool skip_sort)
 	sprintf(path, "%s/snippets", mined_path);
 	if (is_dir(path))
 	{
-		printf("WFP IDs in blacklist: %lu\n", BLACKLISTED_WFP_LN / 4);
+		printf("WFP IDs in ignorelist: %lu\n", IGNORED_WFP_LN / 4);
 		for (int i = 0; i < 256; i++)
 		{
 			sprintf(path, "%s/snippets/%02x.bin", mined_path, i);
@@ -686,17 +686,17 @@ void import_attribution(char *mined_path, bool skip_sort)
 	}
 }
 
-/* Import popularity */
-void import_popularity(char *mined_path, bool skip_sort)
+/* Import purl popularity and relationships */
+void import_purls(char *mined_path, bool skip_sort)
 {
 	char path[MAX_PATH_LEN] = "\0";
-	sprintf(path, "%s/popularity.csv", mined_path);
+	sprintf(path, "%s/purls.csv", mined_path);
 	if (is_file(path))
 	{
 		if (csv_sort(path, skip_sort))
 		{
 			/* 7 CSV fields expected (id, created, latest, updated, star, watch, fork */
-			ldb_import_csv(path, "popularity", 7, false);
+			ldb_import_csv(path, "purl", 0, false);
 		}
 	}
 }
@@ -732,7 +732,7 @@ void mined_import(char *mined_path, bool skip_sort)
 	import_copyrights(mined_path, skip_sort);
 	import_vulnerabilities(mined_path, skip_sort);
 	import_quality(mined_path, skip_sort);
-	import_popularity(mined_path, skip_sort);
+	import_purls(mined_path, skip_sort);
 	import_attribution(mined_path, skip_sort);
 	import_cryptography(mined_path, skip_sort);
 

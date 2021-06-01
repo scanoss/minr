@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 /*
- * src/blacklisted_ext.c
+ * src/ignored_extensions.c
  *
- * Blacklisted file extensions
+ * Ignored file extensions
  *
  * Copyright (C) 2018-2021 SCANOSS.COM
  *
@@ -23,7 +23,7 @@
 #include <stddef.h>
 
 /* File extensions to be skipped */
-char *BLACKLISTED_EXTENSIONS[] = {
+char *IGNORED_EXTENSIONS[] = {
 
 	/* File extensions */
 	".1", ".2", ".3", ".4", ".5", ".6", ".7", ".8", ".9", ".ac", ".adoc", ".am",

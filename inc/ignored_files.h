@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 /*
- * src/blacklisted_ext.h
+ * src/ignored_wfp.h
  *
- * Blacklisted file extensions
+ * Ignored snippet IDs
  *
  * Copyright (C) 2018-2021 SCANOSS.COM
  *
@@ -20,4 +20,12 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-extern char *BLACKLISTED_EXTENSIONS[];
+#ifndef __IGNORED_FILE_H
+    #define __IGNORED_FILE_H
+
+#include <stdint.h>
+
+extern uint8_t IGNORE_FILE[];
+bool ignored_file(char *file_id);
+
+#endif

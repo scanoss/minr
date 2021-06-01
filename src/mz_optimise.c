@@ -25,7 +25,7 @@
 #include "minr.h"
 #include "ldb.h"
 #include "hex.h"
-#include "blacklist.h"
+#include "ignorelist.h"
 #include "ldb.h"
 
 /* Check if job->id is found in job->xkeys (see -X) */
@@ -94,7 +94,7 @@ bool mz_optimise_handler(struct mz_job *job)
 	/* Check if data contains unwanted header */
 	else if (unwanted_header(job->data))
 	{
-		job->bll_c++;
+		job->igl_c++;
 	}
 
 	/* Check if file is not duplicated */
@@ -145,7 +145,7 @@ void mz_optimise(struct mz_job *job)
 
 	if (job->dup_c) printf("%u duplicated files eliminated\n", job->dup_c);
 	if (job->orp_c) printf("%u orphan files eliminated\n", job->orp_c);
-	if (job->bll_c) printf("%u blacklisted files eliminated\n", job->bll_c);
+	if (job->igl_c) printf("%u ignored files eliminated\n", job->igl_c);
 	if (job->min_c) printf("%u small files eliminated\n", job->min_c);
 	if (job->exc_c) printf("%u keys excluded\n", job->exc_c);
 

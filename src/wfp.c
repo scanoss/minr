@@ -27,7 +27,7 @@
 #include "ldb.h"
 #include "minr.h"
 #include "md5.h"
-#include "blacklist.h"
+#include "ignorelist.h"
 #include "winnowing.h"
 #include "hex.h"
 #include "wfp.h"
