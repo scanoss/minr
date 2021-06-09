@@ -132,7 +132,7 @@ void recurse(struct minr_job *job, char *path);
 void minr_join(struct minr_job *job);
 void minr_join_mz(char *source, char *destination);
 void mine_license(struct minr_job *job, char *id, bool license_file);
-void mine_copyright(char *mined_path, char *md5, char *src, uint64_t src_ln);
+void mine_copyright(char *mined_path, char *md5, char *src, uint64_t src_ln, bool license_file);
 void mine_quality(char *mined_path, char *md5, char *src, long size);
 normalized_license *load_licenses(int *count);
 void mine_local_directory(struct minr_job *job, char* root);

@@ -126,8 +126,13 @@ char *extract_copyright(char *txt)
 	return copyright;
 }
 
-/* Extract a copyright statement from src */
-void mine_copyright(char *mined_path, char *md5, char *src, uint64_t src_ln)
+/* Extract a copyright statement from src
+	 Copyright sources
+	 0 = Declared in component
+	 1 = Detected in file header
+	 2 = Declared in LICENSE file
+	 */
+void mine_copyright(char *mined_path, char *md5, char *src, uint64_t src_ln, bool license_file)
 {
 	/* Max bytes/lines to analyze */
 	int max_bytes = MAX_FILE_HEADER;
@@ -170,7 +175,10 @@ void mine_copyright(char *mined_path, char *md5, char *src, uint64_t src_ln)
 				if (*csv_path)
 				{
 					FILE *fp = fopen(csv_path, "a");
-					fprintf(fp, "%s,1,%s\n", md5, copyright);
+					if (license_file)
+						fprintf(fp, "%s,2,%s\n", md5, copyright);
+					else
+						fprintf(fp, "%s,1,%s\n", md5, copyright);
 					fclose(fp);
 				}
 				else printf("%s,%s\n", md5, copyright);

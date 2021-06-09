@@ -351,6 +351,8 @@ void mine_attribution_notice(struct minr_job *job, char *path)
 		}
 		fclose(f);
 	}
+
+	mine_copyright(job->mined_path, job->pairid, job->src, job->src_ln, true);
 }
 
 /* Mine the given path */
@@ -388,7 +390,7 @@ void mine(struct minr_job *job, char *path)
 		mine_crypto(job->mined_path, job->fileid, job->src, job->src_ln);
 		mine_license(job, job->fileid, false);
 		mine_quality(job->mined_path, job->fileid, job->src, job->src_ln);
-		mine_copyright(job->mined_path, job->fileid, job->src, job->src_ln);
+		mine_copyright(job->mined_path, job->fileid, job->src, job->src_ln, false);
 	}
 
 	/* Output file information */
@@ -431,7 +433,7 @@ void mine_local_file(struct minr_job *job, char *path)
 			mine_copyright(NULL,
 					path,
 					job->src,
-					job->src_ln);
+					job->src_ln, false);
 			break;
 	}
 	free(job->src);

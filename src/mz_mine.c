@@ -106,7 +106,7 @@ bool mz_copyright_handler(struct mz_job *job)
 	mz_id_fill(job->md5, job->id);
 
 	/* Mine copyrights */
-	mine_copyright(NULL, job->md5, job->data, job->data_ln);
+	mine_copyright(NULL, job->md5, job->data, job->data_ln, false);
 
 	return true;
 }
