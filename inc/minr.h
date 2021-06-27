@@ -29,7 +29,7 @@
 #include <string.h>
 
 /* Definitions */
-#define MINR_VERSION "2.1.8"
+#define MINR_VERSION "2.2.0"
 #define FILE_FILES 256
 #define MAX_ARG_LEN 1024
 #define MIN_FILE_REC_LEN 70
@@ -92,6 +92,8 @@ struct minr_job
 	// minr -i
 	char import_path[MAX_PATH_LEN];
 	bool skip_sort; // Do not sort before importing
+	bool skip_csv_check; // Do not check number of CSV fields
+	bool skip_delete; // Do not delete, -k(eep) files after importing
 
 	// minr -f -t
 	char join_from[MAX_PATH_LEN];
@@ -130,7 +132,7 @@ bool check_dependencies(void);
 bool download(struct minr_job *job);
 void recurse(struct minr_job *job, char *path);
 void minr_join(struct minr_job *job);
-void minr_join_mz(char *source, char *destination);
+void minr_join_mz(char *source, char *destination, bool skip_delete);
 void mine_license(struct minr_job *job, char *id, bool license_file);
 void mine_copyright(char *mined_path, char *md5, char *src, uint64_t src_ln, bool license_file);
 void mine_quality(char *mined_path, char *md5, char *src, long size);

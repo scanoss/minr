@@ -71,6 +71,8 @@ int main(int argc, char *argv[])
 
 	// Import job
 	job.skip_sort = false;
+	job.skip_csv_check = false;
+	job.skip_delete = false;
 	*job.import_path=0;
 
 	// Join job
@@ -94,7 +96,7 @@ int main(int argc, char *argv[])
 	int option;
 	bool invalid_argument = false;
 
-	while ((option = getopt(argc, argv, ":c:C:L:Q:Y:o:m:g:w:t:f:T:i:l:z:u:d:xXseahv")) != -1)
+	while ((option = getopt(argc, argv, ":c:C:L:Q:Y:o:m:g:w:t:f:T:i:l:z:u:d:xXsnkeahv")) != -1)
 	{
 
 		/* Check valid alpha is entered */
@@ -192,6 +194,14 @@ int main(int argc, char *argv[])
 				job.skip_sort = true;
 				break;
 
+			case 'n':
+				job.skip_csv_check = true;
+				break;
+
+			case 'k':
+				job.skip_delete = true;
+				break;
+
 			case 'x':
 				job.exclude_mz = true;
 				break;
@@ -242,7 +252,7 @@ int main(int argc, char *argv[])
 	strcat(job.mined_path, "/mined");
 
 	/* Import mined/ into the LDB */
-	if (*job.import_path) mined_import(job.import_path, job.skip_sort);
+	if (*job.import_path) mined_import(job.import_path, job.skip_sort, job.skip_csv_check, job.skip_delete);
 
 	/* Join mined/ structures */
 	else if (*job.join_from && *job.join_to) minr_join(&job);

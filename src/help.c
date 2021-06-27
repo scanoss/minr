@@ -86,6 +86,7 @@ void show_help ()
 	printf("-o      Set location for the mined/ output directory (defaults to current directory)\n");
 	printf("-s      Skip sorting of .csv and .bin files before importing (-i)\n");
 	printf("-T      Set absolute temporary directory (defaults to /dev/shm)\n");
+	printf("-n      Skip number of csv fields checking in url and file importation (-i)\n");
 	printf("-v      Display version and exit\n");
 	printf("-h      Display this help and exit\n");
 	printf("\n");

@@ -78,10 +78,10 @@ void progress(char *prompt, size_t count, size_t max, bool percent)
 }
 
 /* Import a raw wfp file which simply contains a series of 21-byte records
-   containing wfp(3)+md5(16)+line(2). While the wfp is 4 bytes, the first 
-   byte is the file name 
-*/
-bool ldb_import_snippets(char *filename)
+	 containing wfp(3)+md5(16)+line(2). While the wfp is 4 bytes, the first
+	 byte is the file name
+	 */
+bool ldb_import_snippets(char *filename, bool skip_delete)
 {
 
 	/* Table definition */
@@ -132,7 +132,7 @@ bool ldb_import_snippets(char *filename)
 
 	uint64_t wfp_counter = 0;
 	uint64_t ignore_counter = 0;
-	
+
 	/* We keep the last read key to group wfp records */
 	uint8_t last_wfp[4] = "\0\0\0\0";
 	uint8_t tmp_wfp[4] = "\0\0\0\0";
@@ -143,10 +143,8 @@ bool ldb_import_snippets(char *filename)
 	uint8_t *record = malloc(256 * 256 * rec_ln);
 	uint32_t record_ln = 0;
 
-	/* 
-		The first byte of the wfp crc32(4) is the actual file name containing the records
-		We'll read 50 million wfp at a time (making a buffer of about 1Gb) 
-	*/
+	/* The first byte of the wfp crc32(4) is the actual file name containing the records
+		 We'll read 50 million wfp at a time (making a buffer of about 1Gb) */
 	uint32_t buffer_ln = 50000000 * raw_ln;
 	uint8_t *buffer = malloc(buffer_ln);
 
@@ -224,7 +222,7 @@ bool ldb_import_snippets(char *filename)
 	if (out) fclose (out);
 
 	fclose(in);
-	unlink(filename);
+	if (!skip_delete) unlink(filename);
 
 	free(record);
 	free(buffer);
@@ -295,15 +293,15 @@ bool file_id_to_bin(char *line, uint8_t first_byte, bool got_1st_byte, uint8_t *
 
 bool valid_hex(char *str, int bytes)
 {
-    for (int i = 0; i < bytes; i++)
-    {
-        char h = str[i];
-        if (h < '0' || (h > '9' && h < 'a') || h > 'f') return false;
-    }
-    return true;
+	for (int i = 0; i < bytes; i++)
+	{
+		char h = str[i];
+		if (h < '0' || (h > '9' && h < 'a') || h > 'f') return false;
+	}
+	return true;
 }
 
-bool ldb_import_csv(char *filename, char *table, int expected_fields, bool is_file_table)
+bool ldb_import_csv(char *filename, char *table, int expected_fields, bool is_file_table, bool skip_delete)
 {
 	FILE * fp;
 	char * line = NULL;
@@ -353,6 +351,8 @@ bool ldb_import_csv(char *filename, char *table, int expected_fields, bool is_fi
 	oss_bulk.ts_ln = 2;
 	oss_bulk.tmp = false;
 
+	char last_url_id[MAX_ARG_LEN] = "\0";
+
 	fp = fopen (filename, "r");
 	if (fp == NULL)
 	{
@@ -382,10 +382,14 @@ bool ldb_import_csv(char *filename, char *table, int expected_fields, bool is_fi
 		bool skip = false;
 
 		/* File table will have the url id as the second field, which will be
-			converted to binary. Data then starts on the third field. Also file extensions
-			are checked and ruled out if ignored */
+			 converted to binary. Data then starts on the third field. Also file extensions
+			 are checked and ruled out if ignored */
 		if (is_file_table)
 		{
+			/* Skip line if the URL is the same as last, importing unique files per url */
+			if (*last_url_id && !memcmp(data, last_url_id, MD5_LEN * 2)) skip = true;
+			else memcpy(last_url_id, data, MD5_LEN * 2);
+
 			data = field_n(3, line);
 			if (!data) skip = true;
 			else if (ignored_extension(data)) skip = true;
@@ -524,7 +528,7 @@ bool bin_sort(char * file_path, bool skip_sort)
 
 
 /* Import urls */
-void import_urls(char *mined_path, bool skip_sort)
+void import_urls(char *mined_path, bool skip_sort, bool skip_csv_check, bool skip_delete)
 {
 	char path[MAX_PATH_LEN] = "\0";
 	sprintf(path, "%s/urls.csv", mined_path);
@@ -532,13 +536,15 @@ void import_urls(char *mined_path, bool skip_sort)
 	if (is_file(path))
 	{
 		if (csv_sort(path, skip_sort))
+		{
 			/* 8 fields expected (url id, vendor, component, version, release_date, license, purl, download_url) */
-			ldb_import_csv(path, "url", 8, false);
+			ldb_import_csv(path, "url", skip_csv_check ? 0 : 8, false, skip_delete);
+		}
 	}
 }
 
 /* Import files */
-void import_files(char *mined_path, bool skip_sort)
+void import_files(char *mined_path, bool skip_sort, bool skip_csv_check, bool skip_delete)
 {
 	char path[MAX_PATH_LEN] = "\0";
 	sprintf(path, "%s/files", mined_path);
@@ -551,16 +557,16 @@ void import_files(char *mined_path, bool skip_sort)
 			if (csv_sort(path, skip_sort))
 			{
 				/* 3 fields expected (file id, url id, URL) */
-				ldb_import_csv(path, "file", 3, true);
+				ldb_import_csv(path, "file", skip_csv_check ? 0 : 3, true, skip_delete);
 			}
 		}
+		sprintf(path, "%s/files", mined_path);
+		if (!skip_delete) rmdir(path);
 	}
-	sprintf(path, "%s/files", mined_path);
-	rmdir(path);
 }
 
 /* Import snippets */
-void import_snippets(char *mined_path, bool skip_sort)
+void import_snippets(char *mined_path, bool skip_sort, bool skip_delete)
 {
 	char path[MAX_PATH_LEN] = "\0";
 	sprintf(path, "%s/snippets", mined_path);
@@ -572,16 +578,16 @@ void import_snippets(char *mined_path, bool skip_sort)
 			sprintf(path, "%s/snippets/%02x.bin", mined_path, i);
 			if (bin_sort(path, skip_sort))
 			{
-				ldb_import_snippets(path);
+				ldb_import_snippets(path, skip_delete);
 			}
 		}
 	}
 	sprintf(path, "%s/snippets", mined_path);
-	rmdir(path);
+	if (!skip_delete) rmdir(path);
 }
 
 /* Import licenses. 3 CSV fields expected (id, source, license) */
-void import_licenses(char *mined_path, bool skip_sort)
+void import_licenses(char *mined_path, bool skip_sort, bool skip_csv_check, bool skip_delete)
 {
 	char path[MAX_PATH_LEN] = "\0";
 	sprintf(path, "%s/licenses.csv", mined_path);
@@ -590,13 +596,13 @@ void import_licenses(char *mined_path, bool skip_sort)
 		if (csv_sort(path, skip_sort))
 		{
 			/* 3 CSV fields expected (id, source, license) */
-			ldb_import_csv(path, "license", 3, false);
+			ldb_import_csv(path, "license", skip_csv_check ? 0 : 3, false, skip_delete);
 		}
 	}
 }
 
 /* Import dependencies */
-void import_dependencies(char *mined_path, bool skip_sort)
+void import_dependencies(char *mined_path, bool skip_sort, bool skip_csv_check, bool skip_delete)
 {
 	char path[MAX_PATH_LEN] = "\0";
 	sprintf(path, "%s/dependencies.csv", mined_path);
@@ -605,13 +611,13 @@ void import_dependencies(char *mined_path, bool skip_sort)
 		if (csv_sort(path, skip_sort))
 		{
 			/* 5 CSV fields expected (id, source, vendor, component, version) */
-			ldb_import_csv(path, "dependency", 5, false);
+			ldb_import_csv(path, "dependency", skip_csv_check ? 0 : 5, false, skip_delete);
 		}
 	}
 }
 
 /* Import copyrights */
-void import_copyrights(char *mined_path, bool skip_sort)
+void import_copyrights(char *mined_path, bool skip_sort, bool skip_csv_check, bool skip_delete)
 {
 	char path[MAX_PATH_LEN] = "\0";
 	sprintf(path, "%s/copyrights.csv", mined_path);
@@ -620,13 +626,13 @@ void import_copyrights(char *mined_path, bool skip_sort)
 		if (csv_sort(path, skip_sort))
 		{
 			/* 3 CSV fields expected (id, source, copyright statement) */
-			ldb_import_csv(path, "copyright", 3, false);
+			ldb_import_csv(path, "copyright", skip_csv_check ? 0 : 3, false, skip_delete);
 		}
 	}
 }
 
 /* Import vulnerabilities */
-void import_vulnerabilities(char *mined_path, bool skip_sort)
+void import_vulnerabilities(char *mined_path, bool skip_sort, bool skip_csv_check, bool skip_delete)
 {
 	char path[MAX_PATH_LEN] = "\0";
 	sprintf(path, "%s/vulnerabilities.csv", mined_path);
@@ -635,14 +641,14 @@ void import_vulnerabilities(char *mined_path, bool skip_sort)
 		if (csv_sort(path, skip_sort))
 		{
 			/* 10 CSV fields expected (id, source, vendor/component, version from, 
-				version patched, CVE, advisory ID (Github/CPE), Severity, Date, Summary) */
-			ldb_import_csv(path, "vulnerability", 10, false);
+				 version patched, CVE, advisory ID (Github/CPE), Severity, Date, Summary) */
+			ldb_import_csv(path, "vulnerability", skip_csv_check ? 0 : 10, false, skip_delete);
 		}
 	}
 }
 
 /* Import quality */
-void import_quality(char *mined_path, bool skip_sort)
+void import_quality(char *mined_path, bool skip_sort, bool skip_csv_check, bool skip_delete)
 {
 	char path[MAX_PATH_LEN] = "\0";
 	sprintf(path, "%s/quality.csv", mined_path);
@@ -651,13 +657,13 @@ void import_quality(char *mined_path, bool skip_sort)
 		if (csv_sort(path, skip_sort))
 		{
 			/* 3 CSV fields expected (id, source, value) */
-			ldb_import_csv(path, "quality", 3, false);
+			ldb_import_csv(path, "quality", skip_csv_check ? 0 : 3, false, skip_delete);
 		}
 	}
 }
 
 /* Import cryptography data */
-void import_cryptography(char *mined_path, bool skip_sort)
+void import_cryptography(char *mined_path, bool skip_sort, bool skip_csv_check, bool skip_delete)
 {
 	char path[MAX_PATH_LEN] = "\0";
 	sprintf(path, "%s/cryptography.csv", mined_path);
@@ -666,13 +672,13 @@ void import_cryptography(char *mined_path, bool skip_sort)
 		if (csv_sort(path, skip_sort))
 		{
 			/* 3 CSV fields expected (id, algorithm, strength) */
-			ldb_import_csv(path, "cryptography", 3, false);
+			ldb_import_csv(path, "cryptography", skip_csv_check ? 0 : 3, false, skip_delete);
 		}
 	}
 }
 
 /* Import attribution pointers */
-void import_attribution(char *mined_path, bool skip_sort)
+void import_attribution(char *mined_path, bool skip_sort, bool skip_delete)
 {
 	char path[MAX_PATH_LEN] = "\0";
 	sprintf(path, "%s/attribution.csv", mined_path);
@@ -681,13 +687,13 @@ void import_attribution(char *mined_path, bool skip_sort)
 		if (csv_sort(path, skip_sort))
 		{
 			/* 2 CSV fields expected (id, notice ID) */
-			ldb_import_csv(path, "attribution", 2, false);
+			ldb_import_csv(path, "attribution", 2, false, skip_delete);
 		}
 	}
 }
 
 /* Import purl popularity and relationships */
-void import_purls(char *mined_path, bool skip_sort)
+void import_purls(char *mined_path, bool skip_sort, bool skip_csv_check, bool skip_delete)
 {
 	char path[MAX_PATH_LEN] = "\0";
 	sprintf(path, "%s/purls.csv", mined_path);
@@ -696,49 +702,48 @@ void import_purls(char *mined_path, bool skip_sort)
 		if (csv_sort(path, skip_sort))
 		{
 			/* 7 CSV fields expected (id, created, latest, updated, star, watch, fork */
-			ldb_import_csv(path, "purl", 0, false);
+			ldb_import_csv(path, "purl", 0, false, skip_delete);
 		}
 	}
 }
 
-void import_mz(char *mined_path)
+void import_mz(char *mined_path, bool skip_delete)
 {
 	char path[MAX_PATH_LEN] = "\0";
 
 	sprintf(path, "%s/sources", mined_path);
 	if (is_dir(path))
 	{
-		minr_join_mz(mined_path, "/var/lib/ldb/oss");
+		minr_join_mz(mined_path, "/var/lib/ldb/oss", skip_delete);
 	}
 
 	sprintf(path, "%s/notices", mined_path);
 	if (is_dir(path))
 	{
-		minr_join_mz(mined_path, "/var/lib/ldb/oss");
+		minr_join_mz(mined_path, "/var/lib/ldb/oss", skip_delete);
 	}
 }
 
-void mined_import(char *mined_path, bool skip_sort)
+void mined_import(char *mined_path, bool skip_sort, bool skip_csv_check, bool skip_delete)
 {
 	/* Import .bin files */
-	import_snippets(mined_path, skip_sort);
+	import_snippets(mined_path, skip_sort, skip_delete);
 
 	/* Import CSVs */
-	import_urls(mined_path, skip_sort);
-	import_files(mined_path, skip_sort);
-	import_licenses(mined_path, skip_sort);
-	import_dependencies(mined_path, skip_sort);
-	import_copyrights(mined_path, skip_sort);
-	import_copyrights(mined_path, skip_sort);
-	import_vulnerabilities(mined_path, skip_sort);
-	import_quality(mined_path, skip_sort);
-	import_purls(mined_path, skip_sort);
-	import_attribution(mined_path, skip_sort);
-	import_cryptography(mined_path, skip_sort);
+	import_urls(mined_path, skip_sort, skip_csv_check, skip_delete);
+	import_files(mined_path, skip_sort, skip_csv_check, skip_delete);
+	import_licenses(mined_path, skip_sort, skip_csv_check, skip_delete);
+	import_dependencies(mined_path, skip_sort, skip_csv_check, skip_delete);
+	import_copyrights(mined_path, skip_sort, skip_csv_check, skip_delete);
+	import_vulnerabilities(mined_path, skip_sort, skip_csv_check, skip_delete);
+	import_quality(mined_path, skip_sort, skip_csv_check, skip_delete);
+	import_purls(mined_path, skip_sort, skip_csv_check, skip_delete);
+	import_attribution(mined_path, skip_sort, skip_delete);
+	import_cryptography(mined_path, skip_sort, skip_csv_check, skip_delete);
 
 	/* Import MZ archives */
-	import_mz(mined_path);
+	import_mz(mined_path, skip_delete);
 
 	/* Remove mined directory */
-	rmdir(mined_path);
+	if (!skip_delete) rmdir(mined_path);
 }

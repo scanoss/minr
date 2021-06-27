@@ -114,7 +114,7 @@ void mkdir_if_not_exist(char *destination)
 	free(dst_dir);
 }
 
-bool move_file(char *src, char *dst) {
+bool move_file(char *src, char *dst, bool skip_delete) {
 		
 	mkdir_if_not_exist(dst);
 		
@@ -135,11 +135,11 @@ bool move_file(char *src, char *dst) {
 
 	fclose(srcf);
 	fclose(dstf);
-	unlink(src);
+	if (!skip_delete) unlink(src);
 	return true;
 }
 
-void bin_join(char *source, char *destination, bool snippets)
+void bin_join(char *source, char *destination, bool snippets, bool skip_delete)
 {
 	/* If source does not exist, no need to join */
 	if (!is_file(source)) return;
@@ -158,7 +158,7 @@ void bin_join(char *source, char *destination, bool snippets)
 	else
 	{
 		printf("Moving %s into %s\n", source, destination);
-		if (!move_file(source, destination))
+		if (!move_file(source, destination, skip_delete))
 		{
 			printf("Cannot move file\n");
 			exit(EXIT_FAILURE);
@@ -168,7 +168,7 @@ void bin_join(char *source, char *destination, bool snippets)
 
 	printf("Joining into %s\n", destination);
 	file_append(source, destination);
-	unlink(source);
+	if (!skip_delete) unlink(source);
 }
 
 void csv_join(char *source, char *destination)
@@ -185,7 +185,7 @@ void csv_join(char *source, char *destination)
 	else
 	{
 		printf("Moving into %s\n", destination);
-		if (!move_file(source, destination))
+		if (!move_file(source, destination, false))
 		{
 			printf("Cannot move file\n");
 			exit(EXIT_FAILURE);
@@ -199,7 +199,7 @@ void csv_join(char *source, char *destination)
 }
 
 /* Join mz sources */
-void minr_join_mz(char *source, char *destination)
+void minr_join_mz(char *source, char *destination, bool skip_delete)
 {
 	char src_path[MAX_PATH_LEN] = "\0";
 	char dst_path[MAX_PATH_LEN] = "\0";
@@ -208,7 +208,7 @@ void minr_join_mz(char *source, char *destination)
 	{
 		sprintf(src_path, "%s/sources/%04x.mz", source, i);
 		sprintf(dst_path, "%s/sources/%04x.mz", destination, i);
-		bin_join(src_path, dst_path, false);
+		bin_join(src_path, dst_path, false, skip_delete);
 	}
 	sprintf(src_path, "%s/sources", source);
 	rmdir(src_path);
@@ -217,7 +217,7 @@ void minr_join_mz(char *source, char *destination)
 	{
 		sprintf(src_path, "%s/notices/%04x.mz", source, i);
 		sprintf(dst_path, "%s/notices/%04x.mz", destination, i);
-		bin_join(src_path, dst_path, false);
+		bin_join(src_path, dst_path, false, skip_delete);
 	}
 	sprintf(src_path, "%s/notices", source);
 	rmdir(src_path);
@@ -233,7 +233,7 @@ void minr_join_snippets(char *source, char *destination)
 	{
 		sprintf(src_path, "%s/snippets/%02x.bin", source, i);
 		sprintf(dst_path, "%s/snippets/%02x.bin", destination, i);
-		bin_join(src_path, dst_path, true);
+		bin_join(src_path, dst_path, true, false);
 	}
 	sprintf(src_path, "%s/snippets", source);
 	rmdir(src_path);
@@ -278,7 +278,7 @@ void minr_join(struct minr_job *job)
 	minr_join_snippets(source, destination);
 
 	/* Join MZ (sources/ and notices/) */
-	minr_join_mz(source, destination);
+	minr_join_mz(source, destination, false);
 
 	/* Join licenses */
 	sprintf(src_path, "%s/licenses.csv", source);
