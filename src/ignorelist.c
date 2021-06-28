@@ -127,7 +127,6 @@ char *IGNORED_PATHS[] = {
 	"/.vs/",
 	"/.vscode/",
 	"/__pycache__/",
-	"/pycache/",
 	"/venv/",
 	NULL
 };
