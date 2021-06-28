@@ -113,12 +113,22 @@ bool unwanted_header(char *src)
 
 /* File paths to be skipped in results */
 char *IGNORED_PATHS[] = {
+	"/.circleci/",
 	"/.eggs/",
 	"/.git/",
 	"/.github/",
+	"/.idea/",
+	"/.launch/",
+	"/.metadata/",
+	"/.mvn/",
+	"/.sts4-cache/",
 	"/.svn/",
+	"/.venv/",
+	"/.vs/",
 	"/.vscode/",
 	"/__pycache__/",
+	"/pycache/",
+	"/venv/",
 	NULL
 };
 
