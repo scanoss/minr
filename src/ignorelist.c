@@ -77,9 +77,19 @@ bool ignored_extension(char *name)
 	return false;
 }
 
-/* Returns true when any element in IGNORED_PATHS is found in path */
+/* Returns true when dotfile, dotdir or any element in IGNORED_PATHS is found in path */
 bool unwanted_path(char *path)
 {
+	/* Path starts with a dot */
+	if (*path == '.' && path[1] != '/') return true;
+
+	/* Path contains slash+dot+alnum */
+	for (char *p = path; *p; p++)
+		if (*p == '/')
+			if (p[1]) if (p[1] == '.')
+				if (isalnum(p[2])) return true;
+
+	/* IGNORED_PATHS element is found in string */
 	int i=0;
 	while (IGNORED_PATHS[i])
 		if (strstr(path,IGNORED_PATHS[i++]))
@@ -113,21 +123,16 @@ bool unwanted_header(char *src)
 
 /* File paths to be skipped in results */
 char *IGNORED_PATHS[] = {
-	"/.circleci/",
-	"/.eggs/",
-	"/.git/",
-	"/.github/",
-	"/.idea/",
-	"/.launch/",
-	"/.metadata/",
-	"/.mvn/",
-	"/.sts4-cache/",
-	"/.svn/",
-	"/.venv/",
-	"/.vs/",
-	"/.vscode/",
 	"/__pycache__/",
+	"/__pypackages__",
+	"/_yardoc/",
+	"/eggs/",
+	"/htmlcov/",
+	"/nbbuild/",
+	"/nbdist/",
+	"/nbproject/",
 	"/venv/",
+	"/wheels/",
 	NULL
 };
 
