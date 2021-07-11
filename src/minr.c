@@ -65,6 +65,16 @@ bool is_attribution_notice(char *path)
 	return false;
 }
 
+/* Return true if data is binary */
+bool is_binary(char *data, long len)
+{
+		/* Is it a zip? */
+		if (*data == 'P' && data[1] == 'K' && data[2] < 9) return true;
+
+		/* Does it contain a chr(0)? */
+		return (len != strlen(data));
+}
+
 uint32_t execute_command(char *command)
 {
 	/* Execute command */
@@ -385,9 +395,10 @@ void mine(struct minr_job *job, char *path)
 	if (!job->exclude_mz)
 	{
 		/* File discrimination check: Binary? */
-		int src_ln = strlen(job->src);
-		if (job->src_ln == src_ln) mz_add(job->mined_path, job->md5, job->src, job->src_ln, true, job->zsrc, job->mz_cache);
-
+		if (is_binary(job->src, job->src_ln))
+			job->exclude_detection = true;
+		else
+			mz_add(job->mined_path, job->md5, job->src, job->src_ln, true, job->zsrc, job->mz_cache);
 	}
 
 	/* Mine more */
@@ -414,7 +425,7 @@ void mine_local_file(struct minr_job *job, char *path)
 		return;
 	}
 	/* File discrimination check: Unwanted header? */
-	if (unwanted_header(job->src)) {
+	if (unwanted_header(job->src) || is_binary(job->src, job->src_ln)) {
 		free(job->src);
 		return;
 	}
