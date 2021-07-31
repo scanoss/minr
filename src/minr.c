@@ -45,6 +45,7 @@ char *ATTRIBUTION_NOTICES[] =
 "LICENSE",
 "LICENSE.md",
 "LICENSE.txt",
+"LICENSE-Community.txt",
 "LICENSES",
 "NOTICE",
 NULL
