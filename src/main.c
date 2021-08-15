@@ -312,6 +312,7 @@ int main(int argc, char *argv[])
 		if (count_chr(',', job.metadata) != 5)
 		{
 			printf("Wrong number of values passed with -d\n");
+			printf("Expected vendor,component,version,release_date,license,purl\n");
 			exit(EXIT_FAILURE);
 		}
 
@@ -325,7 +326,6 @@ int main(int argc, char *argv[])
 		job.licenses = load_licenses(&job.license_count);
 
 		/* Mine URL or folder */
-
 		url_download(&job);
 
 		free(job.licenses);

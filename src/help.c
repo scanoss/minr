@@ -39,7 +39,7 @@ void show_help ()
 	printf("minr -d METADATA -u URL\n");
 	printf("\n");
 	printf("-d METADATA  Comma separated list of vendor,component,version,release_date,license,purl\n");
-	printf("-u URL       Url to be mined \n");
+	printf("-u URL       Url to be mined (it also accepts a local folder)\n");
 	printf("\n");
 
 	printf("Mining configuration:\n");

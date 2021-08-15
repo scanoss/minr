@@ -144,6 +144,7 @@ void rm_tmpdir(struct minr_job *job)
 
 void url_download(struct minr_job *job)
 {
+	bool downloaded = false;
 	job->src = calloc(MAX_FILE_SIZE + 1, 1);
 	job->zsrc = calloc((MAX_FILE_SIZE + 1) * 2, 1);
 
@@ -162,12 +163,29 @@ void url_download(struct minr_job *job)
 	/* Open all file handlers in mined/files (256 files) */
 	out_file = open_file(job->mined_path);
 
-	/* Create temporary component directory */
-	sprintf(job->tmp_dir,"%s/minr-%d", tmp_path, getpid());
-	mkdir(job->tmp_dir, 0755);
+	/* Mine a local folder instead of a URL */
+	if (is_dir(job->url))
+	{
+		/* No need for tmp_dir, we'll use the provided directory instead */
+		sprintf(job->tmp_dir, job->url);
 
-	/* urlid will contain the hex md5 of the entire component */
-	bool downloaded = download(job);
+		/* URLID will be the hash of the metadata passed */
+		uint8_t urlid[MD5_LEN];
+		MD5((uint8_t *)job->metadata, strlen(job->metadata), urlid);
+		ldb_bin_to_hex(urlid, MD5_LEN, job->urlid);
+
+		downloaded = true;
+	}
+
+	/* Create temporary component directory */
+	else
+	{
+		sprintf(job->tmp_dir,"%s/minr-%d", tmp_path, getpid());
+		mkdir(job->tmp_dir, 0755);
+
+		/* urlid will contain the hex md5 of the entire component */
+		downloaded = download(job);
+	}
 
 	/* Process downloaded/expanded directory */
 	if (is_dir(job->tmp_dir) && downloaded)
@@ -177,7 +195,7 @@ void url_download(struct minr_job *job)
 
 		recurse(job, job->tmp_dir);
 
-		rm_tmpdir(job);
+		if (!is_dir(job->url)) rm_tmpdir(job);
 	}
 
 	else
