@@ -701,7 +701,8 @@ void import_purls(char *mined_path, bool skip_sort, bool skip_csv_check, bool sk
 	{
 		if (csv_sort(path, skip_sort))
 		{
-			/* 7 CSV fields expected (id, created, latest, updated, star, watch, fork */
+			/* 7 CSV fields expected (id, created, latest, updated, star, watch, fork) */
+			/* Alternatively, purl relations are declared here with a single field: related PURL) */
 			ldb_import_csv(path, "purl", 0, false, skip_delete);
 		}
 	}
@@ -726,23 +727,23 @@ void import_mz(char *mined_path, bool skip_delete)
 
 void mined_import(char *mined_path, bool skip_sort, bool skip_csv_check, bool skip_delete)
 {
-	/* Import .bin files */
-	import_snippets(mined_path, skip_sort, skip_delete);
+	/* Import MZ archives */
+	import_mz(mined_path, skip_delete);
 
 	/* Import CSVs */
-	import_urls(mined_path, skip_sort, skip_csv_check, skip_delete);
-	import_files(mined_path, skip_sort, skip_csv_check, skip_delete);
-	import_licenses(mined_path, skip_sort, skip_csv_check, skip_delete);
+	import_attribution(mined_path, skip_sort, skip_delete);
+	import_purls(mined_path, skip_sort, skip_csv_check, skip_delete);
 	import_dependencies(mined_path, skip_sort, skip_csv_check, skip_delete);
+	import_licenses(mined_path, skip_sort, skip_csv_check, skip_delete);
 	import_copyrights(mined_path, skip_sort, skip_csv_check, skip_delete);
 	import_vulnerabilities(mined_path, skip_sort, skip_csv_check, skip_delete);
 	import_quality(mined_path, skip_sort, skip_csv_check, skip_delete);
-	import_purls(mined_path, skip_sort, skip_csv_check, skip_delete);
-	import_attribution(mined_path, skip_sort, skip_delete);
 	import_cryptography(mined_path, skip_sort, skip_csv_check, skip_delete);
+	import_urls(mined_path, skip_sort, skip_csv_check, skip_delete);
+	import_files(mined_path, skip_sort, skip_csv_check, skip_delete);
 
-	/* Import MZ archives */
-	import_mz(mined_path, skip_delete);
+	/* Import .bin files */
+	import_snippets(mined_path, skip_sort, skip_delete);
 
 	/* Remove mined directory */
 	if (!skip_delete) rmdir(mined_path);

@@ -9,7 +9,7 @@ Component mining requires a Knowledge database installed. Scanoss use the SCANOS
 Minr takes two arguments: 
 
 * `-d`: Target metadata (CSV) 
-* `-u`: Target URL (pointing to a downloadable archive of a given component/version) 
+* `-u`: Target URL (pointing to a downloadable archive or a local folder)
 
 Usage example: 
 
@@ -22,6 +22,9 @@ The target metadata is a comma delimited list of the following fields:
 * Vendor 
 * Component 
 * Version 
+* Release date
+* Declared license
+* Package URL (PURL)
 
 Note: Commas are not admitted in any of these fields.  
 
@@ -105,29 +108,60 @@ The LDB is now loaded with the component information and a scan can be performed
 The following example shows an entire component match:
 
 ```
-$ scanoss 1.0.tar.gz 
+$ scanoss 0.8.2.zip
 {
-  "1.0.tar.gz": [
+  "0.8.2.zip": [
     {
-      "id": "component",
-      "elapsed": "0.001139s",
+      "id": "file",
+      "status": "pending",
       "lines": "all",
       "oss_lines": "all",
       "matched": "100%",
-      "vendor": "scanoss",
-      "component": "webhook",
-      "version": "1.0",
-      "latest": "1.0",
-      "url": "https://github.com/scanoss/webhook/archive/1.0.tar.gz",
-      "file": "all",
-      "size": "N/A",
+      "purl": [
+        "pkg:github/unoconv/unoconv"
+      ],
+      "vendor": "unoconv",
+      "component": "unoconv",
+      "version": "0.8.2",
+      "latest": "0.8.2",
+      "url": "https://github.com/unoconv/unoconv",
+      "release_date": "",
+      "file": "0.8.2.zip",
+      "url_hash": "c36074c3996ba9d7d85f4a57787b5645",
+      "file_hash": "c36074c3996ba9d7d85f4a57787b5645",
+      "file_url": "https://github.com/unoconv/unoconv/archive/0.8.2.zip",
       "dependencies": [],
       "licenses": [
         {
           "name": "GPL-2.0-only",
-          "source": "declared"
+          "obligations": "https://www.osadl.org/fileadmin/checklists/unreflicenses/GPL-2.0-only.txt",
+          "copyleft": "yes",
+          "patent_hints": "yes",
+          "incompatible_with": "Apache-1.0, Apache-1.1, Apache-2.0, BSD-4-Clause, BSD-4-Clause-UC, FTL, IJG, OpenSSL, Python-2.0, zlib-acknowledgement, XFree86-1.1",
+          "source": "component_declared"
         }
-      ]	
+      ],
+      "copyrights": [],
+      "vulnerabilities": [
+        {
+          "ID": "GHSA-27p5-7cw6-m45h",
+          "CVE": "CVE-2019-17400",
+          "severity": "MODERATE",
+          "reported": "2019-11-01",
+          "introduced": "",
+          "patched": "<0.9.0",
+          "summary": "Mishandled untrusted pathnames could lead to SSRF and local file inclusion",
+          "source": "github_advisories"
+        }
+      ],
+      "quality": [],
+      "cryptography": [],
+      "server": {
+        "hostname": "p8",
+        "version": "4.2.5",
+        "flags": "0",
+        "elapsed": "0.001449s"
+      }
     }
   ]
 }
@@ -137,29 +171,70 @@ $
 The following example shows an entire file match:
 
 ```
-$ scanoss webhook-1.0/scanoss/github.py 
+$ scanoss test.c
 {
-  "webhook-1.0/scanoss/github.py": [
+  "test.c": [
     {
       "id": "file",
-      "elapsed": "0.000395s",
+      "status": "pending",
       "lines": "all",
       "oss_lines": "all",
       "matched": "100%",
-      "vendor": "scanoss",
-      "component": "webhook",
-      "version": "1.0",
-      "latest": "1.0",
-      "url": "https://github.com/scanoss/webhook/archive/1.0.tar.gz",
-      "file": "webhook-1.0/scanoss/github.py",
-      "size": "6624",
+      "purl": [
+        "pkg:github/unoconv/unoconv"
+      ],
+      "vendor": "unoconv",
+      "component": "unoconv",
+      "version": "0.8.2",
+      "latest": "0.8.2",
+      "url": "https://github.com/unoconv/unoconv",
+      "release_date": "",
+      "file": "unoconv-0.8.2/unoconv",
+      "url_hash": "c36074c3996ba9d7d85f4a57787b5645",
+      "file_hash": "0f55e083dcc72a11334eb1a77137e2c4",
+      "file_url": "https://osskb.org/api/file_contents/0f55e083dcc72a11334eb1a77137e2c4",
       "dependencies": [],
       "licenses": [
         {
           "name": "GPL-2.0-only",
-          "source": "declared"
+          "obligations": "https://www.osadl.org/fileadmin/checklists/unreflicenses/GPL-2.0-only.txt",
+          "copyleft": "yes",
+          "patent_hints": "yes",
+          "incompatible_with": "Apache-1.0, Apache-1.1, Apache-2.0, BSD-4-Clause, BSD-4-Clause-UC, FTL, IJG, OpenSSL, Python-2.0, zlib-acknowledgement, XFree86-1.1",
+          "source": "component_declared"
         }
-      ]	
+      ],
+      "copyrights": [
+        {
+          "name": "Copyright 2007-2010 Dag Wieers <dag@wieers.com>",
+          "source": "file_header"
+        }
+      ],
+      "vulnerabilities": [
+        {
+          "ID": "GHSA-27p5-7cw6-m45h",
+          "CVE": "CVE-2019-17400",
+          "severity": "MODERATE",
+          "reported": "2019-11-01",
+          "introduced": "",
+          "patched": "<0.9.0",
+          "summary": "Mishandled untrusted pathnames could lead to SSRF and local file inclusion",
+          "source": "github_advisories"
+        }
+      ],
+      "quality": [
+        {
+          "score": "2/5",
+          "source": "best_practices"
+        }
+      ],
+      "cryptography": [],
+      "server": {
+        "hostname": "p8",
+        "version": "4.2.5",
+        "flags": "0",
+        "elapsed": "0.001970s"
+      }
     }
   ]
 }
@@ -169,30 +244,71 @@ $
 The following example adds a LF to the end of a file. The modified file does not match entirely anymore, but instead the snippet detection comes into effect: 
 
 ```
-$ echo -e "\n" >> webhook-1.0/scanoss/github.py
-$ scanoss webhook-1.0/scanoss/github.py 
+$ echo -e "\n" >> test.c
+$ scanoss test.c
 {
-  "webhook-1.0/scanoss/github.py": [
+  "test.c": [
     {
       "id": "snippet",
-      "elapsed": "0.001812s",
-      "lines": "1-192",
-      "oss_lines": "3-194",
-      "matched": "99%",
-      "vendor": "scanoss",
-      "component": "webhook",
-      "version": "1.0",
-      "latest": "1.0",
-      "url": "https://github.com/scanoss/webhook/archive/1.0.tar.gz",
-      "file": "webhook-1.0/scanoss/github.py",
-      "size": "6624",
+      "status": "pending",
+      "lines": "21-1391",
+      "oss_lines": "30-1400",
+      "matched": "98%",
+      "purl": [
+        "pkg:github/unoconv/unoconv"
+      ],
+      "vendor": "unoconv",
+      "component": "unoconv",
+      "version": "0.8.2",
+      "latest": "0.8.2",
+      "url": "https://github.com/unoconv/unoconv",
+      "release_date": "",
+      "file": "unoconv-0.8.2/unoconv",
+      "url_hash": "c36074c3996ba9d7d85f4a57787b5645",
+      "file_hash": "0f55e083dcc72a11334eb1a77137e2c4",
+      "file_url": "https://osskb.org/api/file_contents/0f55e083dcc72a11334eb1a77137e2c4",
       "dependencies": [],
       "licenses": [
         {
           "name": "GPL-2.0-only",
-          "source": "declared"
+          "obligations": "https://www.osadl.org/fileadmin/checklists/unreflicenses/GPL-2.0-only.txt",
+          "copyleft": "yes",
+          "patent_hints": "yes",
+          "incompatible_with": "Apache-1.0, Apache-1.1, Apache-2.0, BSD-4-Clause, BSD-4-Clause-UC, FTL, IJG, OpenSSL, Python-2.0, zlib-acknowledgement, XFree86-1.1",
+          "source": "component_declared"
         }
-      ]	
+      ],
+      "copyrights": [
+        {
+          "name": "Copyright 2007-2010 Dag Wieers <dag@wieers.com>",
+          "source": "file_header"
+        }
+      ],
+      "vulnerabilities": [
+        {
+          "ID": "GHSA-27p5-7cw6-m45h",
+          "CVE": "CVE-2019-17400",
+          "severity": "MODERATE",
+          "reported": "2019-11-01",
+          "introduced": "",
+          "patched": "<0.9.0",
+          "summary": "Mishandled untrusted pathnames could lead to SSRF and local file inclusion",
+          "source": "github_advisories"
+        }
+      ],
+      "quality": [
+        {
+          "score": "2/5",
+          "source": "best_practices"
+        }
+      ],
+      "cryptography": [],
+      "server": {
+        "hostname": "p8",
+        "version": "4.2.5",
+        "flags": "0",
+        "elapsed": "0.004989s"
+      }
     }
   ]
 }
@@ -208,8 +324,8 @@ The minr command produces a directory called mined/ containing the mined metadat
 OSS components are saved in a single CSV file called mined/components.csv which contains the original archive md5 hash,  vendor, name, version and url as in the following example: 
 
 ```
-6c067f97266c817b339f0e989499c8e4,gnu,bison,3.5,https://ftp.gnu.org/gnu/bison/bison-3.5.tar.gz
-d004ad1ee8d2895994663ab5e05be4d2,gloac,gloac,0.0.2,https://rubygems.org/downloads/gloac-0.0.2.gem 
+6445e4a453f9a913e687d93c0e52161b,scanoss,minr,2.2.1,2021-08-15,GPL-2.0-only,pkg:github/scanoss/minr,https://github.com/scanoss/minr/archive/refs/tags/2.2.1.zip
+ae28c57b236c8d5a50edcc645d57bc51,scanoss,engine,4.2.5,2021-08-14,GPL-2.0-only,pkg:github/scanoss/engine,https://github.com/scanoss/engine/archive/refs/tags/4.2.5.zip
 ```
 
 ## Files 
@@ -233,7 +349,24 @@ These `.bin` files can be joined by simple concatenation.
 
 ## Sources 
 
-The `sources/` directory is there the original downloaded source files are stored. They are kept in 65536 `.mz` archive files. These files can be listed and extracted using the `unmz` command, which is part of minr. Unlike ZIP files, MZ files can be joined by simple concatenation.
+The `sources/` directory is where the original downloaded source files are stored. They are kept in 65536 `.mz` archive files. These files can be listed and extracted using the `unmz` command, which is part of minr. Unlike ZIP files, MZ files can be joined by simple concatenation.
+
+## Dependencies
+The `dependencies.csv` file contains mined metadata on declared dependencies.
+
+## PURL
+The `purls.csv` file contains component-level information as well as relations between purls.
+Component-level information is presented with seven CSV fields:
+
+* Creation date,
+* Latest date,
+* Updated date,
+* Stars,
+* Watchers,
+* Is_a_fork
+
+Alternatively, purl relations are declared here with a single field:
+* related PURL
 
 # Minr join 
 
