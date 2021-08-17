@@ -57,13 +57,15 @@ int main(int argc, char *argv[])
 	struct minr_job job;
 	strcpy(job.mined_path, ".");
 
+	char OSS_DB_NAME[MAX_ARG_LEN] = "oss";
+
 	// Minr job
 	*job.path = 0;
 	*job.metadata = 0;
 	*job.url = 0;
 	*job.urlid = 0;
 	*job.fileid = 0;
-	*job.pairid = 0;
+	*job.purlid = 0;
 	*job.license = 0;
 	job.all_extensions = false;
 	job.exclude_mz = false;
@@ -96,7 +98,7 @@ int main(int argc, char *argv[])
 	int option;
 	bool invalid_argument = false;
 
-	while ((option = getopt(argc, argv, ":c:C:L:Q:Y:o:m:g:w:t:f:T:i:l:z:u:d:xXsnkeahv")) != -1)
+	while ((option = getopt(argc, argv, ":c:C:L:Q:Y:o:m:g:w:t:f:T:i:l:z:u:d:D:xXsnkeahv")) != -1)
 	{
 
 		/* Check valid alpha is entered */
@@ -151,6 +153,10 @@ int main(int argc, char *argv[])
 			case 'l':
 				generate_license_ids_c(optarg);
 				exit(EXIT_SUCCESS);
+
+			case 'D':
+				strcpy(OSS_DB_NAME, optarg);
+				break;
 
 			case 'c':
 				strcpy(tmp_path, optarg);
@@ -252,7 +258,7 @@ int main(int argc, char *argv[])
 	strcat(job.mined_path, "/mined");
 
 	/* Import mined/ into the LDB */
-	if (*job.import_path) mined_import(job.import_path, job.skip_sort, job.skip_csv_check, job.skip_delete);
+	if (*job.import_path) mined_import(OSS_DB_NAME, job.import_path, job.skip_sort, job.skip_csv_check, job.skip_delete);
 
 	/* Join mined/ structures */
 	else if (*job.join_from && *job.join_to) minr_join(&job);

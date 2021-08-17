@@ -72,6 +72,7 @@ void show_help ()
 	printf("\n");
 	printf("-i DIR  Import the mined DIRectory into the LDB database\n");
 	printf("        (data in DIR is wiped after imported)\n");
+	printf("-D      Set the OSS DB name (default: oss)\n");
 	printf("\n\n");
 	printf("Local mining:\n\n");
 	printf("-L  TARGET Analyse file/directory (and sub directories) to detect license license declarations \n");

@@ -29,7 +29,7 @@
 #include <string.h>
 
 /* Definitions */
-#define MINR_VERSION "2.2.1"
+#define MINR_VERSION "2.2.2"
 #define FILE_FILES 256
 #define MAX_ARG_LEN 1024
 #define MIN_FILE_REC_LEN 70
@@ -71,11 +71,11 @@ struct minr_job
 	uint8_t md5[MD5_LEN];
 	char fileid[MD5_LEN * 2 + 1];
 
-	uint8_t pair_md5[MD5_LEN];      // vendor/component md5
-	char pairid[MD5_LEN * 2 + 1]; // vendor/component md5 hex
+	uint8_t purl_md5[MD5_LEN];    // purl md5
+	char purlid[MD5_LEN * 2 + 1]; // purl md5 hex
 
-	uint8_t version_md5[MD5_LEN];      // vendor/component/version md5
-	char versionid[MD5_LEN * 2 + 1]; // vendor/component/version md5 hex
+	uint8_t version_md5[MD5_LEN]; // purl@version md5
+	char versionid[MD5_LEN * 2 + 1]; // purl@version md5 hex
 
 	char path[MAX_PATH_LEN];
 	char url[MAX_ARG_LEN];

@@ -320,7 +320,7 @@ void attribution_add(struct minr_job *job)
 		printf("Cannot create file %s\n", path);
 		exit(EXIT_FAILURE);
 	}
-	fprintf(fp, "%s,%s\n", job->pairid, notice_id);
+	fprintf(fp, "%s,%s\n", job->purlid, notice_id);
 	fclose(fp);
 }
 
@@ -329,7 +329,7 @@ void mine_attribution_notice(struct minr_job *job, char *path)
 {
 	if (!load_file(job,path)) return;
 
-	mine_license(job, job->pairid, true);
+	mine_license(job, job->purlid, true);
 
 	/* Write entry to mined/attribution.csv */
 	attribution_add(job);
@@ -369,7 +369,7 @@ void mine_attribution_notice(struct minr_job *job, char *path)
 		fclose(f);
 	}
 
-	mine_copyright(job->mined_path, job->pairid, job->src, job->src_ln, true);
+	mine_copyright(job->mined_path, job->purlid, job->src, job->src_ln, true);
 }
 
 /* Mine the given path */

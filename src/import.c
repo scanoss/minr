@@ -81,12 +81,11 @@ void progress(char *prompt, size_t count, size_t max, bool percent)
 	 containing wfp(3)+md5(16)+line(2). While the wfp is 4 bytes, the first
 	 byte is the file name
 	 */
-bool ldb_import_snippets(char *filename, bool skip_delete)
+bool ldb_import_snippets(char *db_name, char *filename, bool skip_delete)
 {
-
 	/* Table definition */
 	struct ldb_table oss_wfp;
-	strcpy(oss_wfp.db, "oss");
+	strcpy(oss_wfp.db, db_name);
 	strcpy(oss_wfp.table, "wfp");
 	oss_wfp.key_ln = 4;
 	oss_wfp.rec_ln = 18;
@@ -149,8 +148,7 @@ bool ldb_import_snippets(char *filename, bool skip_delete)
 	uint8_t *buffer = malloc(buffer_ln);
 
 	/* Create table if it doesn't exist */
-	if (!ldb_database_exists("oss"))           ldb_create_database("oss");
-	if (!ldb_table_exists("oss", "wfp"))       ldb_create_table("oss", "wfp", 4, rec_ln);
+	if (!ldb_table_exists(db_name, "wfp"))       ldb_create_table(db_name, "wfp", 4, rec_ln);
 
 	/* Open ldb */
 	out = ldb_open(oss_wfp, last_wfp, "r+");
@@ -301,7 +299,7 @@ bool valid_hex(char *str, int bytes)
 	return true;
 }
 
-bool ldb_import_csv(char *filename, char *table, int expected_fields, bool is_file_table, bool skip_delete)
+bool ldb_import_csv(char *db_name, char *filename, char *table, int expected_fields, bool is_file_table, bool skip_delete)
 {
 	FILE * fp;
 	char * line = NULL;
@@ -339,12 +337,12 @@ bool ldb_import_csv(char *filename, char *table, int expected_fields, bool is_fi
 	ldb_hex_to_bin(basename(filename), 2, &first_byte);
 
 	/* Create table if it doesn't exist */
-	if (!ldb_database_exists("oss")) ldb_create_database("oss");
-	if (!ldb_table_exists("oss", table)) ldb_create_table("oss", table, 16, 0);
+	if (!ldb_database_exists(db_name)) ldb_create_database(db_name);
+	if (!ldb_table_exists(db_name, table)) ldb_create_table(db_name, table, 16, 0);
 
 	/* Create table structure for bulk import (32-bit key) */
 	struct ldb_table oss_bulk;
-	strcpy(oss_bulk.db, "oss");
+	strcpy(oss_bulk.db, db_name);
 	strcpy(oss_bulk.table, table);
 	oss_bulk.key_ln = 4;
 	oss_bulk.rec_ln = 0;
@@ -528,7 +526,7 @@ bool bin_sort(char * file_path, bool skip_sort)
 
 
 /* Import urls */
-void import_urls(char *mined_path, bool skip_sort, bool skip_csv_check, bool skip_delete)
+void import_urls(char *db_name, char *mined_path, bool skip_sort, bool skip_csv_check, bool skip_delete)
 {
 	char path[MAX_PATH_LEN] = "\0";
 	sprintf(path, "%s/urls.csv", mined_path);
@@ -538,13 +536,13 @@ void import_urls(char *mined_path, bool skip_sort, bool skip_csv_check, bool ski
 		if (csv_sort(path, skip_sort))
 		{
 			/* 8 fields expected (url id, vendor, component, version, release_date, license, purl, download_url) */
-			ldb_import_csv(path, "url", skip_csv_check ? 0 : 8, false, skip_delete);
+			ldb_import_csv(db_name, path, "url", skip_csv_check ? 0 : 8, false, skip_delete);
 		}
 	}
 }
 
 /* Import files */
-void import_files(char *mined_path, bool skip_sort, bool skip_csv_check, bool skip_delete)
+void import_files(char *db_name, char *mined_path, bool skip_sort, bool skip_csv_check, bool skip_delete)
 {
 	char path[MAX_PATH_LEN] = "\0";
 	sprintf(path, "%s/files", mined_path);
@@ -557,7 +555,7 @@ void import_files(char *mined_path, bool skip_sort, bool skip_csv_check, bool sk
 			if (csv_sort(path, skip_sort))
 			{
 				/* 3 fields expected (file id, url id, URL) */
-				ldb_import_csv(path, "file", skip_csv_check ? 0 : 3, true, skip_delete);
+				ldb_import_csv(db_name, path, "file", skip_csv_check ? 0 : 3, true, skip_delete);
 			}
 		}
 		sprintf(path, "%s/files", mined_path);
@@ -566,7 +564,7 @@ void import_files(char *mined_path, bool skip_sort, bool skip_csv_check, bool sk
 }
 
 /* Import snippets */
-void import_snippets(char *mined_path, bool skip_sort, bool skip_delete)
+void import_snippets(char *db_name, char *mined_path, bool skip_sort, bool skip_delete)
 {
 	char path[MAX_PATH_LEN] = "\0";
 	sprintf(path, "%s/snippets", mined_path);
@@ -578,7 +576,7 @@ void import_snippets(char *mined_path, bool skip_sort, bool skip_delete)
 			sprintf(path, "%s/snippets/%02x.bin", mined_path, i);
 			if (bin_sort(path, skip_sort))
 			{
-				ldb_import_snippets(path, skip_delete);
+				ldb_import_snippets(db_name, path, skip_delete);
 			}
 		}
 	}
@@ -587,7 +585,7 @@ void import_snippets(char *mined_path, bool skip_sort, bool skip_delete)
 }
 
 /* Import licenses. 3 CSV fields expected (id, source, license) */
-void import_licenses(char *mined_path, bool skip_sort, bool skip_csv_check, bool skip_delete)
+void import_licenses(char *db_name, char *mined_path, bool skip_sort, bool skip_csv_check, bool skip_delete)
 {
 	char path[MAX_PATH_LEN] = "\0";
 	sprintf(path, "%s/licenses.csv", mined_path);
@@ -596,13 +594,13 @@ void import_licenses(char *mined_path, bool skip_sort, bool skip_csv_check, bool
 		if (csv_sort(path, skip_sort))
 		{
 			/* 3 CSV fields expected (id, source, license) */
-			ldb_import_csv(path, "license", skip_csv_check ? 0 : 3, false, skip_delete);
+			ldb_import_csv(db_name, path, "license", skip_csv_check ? 0 : 3, false, skip_delete);
 		}
 	}
 }
 
 /* Import dependencies */
-void import_dependencies(char *mined_path, bool skip_sort, bool skip_csv_check, bool skip_delete)
+void import_dependencies(char *db_name, char *mined_path, bool skip_sort, bool skip_csv_check, bool skip_delete)
 {
 	char path[MAX_PATH_LEN] = "\0";
 	sprintf(path, "%s/dependencies.csv", mined_path);
@@ -611,13 +609,13 @@ void import_dependencies(char *mined_path, bool skip_sort, bool skip_csv_check, 
 		if (csv_sort(path, skip_sort))
 		{
 			/* 5 CSV fields expected (id, source, vendor, component, version) */
-			ldb_import_csv(path, "dependency", skip_csv_check ? 0 : 5, false, skip_delete);
+			ldb_import_csv(db_name, path, "dependency", skip_csv_check ? 0 : 5, false, skip_delete);
 		}
 	}
 }
 
 /* Import copyrights */
-void import_copyrights(char *mined_path, bool skip_sort, bool skip_csv_check, bool skip_delete)
+void import_copyrights(char *db_name, char *mined_path, bool skip_sort, bool skip_csv_check, bool skip_delete)
 {
 	char path[MAX_PATH_LEN] = "\0";
 	sprintf(path, "%s/copyrights.csv", mined_path);
@@ -626,13 +624,13 @@ void import_copyrights(char *mined_path, bool skip_sort, bool skip_csv_check, bo
 		if (csv_sort(path, skip_sort))
 		{
 			/* 3 CSV fields expected (id, source, copyright statement) */
-			ldb_import_csv(path, "copyright", skip_csv_check ? 0 : 3, false, skip_delete);
+			ldb_import_csv(db_name, path, "copyright", skip_csv_check ? 0 : 3, false, skip_delete);
 		}
 	}
 }
 
 /* Import vulnerabilities */
-void import_vulnerabilities(char *mined_path, bool skip_sort, bool skip_csv_check, bool skip_delete)
+void import_vulnerabilities(char *db_name, char *mined_path, bool skip_sort, bool skip_csv_check, bool skip_delete)
 {
 	char path[MAX_PATH_LEN] = "\0";
 	sprintf(path, "%s/vulnerabilities.csv", mined_path);
@@ -640,15 +638,15 @@ void import_vulnerabilities(char *mined_path, bool skip_sort, bool skip_csv_chec
 	{
 		if (csv_sort(path, skip_sort))
 		{
-			/* 10 CSV fields expected (id, source, vendor/component, version from, 
+			/* 10 CSV fields expected (id, source, purl, version from, 
 				 version patched, CVE, advisory ID (Github/CPE), Severity, Date, Summary) */
-			ldb_import_csv(path, "vulnerability", skip_csv_check ? 0 : 10, false, skip_delete);
+			ldb_import_csv(db_name, path, "vulnerability", skip_csv_check ? 0 : 10, false, skip_delete);
 		}
 	}
 }
 
 /* Import quality */
-void import_quality(char *mined_path, bool skip_sort, bool skip_csv_check, bool skip_delete)
+void import_quality(char *db_name, char *mined_path, bool skip_sort, bool skip_csv_check, bool skip_delete)
 {
 	char path[MAX_PATH_LEN] = "\0";
 	sprintf(path, "%s/quality.csv", mined_path);
@@ -657,13 +655,13 @@ void import_quality(char *mined_path, bool skip_sort, bool skip_csv_check, bool 
 		if (csv_sort(path, skip_sort))
 		{
 			/* 3 CSV fields expected (id, source, value) */
-			ldb_import_csv(path, "quality", skip_csv_check ? 0 : 3, false, skip_delete);
+			ldb_import_csv(db_name, path, "quality", skip_csv_check ? 0 : 3, false, skip_delete);
 		}
 	}
 }
 
 /* Import cryptography data */
-void import_cryptography(char *mined_path, bool skip_sort, bool skip_csv_check, bool skip_delete)
+void import_cryptography(char *db_name, char *mined_path, bool skip_sort, bool skip_csv_check, bool skip_delete)
 {
 	char path[MAX_PATH_LEN] = "\0";
 	sprintf(path, "%s/cryptography.csv", mined_path);
@@ -672,13 +670,13 @@ void import_cryptography(char *mined_path, bool skip_sort, bool skip_csv_check, 
 		if (csv_sort(path, skip_sort))
 		{
 			/* 3 CSV fields expected (id, algorithm, strength) */
-			ldb_import_csv(path, "cryptography", skip_csv_check ? 0 : 3, false, skip_delete);
+			ldb_import_csv(db_name, path, "cryptography", skip_csv_check ? 0 : 3, false, skip_delete);
 		}
 	}
 }
 
 /* Import attribution pointers */
-void import_attribution(char *mined_path, bool skip_sort, bool skip_delete)
+void import_attribution(char *db_name, char *mined_path, bool skip_sort, bool skip_delete)
 {
 	char path[MAX_PATH_LEN] = "\0";
 	sprintf(path, "%s/attribution.csv", mined_path);
@@ -687,13 +685,13 @@ void import_attribution(char *mined_path, bool skip_sort, bool skip_delete)
 		if (csv_sort(path, skip_sort))
 		{
 			/* 2 CSV fields expected (id, notice ID) */
-			ldb_import_csv(path, "attribution", 2, false, skip_delete);
+			ldb_import_csv(db_name, path, "attribution", 2, false, skip_delete);
 		}
 	}
 }
 
 /* Import purl popularity and relationships */
-void import_purls(char *mined_path, bool skip_sort, bool skip_csv_check, bool skip_delete)
+void import_purls(char *db_name, char *mined_path, bool skip_sort, bool skip_csv_check, bool skip_delete)
 {
 	char path[MAX_PATH_LEN] = "\0";
 	sprintf(path, "%s/purls.csv", mined_path);
@@ -703,47 +701,53 @@ void import_purls(char *mined_path, bool skip_sort, bool skip_csv_check, bool sk
 		{
 			/* 7 CSV fields expected (id, created, latest, updated, star, watch, fork) */
 			/* Alternatively, purl relations are declared here with a single field: related PURL) */
-			ldb_import_csv(path, "purl", 0, false, skip_delete);
+			ldb_import_csv(db_name, path, "purl", 0, false, skip_delete);
 		}
 	}
 }
 
-void import_mz(char *mined_path, bool skip_delete)
+void import_mz(char *db_name, char *mined_path, bool skip_delete)
 {
 	char path[MAX_PATH_LEN] = "\0";
+
+	char db_path[MAX_PATH_LEN];
+	sprintf(db_path, "/var/lib/ldb/%s", db_name);
 
 	sprintf(path, "%s/sources", mined_path);
 	if (is_dir(path))
 	{
-		minr_join_mz(mined_path, "/var/lib/ldb/oss", skip_delete);
+		minr_join_mz(mined_path, db_path, skip_delete);
 	}
 
 	sprintf(path, "%s/notices", mined_path);
 	if (is_dir(path))
 	{
-		minr_join_mz(mined_path, "/var/lib/ldb/oss", skip_delete);
+		minr_join_mz(mined_path, db_path, skip_delete);
 	}
 }
 
-void mined_import(char *mined_path, bool skip_sort, bool skip_csv_check, bool skip_delete)
+void mined_import(char *db_name, char *mined_path, bool skip_sort, bool skip_csv_check, bool skip_delete)
 {
+	/* Create database */
+	if (!ldb_database_exists(db_name)) ldb_create_database(db_name);
+
 	/* Import MZ archives */
-	import_mz(mined_path, skip_delete);
+	import_mz(db_name, mined_path, skip_delete);
 
 	/* Import CSVs */
-	import_attribution(mined_path, skip_sort, skip_delete);
-	import_purls(mined_path, skip_sort, skip_csv_check, skip_delete);
-	import_dependencies(mined_path, skip_sort, skip_csv_check, skip_delete);
-	import_licenses(mined_path, skip_sort, skip_csv_check, skip_delete);
-	import_copyrights(mined_path, skip_sort, skip_csv_check, skip_delete);
-	import_vulnerabilities(mined_path, skip_sort, skip_csv_check, skip_delete);
-	import_quality(mined_path, skip_sort, skip_csv_check, skip_delete);
-	import_cryptography(mined_path, skip_sort, skip_csv_check, skip_delete);
-	import_urls(mined_path, skip_sort, skip_csv_check, skip_delete);
-	import_files(mined_path, skip_sort, skip_csv_check, skip_delete);
+	import_attribution(db_name, mined_path, skip_sort, skip_delete);
+	import_purls(db_name, mined_path, skip_sort, skip_csv_check, skip_delete);
+	import_dependencies(db_name, mined_path, skip_sort, skip_csv_check, skip_delete);
+	import_licenses(db_name, mined_path, skip_sort, skip_csv_check, skip_delete);
+	import_copyrights(db_name, mined_path, skip_sort, skip_csv_check, skip_delete);
+	import_vulnerabilities(db_name, mined_path, skip_sort, skip_csv_check, skip_delete);
+	import_quality(db_name, mined_path, skip_sort, skip_csv_check, skip_delete);
+	import_cryptography(db_name, mined_path, skip_sort, skip_csv_check, skip_delete);
+	import_urls(db_name, mined_path, skip_sort, skip_csv_check, skip_delete);
+	import_files(db_name, mined_path, skip_sort, skip_csv_check, skip_delete);
 
 	/* Import .bin files */
-	import_snippets(mined_path, skip_sort, skip_delete);
+	import_snippets(db_name, mined_path, skip_sort, skip_delete);
 
 	/* Remove mined directory */
 	if (!skip_delete) rmdir(mined_path);
