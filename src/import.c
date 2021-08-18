@@ -321,6 +321,8 @@ bool ldb_import_csv(char *db_name, char *filename, char *table, int expected_fie
 	FILE     *item_sector = NULL;
 	uint16_t  item_rg_start   = 0; // record group size
 	uint16_t  item_rg_size   = 0; // record group size
+	char last_id[MD5_LEN * 2 + 1];
+	memset(last_id, 0 ,MD5_LEN * 2 + 1);
 
 	/* Counters */
 	uint32_t imported = 0;
@@ -375,6 +377,11 @@ bool ldb_import_csv(char *db_name, char *filename, char *table, int expected_fie
 		if (line[lineln - 1] == 10) lineln--;
 		line[lineln] = 0;
 
+		/* Check if this ID is the same as last */
+		bool dup_id = false;
+		if (!memcmp(last_id, line, MD5_LEN * 2)) dup_id = true;
+		memcpy(last_id, line, MD5_LEN * 2);
+
 		/* First CSV field is the data key. Data starts with the second CSV field */
 		char *data = field_n(2, line);
 		bool skip = false;
@@ -385,8 +392,8 @@ bool ldb_import_csv(char *db_name, char *filename, char *table, int expected_fie
 		if (is_file_table)
 		{
 			/* Skip line if the URL is the same as last, importing unique files per url */
-			if (*last_url_id && !memcmp(data, last_url_id, MD5_LEN * 2)) skip = true;
-			else memcpy(last_url_id, data, MD5_LEN * 2);
+			if (dup_id) if (*last_url_id && !memcmp(data, last_url_id, MD5_LEN * 2)) if (dup_id) skip = true;
+			memcpy(last_url_id, data, MD5_LEN * 2);
 
 			data = field_n(3, line);
 			if (!data) skip = true;
