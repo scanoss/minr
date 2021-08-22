@@ -67,6 +67,7 @@ int main(int argc, char *argv[])
 	*job.fileid = 0;
 	*job.purlid = 0;
 	*job.license = 0;
+	*job.download_url = 0;
 	job.all_extensions = false;
 	job.exclude_mz = false;
 	job.exclude_detection = false;
@@ -98,7 +99,7 @@ int main(int argc, char *argv[])
 	int option;
 	bool invalid_argument = false;
 
-	while ((option = getopt(argc, argv, ":c:C:L:Q:Y:o:m:g:w:t:f:T:i:l:z:u:d:D:xXsnkeahv")) != -1)
+	while ((option = getopt(argc, argv, ":c:C:L:Q:Y:o:m:g:w:t:f:T:i:l:z:u:U:d:D:xXsnkeahv")) != -1)
 	{
 
 		/* Check valid alpha is entered */
@@ -171,7 +172,11 @@ int main(int argc, char *argv[])
 			case 'u':
 				strcpy(job.url, optarg);
 				break;
-			
+
+			case 'U':
+				strcpy(job.download_url, optarg);
+				break;
+
 			case 'C':
 				job.local_mining = 4;
 				strcpy(job.url, optarg);

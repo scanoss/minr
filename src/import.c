@@ -356,7 +356,7 @@ bool ldb_import_csv(char *db_name, char *filename, char *table, int expected_fie
 	fp = fopen (filename, "r");
 	if (fp == NULL)
 	{
-		unlink(filename);
+		if (!skip_delete) unlink(filename);
 		return false;
 	}
 	printf ("%s\n", filename);
@@ -488,7 +488,7 @@ bool ldb_import_csv(char *db_name, char *filename, char *table, int expected_fie
 	printf ("%u records imported, %u skipped\n", imported, skipped);
 
 	fclose (fp);
-	unlink(filename);
+	if (!skip_delete) unlink(filename);
 
 	if (line) free(line);
 	free(itemid);

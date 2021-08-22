@@ -69,7 +69,7 @@ void url_add(struct minr_job *job)
 		printf("Cannot create file %s\n", path);
 		exit(EXIT_FAILURE);
 	}
-	fprintf(fp, "%s,%s,%s\n", job->urlid, job->metadata, job->url);
+	fprintf(fp, "%s,%s,%s\n", job->urlid, job->metadata, *job->download_url ? job->download_url : job->url);
 	fclose(fp);
 
 	/* Obtain purl id and purl@version id */

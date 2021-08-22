@@ -171,7 +171,7 @@ void bin_join(char *source, char *destination, bool snippets, bool skip_delete)
 	if (!skip_delete) unlink(source);
 }
 
-void csv_join(char *source, char *destination)
+void csv_join(char *source, char *destination, bool skip_delete)
 {
 	/* If source does not exist, no need to join */
 	if (is_file(source)) truncate_csv(source); else return;
@@ -195,7 +195,7 @@ void csv_join(char *source, char *destination)
 
 	printf("Joining into %s\n", destination);
 	file_append(source, destination);
-	unlink(source);
+	if (!skip_delete) unlink(source);
 }
 
 /* Join mz sources */
@@ -211,7 +211,7 @@ void minr_join_mz(char *source, char *destination, bool skip_delete)
 		bin_join(src_path, dst_path, false, skip_delete);
 	}
 	sprintf(src_path, "%s/sources", source);
-	rmdir(src_path);
+	if (!skip_delete) rmdir(src_path);
 
 	for (int i = 0; i < 65536; i++)
 	{
@@ -220,11 +220,11 @@ void minr_join_mz(char *source, char *destination, bool skip_delete)
 		bin_join(src_path, dst_path, false, skip_delete);
 	}
 	sprintf(src_path, "%s/notices", source);
-	rmdir(src_path);
+	if (!skip_delete) rmdir(src_path);
 }
 
 /* Join snippets */
-void minr_join_snippets(char *source, char *destination)
+void minr_join_snippets(char *source, char *destination, bool skip_delete)
 {
 	char src_path[MAX_PATH_LEN] = "\0";
 	char dst_path[MAX_PATH_LEN] = "\0";
@@ -236,7 +236,7 @@ void minr_join_snippets(char *source, char *destination)
 		bin_join(src_path, dst_path, true, false);
 	}
 	sprintf(src_path, "%s/snippets", source);
-	rmdir(src_path);
+	if (!skip_delete) rmdir(src_path);
 }
 
 void minr_join(struct minr_job *job)
@@ -262,63 +262,63 @@ void minr_join(struct minr_job *job)
 	/* Join urls */
 	sprintf(src_path, "%s/urls.csv", source);
 	sprintf(dst_path, "%s/urls.csv", destination);
-	csv_join(src_path, dst_path);
+	csv_join(src_path, dst_path, job->skip_delete);
 
 	/* Join files */
 	for (int i = 0; i < 256; i++)
 	{
 		sprintf(src_path, "%s/files/%02x.csv", source, i);
 		sprintf(dst_path, "%s/files/%02x.csv", destination, i);
-		csv_join(src_path, dst_path);
+		csv_join(src_path, dst_path, job->skip_delete);
 	}
 	sprintf(src_path, "%s/files", source);
-	rmdir(src_path);
+	if (!job->skip_delete) rmdir(src_path);
 
 	/* Join snippets */
-	minr_join_snippets(source, destination);
+	minr_join_snippets(source, destination, job->skip_delete);
 
 	/* Join MZ (sources/ and notices/) */
-	minr_join_mz(source, destination, false);
+	minr_join_mz(source, destination, job->skip_delete);
 
 	/* Join licenses */
 	sprintf(src_path, "%s/licenses.csv", source);
 	sprintf(dst_path, "%s/licenses.csv", destination);
-	csv_join(src_path, dst_path);
+	csv_join(src_path, dst_path, job->skip_delete);
 
 	/* Join dependencies */
 	sprintf(src_path, "%s/dependencies.csv", source);
 	sprintf(dst_path, "%s/dependencies.csv", destination);
-	csv_join(src_path, dst_path);
+	csv_join(src_path, dst_path, job->skip_delete);
 
 	/* Join quality */
 	sprintf(src_path, "%s/quality.csv", source);
 	sprintf(dst_path, "%s/quality.csv", destination);
-	csv_join(src_path, dst_path);
+	csv_join(src_path, dst_path, job->skip_delete);
 
 	/* Join copyright */
 	sprintf(src_path, "%s/copyrights.csv", source);
 	sprintf(dst_path, "%s/copyrights.csv", destination);
-	csv_join(src_path, dst_path);
+	csv_join(src_path, dst_path, job->skip_delete);
 
 	/* Join quality */
 	sprintf(src_path, "%s/quality.csv", source);
 	sprintf(dst_path, "%s/quality.csv", destination);
-	csv_join(src_path, dst_path);
+	csv_join(src_path, dst_path, job->skip_delete);
 
 	/* Join vulnerabilities */
 	sprintf(src_path, "%s/vulnerabilities.csv", source);
 	sprintf(dst_path, "%s/vulnerabilities.csv", destination);
-	csv_join(src_path, dst_path);
+	csv_join(src_path, dst_path, job->skip_delete);
 
 	/* Join attribution */
 	sprintf(src_path, "%s/attribution.csv", source);
 	sprintf(dst_path, "%s/attribution.csv", destination);
-	csv_join(src_path, dst_path);
+	csv_join(src_path, dst_path, job->skip_delete);
 
 	/* Join cryptography */
 	sprintf(src_path, "%s/cryptography.csv", source);
 	sprintf(dst_path, "%s/cryptography.csv", destination);
-	csv_join(src_path, dst_path);
+	csv_join(src_path, dst_path, job->skip_delete);
 
-	rmdir(source);
+	if (!job->skip_delete) rmdir(source);
 }
