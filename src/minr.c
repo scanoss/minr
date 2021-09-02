@@ -376,7 +376,8 @@ void mine_attribution_notice(struct minr_job *job, char *path)
 void mine(struct minr_job *job, char *path)
 {
 	/* Mine attribution notice */
-	if (is_attribution_notice(path))
+	job->is_attribution_notice = is_attribution_notice(path);
+	if (job->is_attribution_notice)
 	{
 		mine_attribution_notice(job, path);
 		return;

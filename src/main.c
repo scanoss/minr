@@ -71,6 +71,7 @@ int main(int argc, char *argv[])
 	job.all_extensions = false;
 	job.exclude_mz = false;
 	job.exclude_detection = false;
+	job.is_attribution_notice = false;
 
 	// Import job
 	job.skip_sort = false;
