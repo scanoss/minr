@@ -16,13 +16,14 @@
 
 #define SINIT 0
 #define SWORD 1
+#define LEAF_COUNT 40
 
 struct T_TrieNode;
 struct T_TrieNode{
 	int type;
 	int ocurrences;
 	unsigned short coding;
-	struct T_TrieNode * nodos[40];
+	struct T_TrieNode * nodos[LEAF_COUNT];
 	//char algorithmName[20];
 	char *algorithmName;
 };
@@ -80,8 +81,9 @@ switch(c){
 void insert(char *token, struct T_TrieNode *currNode,char* algorithmName, unsigned short coding)
 {
 	
-	if(token[0]=='\0') {
-		asprintf(&currNode->algorithmName,algorithmName);
+	//if(token[0]=='\0') {
+	if (!*token && !currNode->algorithmName)
+{		asprintf(&currNode->algorithmName,algorithmName);
 		currNode->type=1;
 		currNode->coding=coding;
 		return;
@@ -96,7 +98,7 @@ void insert(char *token, struct T_TrieNode *currNode,char* algorithmName, unsign
 	if(currNode->nodos[realIndex]==0)
 	{
 		currNode->nodos[realIndex]= (struct T_TrieNode*)calloc (1,sizeof (struct T_TrieNode));
-		for(int i =0;i<40;i++)
+		for(int i =0;i<LEAF_COUNT;i++)
 				currNode->nodos[realIndex]->nodos[i]=NULL;
 		currNode->nodos[realIndex]->ocurrences=0;
 		currNode->nodos[realIndex]->type = -1;
@@ -133,7 +135,7 @@ struct T_TrieNode * searchAlgorithm(char *token, struct T_TrieNode *node)
 		
 	}
 	unsigned char index = indexOf(token[indexValid]);
-	if((index<0)||(index >40))
+	if((index<0)||(index >LEAF_COUNT))
 	{
 		return NULL;
 	}
@@ -249,7 +251,7 @@ void parseDirectory(char* root,bool destIsSrc){
 }
 
 void cleanCrypto(struct T_TrieNode *node){
-for(int i=0;i<40;i++)
+for(int i=0;i<LEAF_COUNT;i++)
 if(node->nodos[i]!=NULL)
 	cleanCrypto(node->nodos[i]);
 free (node->algorithmName);

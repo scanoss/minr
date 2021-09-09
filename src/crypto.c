@@ -53,30 +53,39 @@ struct T_SearchResult * results;
 
 int appendToResults(struct T_TrieNode *element){
 
-struct T_SearchResult* temp = (struct T_SearchResult*) calloc(1,sizeof(struct T_SearchResult));
+	struct T_SearchResult* temp = (struct T_SearchResult*) calloc(1,sizeof(struct T_SearchResult));
 
-temp->element= element;
-temp->nextElement=NULL;
-
-struct T_SearchResult* temp2 = results;
-struct T_SearchResult** temp3 = &results;
-int res =0;
-while((temp2 != NULL) && (res<1) )
-{
-	if(temp->element==NULL) return 0; 
-	if(temp2->element->algorithmName==NULL) return 0;
-	res = strcmp(temp2->element->algorithmName,temp->element->algorithmName);
-	if(res==0) return 0;
+	temp->element= element;
+	temp->nextElement=NULL;
+	struct T_SearchResult* temp2 = results;
+	struct T_SearchResult** temp3 = &results;
 	
+	int res =0;
 
-   temp3 = &temp2->nextElement;
-   temp2 = temp2->nextElement;
+	while((temp2 != NULL) && (res<1) )
+	{
+		if(temp->element==NULL) {
+			free(temp);
+			return 0;
+		}
+		if(temp2->element->algorithmName==NULL) {
+			free(temp);
+			return 0;
+		}
+		res = strcmp(temp2->element->algorithmName,temp->element->algorithmName);
+		if(res==0)
+		{
+			free(temp);
+			return 0;
+		};
+		
+		temp3 = &temp2->nextElement;
+   	temp2 = temp2->nextElement;
   
-}
+	}
 
-*temp3 = temp;
-
-return 1;
+	*temp3 = temp;
+	return 1;
 }
 
 
@@ -250,8 +259,17 @@ void mine_crypto(char *mined_path, char *md5, char *src, uint64_t src_ln)
 					aux->element->coding);
 					 }	
 	aux=aux->nextElement;
-	free(old);
+	//free(old);
 	}
+		aux=results;
+		while(aux!=NULL){
+			old=aux;
+			aux=aux->nextElement;
+			free(old);
+	}
+		free(aux);
+		
+		
 		
 	if (dumpToFile)
 		fclose(fp);

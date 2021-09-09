@@ -246,7 +246,7 @@ bool load_file(struct minr_job *job, char *path)
 {
 	/* Open file and obtain file length */
 	FILE *fp;
-
+	if(!is_file(path)) return false;
 	 if ((fp = fopen(path,"rb")) == NULL){
 	       printf("Error! Cannot load the definitions file");
 	       exit(1);

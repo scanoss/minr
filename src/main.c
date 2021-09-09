@@ -274,7 +274,7 @@ int main(int argc, char *argv[])
 	{
 		job.licenses = load_licenses(&job.license_count);
 		if (is_file(job.url)) mine_local_file(&job, job.url);
-		else mine_local_directory(&job,job.url);
+		else if(is_dir(job.url)) mine_local_directory(&job,job.url);
 		free(job.licenses);
 	}
 
