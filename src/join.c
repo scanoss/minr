@@ -185,7 +185,7 @@ void csv_join(char *source, char *destination, bool skip_delete)
 	else
 	{
 		printf("Moving into %s\n", destination);
-		if (!move_file(source, destination, false))
+		if (!move_file(source, destination, skip_delete))
 		{
 			printf("Cannot move file\n");
 			exit(EXIT_FAILURE);
