@@ -162,7 +162,6 @@ void url_download(struct minr_job *job)
 	else
 	{
 		printf("Capture failed\n");
-		exit(EXIT_FAILURE);
 	}
 
 	/* Close files */

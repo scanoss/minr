@@ -209,7 +209,8 @@ bool download(struct minr_job *job)
 	if (file_size(tmp_file) < min_file_size)
 	{
 		printf("Retrieved file is under min_file_size. Ignoring URL\n");
-		return true;
+		free(tmp_file);
+		return false;
 	}
 
 	/* Get urlid */
