@@ -33,7 +33,7 @@ Minr takes two arguments:
 Usage example: 
 
 ```
-$ minr -d madler,pigz,2.4,20171227,zlib,pkg:github/madler/pigz@v2.4 -u https://github.com/madler/pigz/archive/v2.4.zip 
+$ minr -d madler,pigz,2.4,20171227,zlib,pkg:github/madler/pigz -u https://github.com/madler/pigz/archive/v2.4.zip 
 ```
 
 The target metadata is a comma delimited list of the following fields: 
@@ -93,7 +93,7 @@ The following examples show the entire process for downloading an OSS component,
 URL mining is the process of downloading a component, expanding the files and saving component, metadata and original sources for snippet mining.
 
 ```
-$ minr -d scanoss,webhook,1.0,20200320,BSD-3-Clause,pkg:github/scanoss/webhook@1.0 -u https://github.com/scanoss/webhook/archive/1.0.tar.gz
+$ minr -d scanoss,webhook,1.0,20200320,BSD-3-Clause,pkg:github/scanoss/webhook -u https://github.com/scanoss/webhook/archive/1.0.tar.gz
 Downloading https://github.com/scanoss/webhook/archive/1.0.tar.gz
 $
 ```
@@ -137,13 +137,13 @@ $ scanoss 1.0.tar.gz
       "oss_lines": "all",
       "matched": "100%",
       "purl": [
-        "pkg:github/scanoss/webhook@1.0"
+        "pkg:github/scanoss/webhook"
       ],
       "vendor": "scanoss",
       "component": "webhook",
       "version": "1.0",
       "latest": "1.0",
-      "url": "https://github.com/scanoss/webhook@1.0",
+      "url": "https://github.com/scanoss/webhook",
       "release_date": "20200320",
       "file": "1.0.tar.gz",
       "url_hash": "611e5c3a58a3c2b78385556368c5230e",
@@ -194,13 +194,13 @@ $ scanoss webhook-1.0/scanoss/github.py
       "oss_lines": "all",
       "matched": "100%",
       "purl": [
-        "pkg:github/scanoss/webhook@1.0"
+        "pkg:github/scanoss/webhook"
       ],
       "vendor": "scanoss",
       "component": "webhook",
       "version": "1.0",
       "latest": "1.0",
-      "url": "https://github.com/scanoss/webhook@1.0",
+      "url": "https://github.com/scanoss/webhook",
       "release_date": "20200320",
       "file": "webhook-1.0/scanoss/github.py",
       "url_hash": "611e5c3a58a3c2b78385556368c5230e",
@@ -251,13 +251,13 @@ $ scanoss webhook-1.0/scanoss/github.py
       "oss_lines": "3-194",
       "matched": "99%",
       "purl": [
-        "pkg:github/scanoss/webhook@1.0"
+        "pkg:github/scanoss/webhook"
       ],
       "vendor": "scanoss",
       "component": "webhook",
       "version": "1.0",
       "latest": "1.0",
-      "url": "https://github.com/scanoss/webhook@1.0",
+      "url": "https://github.com/scanoss/webhook",
       "release_date": "20200320",
       "file": "webhook-1.0/scanoss/github.py",
       "url_hash": "611e5c3a58a3c2b78385556368c5230e",
@@ -303,7 +303,7 @@ The minr command produces a directory called mined/ containing the mined metadat
 OSS components are saved in a single CSV file called mined/urls.csv which contains the original archive md5 hash, vendor, name, version, release date, license, purl and url as in the following example: 
 
 ```
-611e5c3a58a3c2b78385556368c5230e,scanoss,webhook,1.0,20200320,BSD-3-Clause,pkg:github/scanoss/webhook@1.0,https://github.com/scanoss/webhook/archive/1.0.tar.gz 
+611e5c3a58a3c2b78385556368c5230e,scanoss,webhook,1.0,20200320,BSD-3-Clause,pkg:github/scanoss/webhook,https://github.com/scanoss/webhook/archive/1.0.tar.gz 
 ```
 
 Other metadata are saved in `mined/attribution.csv`, `mined/copyrights.csv`, `mined/cryptography.csv`, `mined/licenses.csv` and `mined/quality.csv` files. <!--FIXME: add more details here -->
