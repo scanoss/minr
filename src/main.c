@@ -57,17 +57,21 @@ int main(int argc, char *argv[])
 	struct minr_job job;
 	strcpy(job.mined_path, ".");
 
+	char OSS_DB_NAME[MAX_ARG_LEN] = "oss";
+
 	// Minr job
 	*job.path = 0;
 	*job.metadata = 0;
 	*job.url = 0;
 	*job.urlid = 0;
 	*job.fileid = 0;
-	*job.pairid = 0;
+	*job.purlid = 0;
 	*job.license = 0;
+	*job.download_url = 0;
 	job.all_extensions = false;
 	job.exclude_mz = false;
 	job.exclude_detection = false;
+	job.is_attribution_notice = false;
 
 	// Import job
 	job.skip_sort = false;
@@ -96,7 +100,7 @@ int main(int argc, char *argv[])
 	int option;
 	bool invalid_argument = false;
 
-	while ((option = getopt(argc, argv, ":c:C:L:Q:Y:o:m:g:w:t:f:T:i:l:z:u:d:xXsnkeahv")) != -1)
+	while ((option = getopt(argc, argv, ":c:C:L:Q:Y:o:m:g:w:t:f:T:i:l:z:u:U:d:D:xXsnkeahv")) != -1)
 	{
 
 		/* Check valid alpha is entered */
@@ -152,6 +156,10 @@ int main(int argc, char *argv[])
 				generate_license_ids_c(optarg);
 				exit(EXIT_SUCCESS);
 
+			case 'D':
+				strcpy(OSS_DB_NAME, optarg);
+				break;
+
 			case 'c':
 				strcpy(tmp_path, optarg);
 				create_crypto_definitions(tmp_path);
@@ -165,7 +173,11 @@ int main(int argc, char *argv[])
 			case 'u':
 				strcpy(job.url, optarg);
 				break;
-			
+
+			case 'U':
+				strcpy(job.download_url, optarg);
+				break;
+
 			case 'C':
 				job.local_mining = 4;
 				strcpy(job.url, optarg);
@@ -252,7 +264,7 @@ int main(int argc, char *argv[])
 	strcat(job.mined_path, "/mined");
 
 	/* Import mined/ into the LDB */
-	if (*job.import_path) mined_import(job.import_path, job.skip_sort, job.skip_csv_check, job.skip_delete);
+	if (*job.import_path) mined_import(OSS_DB_NAME, job.import_path, job.skip_sort, job.skip_csv_check, job.skip_delete);
 
 	/* Join mined/ structures */
 	else if (*job.join_from && *job.join_to) minr_join(&job);
@@ -262,7 +274,7 @@ int main(int argc, char *argv[])
 	{
 		job.licenses = load_licenses(&job.license_count);
 		if (is_file(job.url)) mine_local_file(&job, job.url);
-		else mine_local_directory(&job,job.url);
+		else if(is_dir(job.url)) mine_local_directory(&job,job.url);
 		free(job.licenses);
 	}
 
@@ -312,6 +324,7 @@ int main(int argc, char *argv[])
 		if (count_chr(',', job.metadata) != 5)
 		{
 			printf("Wrong number of values passed with -d\n");
+			printf("Expected vendor,component,version,release_date,license,purl\n");
 			exit(EXIT_FAILURE);
 		}
 
@@ -325,7 +338,6 @@ int main(int argc, char *argv[])
 		job.licenses = load_licenses(&job.license_count);
 
 		/* Mine URL or folder */
-
 		url_download(&job);
 
 		free(job.licenses);

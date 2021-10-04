@@ -28,7 +28,7 @@ sudo chmod -R 755 /var/lib/ldb/
 Minr takes two arguments: 
 
 * `-d`: Target metadata (CSV) 
-* `-u`: Target URL (pointing to a downloadable archive of a given component/version) 
+* `-u`: Target URL (pointing to a downloadable archive or a local folder)
 
 Usage example: 
 
@@ -42,8 +42,10 @@ The target metadata is a comma delimited list of the following fields:
 * Component 
 * Version 
 * Release date
+
 * License
 * Purl (see https://github.com/package-url/purl-spec)
+
 
 Note: Commas are not admitted in any of these fields.  
 
@@ -127,9 +129,9 @@ The LDB is now loaded with the component information and a scan can be performed
 The following example shows an entire component match:
 
 ```
-$ scanoss 1.0.tar.gz 
+$ scanoss 0.8.2.zip
 {
-  "1.0.tar.gz": [
+  "0.8.2.zip": [
     {
       "id": "file",
       "status": "pending",
@@ -184,9 +186,9 @@ $
 The following example shows an entire file match:
 
 ```
-$ scanoss webhook-1.0/scanoss/github.py 
+$ scanoss test.c
 {
-  "webhook-1.0/scanoss/github.py": [
+  "test.c": [
     {
       "id": "file",
       "status": "pending",
@@ -194,6 +196,7 @@ $ scanoss webhook-1.0/scanoss/github.py
       "oss_lines": "all",
       "matched": "100%",
       "purl": [
+
         "pkg:github/scanoss/webhook"
       ],
       "vendor": "scanoss",
@@ -240,10 +243,10 @@ $
 The following example adds a LF to the end of a file. The modified file does not match entirely anymore, but instead the snippet detection comes into effect: 
 
 ```
-$ echo -e "\n" >> webhook-1.0/scanoss/github.py
-$ scanoss webhook-1.0/scanoss/github.py 
+$ echo -e "\n" >> test.c
+$ scanoss test.c
 {
-  "webhook-1.0/scanoss/github.py": [
+  "test.c": [
     {
       "id": "snippet",
       "status": "pending",
@@ -287,6 +290,7 @@ $ scanoss webhook-1.0/scanoss/github.py
         "version": "4.2.4",
         "flags": "0",
         "elapsed": "0.067090s"
+
       }
     }
   ]
@@ -329,7 +333,24 @@ These `.bin` files can be joined by simple concatenation.
 
 ## Sources 
 
-The `sources/` directory is there the original downloaded source files are stored. They are kept in 65536 `.mz` archive files. These files can be listed and extracted using the `unmz` command, which is part of minr. Unlike ZIP files, MZ files can be joined by simple concatenation.
+The `sources/` directory is where the original downloaded source files are stored. They are kept in 65536 `.mz` archive files. These files can be listed and extracted using the `unmz` command, which is part of minr. Unlike ZIP files, MZ files can be joined by simple concatenation.
+
+## Dependencies
+The `dependencies.csv` file contains mined metadata on declared dependencies.
+
+## PURL
+The `purls.csv` file contains component-level information as well as relations between purls.
+Component-level information is presented with seven CSV fields:
+
+* Creation date,
+* Latest date,
+* Updated date,
+* Stars,
+* Watchers,
+* Is_a_fork
+
+Alternatively, purl relations are declared here with a single field:
+* related PURL
 
 # Minr join 
 

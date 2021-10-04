@@ -39,7 +39,8 @@ void show_help ()
 	printf("minr -d METADATA -u URL\n");
 	printf("\n");
 	printf("-d METADATA  Comma separated list of vendor,component,version,release_date,license,purl\n");
-	printf("-u URL       Url to be mined \n");
+	printf("-u URL       Url to be mined (it also accepts a local folder)\n");
+	printf("-U URL       Optional URL to be recorded instead of the mined one (-u)\n");
 	printf("\n");
 
 	printf("Mining configuration:\n");
@@ -72,6 +73,7 @@ void show_help ()
 	printf("\n");
 	printf("-i DIR  Import the mined DIRectory into the LDB database\n");
 	printf("        (data in DIR is wiped after imported)\n");
+	printf("-D      Set the OSS DB name (default: oss)\n");
 	printf("\n\n");
 	printf("Local mining:\n\n");
 	printf("-L  TARGET Analyse file/directory (and sub directories) to detect license license declarations \n");
@@ -87,6 +89,7 @@ void show_help ()
 	printf("-s      Skip sorting of .csv and .bin files before importing (-i)\n");
 	printf("-T      Set absolute temporary directory (defaults to /dev/shm)\n");
 	printf("-n      Skip number of csv fields checking in url and file importation (-i)\n");
+	printf("-k      Keep files after merging or importing\n");
 	printf("-v      Display version and exit\n");
 	printf("-h      Display this help and exit\n");
 	printf("\n");

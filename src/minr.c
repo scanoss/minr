@@ -45,6 +45,7 @@ char *ATTRIBUTION_NOTICES[] =
 "LICENSE",
 "LICENSE.md",
 "LICENSE.txt",
+"LICENSE-Community.txt",
 "LICENSES",
 "NOTICE",
 NULL
@@ -208,7 +209,8 @@ bool download(struct minr_job *job)
 	if (file_size(tmp_file) < min_file_size)
 	{
 		printf("Retrieved file is under min_file_size. Ignoring URL\n");
-		return true;
+		free(tmp_file);
+		return false;
 	}
 
 	/* Get urlid */
@@ -245,7 +247,7 @@ bool load_file(struct minr_job *job, char *path)
 {
 	/* Open file and obtain file length */
 	FILE *fp;
-
+	if(!is_file(path)) return false;
 	 if ((fp = fopen(path,"rb")) == NULL){
 	       printf("Error! Cannot load the definitions file");
 	       exit(1);
@@ -319,7 +321,7 @@ void attribution_add(struct minr_job *job)
 		printf("Cannot create file %s\n", path);
 		exit(EXIT_FAILURE);
 	}
-	fprintf(fp, "%s,%s\n", job->pairid, notice_id);
+	fprintf(fp, "%s,%s\n", job->purlid, notice_id);
 	fclose(fp);
 }
 
@@ -328,7 +330,7 @@ void mine_attribution_notice(struct minr_job *job, char *path)
 {
 	if (!load_file(job,path)) return;
 
-	mine_license(job, job->pairid, true);
+	mine_license(job, job->purlid, true);
 
 	/* Write entry to mined/attribution.csv */
 	attribution_add(job);
@@ -368,14 +370,15 @@ void mine_attribution_notice(struct minr_job *job, char *path)
 		fclose(f);
 	}
 
-	mine_copyright(job->mined_path, job->pairid, job->src, job->src_ln, true);
+	mine_copyright(job->mined_path, job->purlid, job->src, job->src_ln, true);
 }
 
 /* Mine the given path */
 void mine(struct minr_job *job, char *path)
 {
 	/* Mine attribution notice */
-	if (is_attribution_notice(path))
+	job->is_attribution_notice = is_attribution_notice(path);
+	if (job->is_attribution_notice)
 	{
 		mine_attribution_notice(job, path);
 		return;

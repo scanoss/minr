@@ -29,7 +29,7 @@
 #include <string.h>
 
 /* Definitions */
-#define MINR_VERSION "2.2.0"
+#define MINR_VERSION "2.2.5"
 #define FILE_FILES 256
 #define MAX_ARG_LEN 1024
 #define MIN_FILE_REC_LEN 70
@@ -71,15 +71,17 @@ struct minr_job
 	uint8_t md5[MD5_LEN];
 	char fileid[MD5_LEN * 2 + 1];
 
-	uint8_t pair_md5[MD5_LEN];      // vendor/component md5
-	char pairid[MD5_LEN * 2 + 1]; // vendor/component md5 hex
+	uint8_t purl_md5[MD5_LEN];    // purl md5
+	char purlid[MD5_LEN * 2 + 1]; // purl md5 hex
 
-	uint8_t version_md5[MD5_LEN];      // vendor/component/version md5
-	char versionid[MD5_LEN * 2 + 1]; // vendor/component/version md5 hex
+	uint8_t version_md5[MD5_LEN]; // purl@version md5
+	char versionid[MD5_LEN * 2 + 1]; // purl@version md5 hex
 
 	char path[MAX_PATH_LEN];
+	bool is_attribution_notice;
 	char url[MAX_ARG_LEN];
 	char urlid[MD5_LEN * 2 + 1];
+	char download_url[MAX_ARG_LEN]; // Manually specified download URL (-U)
 	char metadata[MAX_ARG_LEN];
 	char license[MAX_ARG_LEN];    // Declared url license
 	char mined_path[MAX_ARG_LEN]; // Location of output mined/ directory
