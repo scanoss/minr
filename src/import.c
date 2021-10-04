@@ -392,16 +392,31 @@ bool ldb_import_csv(char *db_name, char *filename, char *table, int expected_fie
 		if (is_file_table)
 		{
 			/* Skip line if the URL is the same as last, importing unique files per url */
-			if (dup_id) if (*last_url_id && !memcmp(data, last_url_id, MD5_LEN * 2)) if (dup_id) skip = true;
+			if (dup_id) if (*last_url_id && !memcmp(data, last_url_id, MD5_LEN * 2)) if (dup_id)
+			{
+				printf("[CSV_FILE_SKIP_DUP] %s\n", line);
+				skip = true;
+			}
 			memcpy(last_url_id, data, MD5_LEN * 2);
 
 			data = field_n(3, line);
-			if (!data) skip = true;
-			else if (ignored_extension(data)) skip = true;
+			if (!data)
+			{
+				printf("[CSV_FILE_NO_PATH] %s\n", line);
+				skip = true;
+			}
+			else if (ignored_extension(data)){
+				printf("[CSV_FILE_SKIP_EXT] %s\n", line);
+				skip = true;
+			}
 		}
 
 		/* Check if number of fields matches the expectation */
-		if (expected_fields) if (csv_fields(line) != expected_fields) skip = true;
+		if (expected_fields) if (csv_fields(line) != expected_fields)
+		{
+			printf("[CSV_SKIP_NUM_FIELDS] %s\n", line);
+			skip = true;
+		}
 
 		if (skip) skipped++;
 

@@ -82,8 +82,8 @@ uint32_t execute_command(char *command)
 	FILE *fp = popen(command, "r");
 	if (fp == NULL)
 	{
-		fprintf(stderr, "Error executing %s\n", command);
-		exit(1);
+		printf("[EXEC_ERROR] %s\n", command);
+		exit(EXIT_FAILURE);
 	}
 	return pclose(fp);
 }
@@ -184,7 +184,11 @@ uint32_t download_file(struct minr_job *job)
 	else
 		sprintf(command, "cd %s && curl -LsJkO -f \"%s\"", job->tmp_dir, job->url);
 
-	return execute_command(command);
+	bool outcome = execute_command(command);
+
+	if (outcome) printf("[CURL_ERROR] %s\n", command);
+
+	return outcome;
 }
 
 /* Download and process URL */
@@ -192,11 +196,7 @@ bool download(struct minr_job *job)
 {
 	/* Download file */
 	uint32_t response = download_file(job);
-	if (response != 0)
-	{
-		fprintf(stderr, "Curl returned %d\n", response);
-		return false;
-	}
+	if (response) return false;
 
 	/* Get the name of the downloaded file inside tmp_dir */
 	char *tmp_file = downloaded_file(job->tmp_dir);

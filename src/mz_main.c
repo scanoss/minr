@@ -97,7 +97,7 @@ void argcpy(char *str, char *arg)
 {
 	if (strlen(arg) >= MAX_ARG_LEN)
 	{
-		fprintf(stderr, "Argument is too long\n");
+		printf("[ERROR_LONG_ARG] %s\n", arg);
 		exit(EXIT_FAILURE);
 	}
 	strcpy(str, arg);
