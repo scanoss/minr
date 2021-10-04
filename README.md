@@ -4,6 +4,25 @@ Minr is a multi-purpose command line tool used for data mining. Minr downloads, 
 
 # Setup 
 Component mining requires a Knowledge database installed. Scanoss use the SCANOSS LDB (Linked-list database) as a shared library. LDB Source code and installation guide can be found on https://github.com/scanoss/ldb 
+
+# Build and Install
+
+```
+wget -O minr.zip https://github.com/scanoss/minr/archive/refs/heads/master.zip
+unzip minr.zip
+cd minr-master
+make all
+sudo make install
+cd ..
+```
+You also need to create the required ldb tables/dirs:
+
+```
+sudo mkdir -p /var/lib/ldb/oss/{purl,url,file,wfp}
+sudo chown -R user.user /var/lib/ldb/  # replace 'user' with your current user
+sudo chmod -R 755 /var/lib/ldb/
+```
+
 # Usage (downloading)
 
 Minr takes two arguments: 
@@ -14,7 +33,7 @@ Minr takes two arguments:
 Usage example: 
 
 ```
-$ minr -d madler,pigz,2.4 -u https://github.com/madler/pigz/archive/v2.4.zip 
+$ minr -d madler,pigz,2.4,20171227,zlib,pkg:github/madler/pigz -u https://github.com/madler/pigz/archive/v2.4.zip 
 ```
 
 The target metadata is a comma delimited list of the following fields: 
@@ -23,8 +42,10 @@ The target metadata is a comma delimited list of the following fields:
 * Component 
 * Version 
 * Release date
-* Declared license
-* Package URL (PURL)
+
+* License
+* Purl (see https://github.com/package-url/purl-spec)
+
 
 Note: Commas are not admitted in any of these fields.  
 
@@ -74,7 +95,7 @@ The following examples show the entire process for downloading an OSS component,
 URL mining is the process of downloading a component, expanding the files and saving component, metadata and original sources for snippet mining.
 
 ```
-$ minr -d scanoss,webhook,1.0 -u https://github.com/scanoss/webhook/archive/1.0.tar.gz
+$ minr -d scanoss,webhook,1.0,20200320,BSD-3-Clause,pkg:github/scanoss/webhook -u https://github.com/scanoss/webhook/archive/1.0.tar.gz
 Downloading https://github.com/scanoss/webhook/archive/1.0.tar.gz
 $
 ```
@@ -118,53 +139,47 @@ $ scanoss 0.8.2.zip
       "oss_lines": "all",
       "matched": "100%",
       "purl": [
-        "pkg:github/unoconv/unoconv"
+        "pkg:github/scanoss/webhook"
       ],
-      "vendor": "unoconv",
-      "component": "unoconv",
-      "version": "0.8.2",
-      "latest": "0.8.2",
-      "url": "https://github.com/unoconv/unoconv",
-      "release_date": "",
-      "file": "0.8.2.zip",
-      "url_hash": "c36074c3996ba9d7d85f4a57787b5645",
-      "file_hash": "c36074c3996ba9d7d85f4a57787b5645",
-      "file_url": "https://github.com/unoconv/unoconv/archive/0.8.2.zip",
+      "vendor": "scanoss",
+      "component": "webhook",
+      "version": "1.0",
+      "latest": "1.0",
+      "url": "https://github.com/scanoss/webhook",
+      "release_date": "20200320",
+      "file": "1.0.tar.gz",
+      "url_hash": "611e5c3a58a3c2b78385556368c5230e",
+      "file_hash": "611e5c3a58a3c2b78385556368c5230e",
+      "file_url": "https://github.com/scanoss/webhook/archive/1.0.tar.gz",
       "dependencies": [],
       "licenses": [
         {
-          "name": "GPL-2.0-only",
-          "obligations": "https://www.osadl.org/fileadmin/checklists/unreflicenses/GPL-2.0-only.txt",
-          "copyleft": "yes",
-          "patent_hints": "yes",
-          "incompatible_with": "Apache-1.0, Apache-1.1, Apache-2.0, BSD-4-Clause, BSD-4-Clause-UC, FTL, IJG, OpenSSL, Python-2.0, zlib-acknowledgement, XFree86-1.1",
+          "name": "BSD-3-Clause",
+          "obligations": "https://www.osadl.org/fileadmin/checklists/unreflicenses/BSD-3-Clause.txt",
+          "copyleft": "no",
+          "patent_hints": "no",
           "source": "component_declared"
         }
       ],
-      "copyrights": [],
-      "vulnerabilities": [
+      "copyrights": [
         {
-          "ID": "GHSA-27p5-7cw6-m45h",
-          "CVE": "CVE-2019-17400",
-          "severity": "MODERATE",
-          "reported": "2019-11-01",
-          "introduced": "",
-          "patched": "<0.9.0",
-          "summary": "Mishandled untrusted pathnames could lead to SSRF and local file inclusion",
-          "source": "github_advisories"
+          "name": "Copyright (C) 2017-2020; SCANOSS Ltd. All rights reserved.",
+          "source": "license_file"
         }
       ],
+      "vulnerabilities": [],
       "quality": [],
       "cryptography": [],
       "server": {
-        "hostname": "p8",
-        "version": "4.2.5",
+        "hostname": "localhost",
+        "version": "4.2.4",
         "flags": "0",
-        "elapsed": "0.001449s"
+        "elapsed": "0.041169s"
       }
     }
   ]
 }
+
 $
 ```
 
@@ -181,59 +196,43 @@ $ scanoss test.c
       "oss_lines": "all",
       "matched": "100%",
       "purl": [
-        "pkg:github/unoconv/unoconv"
+
+        "pkg:github/scanoss/webhook"
       ],
-      "vendor": "unoconv",
-      "component": "unoconv",
-      "version": "0.8.2",
-      "latest": "0.8.2",
-      "url": "https://github.com/unoconv/unoconv",
-      "release_date": "",
-      "file": "unoconv-0.8.2/unoconv",
-      "url_hash": "c36074c3996ba9d7d85f4a57787b5645",
-      "file_hash": "0f55e083dcc72a11334eb1a77137e2c4",
-      "file_url": "https://osskb.org/api/file_contents/0f55e083dcc72a11334eb1a77137e2c4",
+      "vendor": "scanoss",
+      "component": "webhook",
+      "version": "1.0",
+      "latest": "1.0",
+      "url": "https://github.com/scanoss/webhook",
+      "release_date": "20200320",
+      "file": "webhook-1.0/scanoss/github.py",
+      "url_hash": "611e5c3a58a3c2b78385556368c5230e",
+      "file_hash": "8c2fa3f24a09137f9bb3860fa21c677e",
+      "file_url": "https://osskb.org/api/file_contents/8c2fa3f24a09137f9bb3860fa21c677e",
       "dependencies": [],
       "licenses": [
         {
-          "name": "GPL-2.0-only",
-          "obligations": "https://www.osadl.org/fileadmin/checklists/unreflicenses/GPL-2.0-only.txt",
-          "copyleft": "yes",
-          "patent_hints": "yes",
-          "incompatible_with": "Apache-1.0, Apache-1.1, Apache-2.0, BSD-4-Clause, BSD-4-Clause-UC, FTL, IJG, OpenSSL, Python-2.0, zlib-acknowledgement, XFree86-1.1",
+          "name": "BSD-3-Clause",
+          "obligations": "https://www.osadl.org/fileadmin/checklists/unreflicenses/BSD-3-Clause.txt",
+          "copyleft": "no",
+          "patent_hints": "no",
           "source": "component_declared"
         }
       ],
       "copyrights": [
         {
-          "name": "Copyright 2007-2010 Dag Wieers <dag@wieers.com>",
-          "source": "file_header"
+          "name": "Copyright (C) 2017-2020; SCANOSS Ltd. All rights reserved.",
+          "source": "license_file"
         }
       ],
-      "vulnerabilities": [
-        {
-          "ID": "GHSA-27p5-7cw6-m45h",
-          "CVE": "CVE-2019-17400",
-          "severity": "MODERATE",
-          "reported": "2019-11-01",
-          "introduced": "",
-          "patched": "<0.9.0",
-          "summary": "Mishandled untrusted pathnames could lead to SSRF and local file inclusion",
-          "source": "github_advisories"
-        }
-      ],
-      "quality": [
-        {
-          "score": "2/5",
-          "source": "best_practices"
-        }
-      ],
+      "vulnerabilities": [],
+      "quality": [],
       "cryptography": [],
       "server": {
-        "hostname": "p8",
-        "version": "4.2.5",
+        "hostname": "localhost",
+        "version": "4.2.4",
         "flags": "0",
-        "elapsed": "0.001970s"
+        "elapsed": "0.129558s"
       }
     }
   ]
@@ -251,63 +250,47 @@ $ scanoss test.c
     {
       "id": "snippet",
       "status": "pending",
-      "lines": "21-1391",
-      "oss_lines": "30-1400",
-      "matched": "98%",
+      "lines": "1-192",
+      "oss_lines": "3-194",
+      "matched": "99%",
       "purl": [
-        "pkg:github/unoconv/unoconv"
+        "pkg:github/scanoss/webhook"
       ],
-      "vendor": "unoconv",
-      "component": "unoconv",
-      "version": "0.8.2",
-      "latest": "0.8.2",
-      "url": "https://github.com/unoconv/unoconv",
-      "release_date": "",
-      "file": "unoconv-0.8.2/unoconv",
-      "url_hash": "c36074c3996ba9d7d85f4a57787b5645",
-      "file_hash": "0f55e083dcc72a11334eb1a77137e2c4",
-      "file_url": "https://osskb.org/api/file_contents/0f55e083dcc72a11334eb1a77137e2c4",
+      "vendor": "scanoss",
+      "component": "webhook",
+      "version": "1.0",
+      "latest": "1.0",
+      "url": "https://github.com/scanoss/webhook",
+      "release_date": "20200320",
+      "file": "webhook-1.0/scanoss/github.py",
+      "url_hash": "611e5c3a58a3c2b78385556368c5230e",
+      "file_hash": "8c2fa3f24a09137f9bb3860fa21c677e",
+      "file_url": "https://osskb.org/api/file_contents/8c2fa3f24a09137f9bb3860fa21c677e",
       "dependencies": [],
       "licenses": [
         {
-          "name": "GPL-2.0-only",
-          "obligations": "https://www.osadl.org/fileadmin/checklists/unreflicenses/GPL-2.0-only.txt",
-          "copyleft": "yes",
-          "patent_hints": "yes",
-          "incompatible_with": "Apache-1.0, Apache-1.1, Apache-2.0, BSD-4-Clause, BSD-4-Clause-UC, FTL, IJG, OpenSSL, Python-2.0, zlib-acknowledgement, XFree86-1.1",
+          "name": "BSD-3-Clause",
+          "obligations": "https://www.osadl.org/fileadmin/checklists/unreflicenses/BSD-3-Clause.txt",
+          "copyleft": "no",
+          "patent_hints": "no",
           "source": "component_declared"
         }
       ],
       "copyrights": [
         {
-          "name": "Copyright 2007-2010 Dag Wieers <dag@wieers.com>",
-          "source": "file_header"
+          "name": "Copyright (C) 2017-2020; SCANOSS Ltd. All rights reserved.",
+          "source": "license_file"
         }
       ],
-      "vulnerabilities": [
-        {
-          "ID": "GHSA-27p5-7cw6-m45h",
-          "CVE": "CVE-2019-17400",
-          "severity": "MODERATE",
-          "reported": "2019-11-01",
-          "introduced": "",
-          "patched": "<0.9.0",
-          "summary": "Mishandled untrusted pathnames could lead to SSRF and local file inclusion",
-          "source": "github_advisories"
-        }
-      ],
-      "quality": [
-        {
-          "score": "2/5",
-          "source": "best_practices"
-        }
-      ],
+      "vulnerabilities": [],
+      "quality": [],
       "cryptography": [],
       "server": {
-        "hostname": "p8",
-        "version": "4.2.5",
+        "hostname": "localhost",
+        "version": "4.2.4",
         "flags": "0",
-        "elapsed": "0.004989s"
+        "elapsed": "0.067090s"
+
       }
     }
   ]
@@ -321,20 +304,21 @@ The minr command produces a directory called mined/ containing the mined metadat
 
 ## Components 
 
-OSS components are saved in a single CSV file called mined/components.csv which contains the original archive md5 hash,  vendor, name, version and url as in the following example: 
+OSS components are saved in a single CSV file called mined/urls.csv which contains the original archive md5 hash, vendor, name, version, release date, license, purl and url as in the following example: 
 
 ```
-6445e4a453f9a913e687d93c0e52161b,scanoss,minr,2.2.1,2021-08-15,GPL-2.0-only,pkg:github/scanoss/minr,https://github.com/scanoss/minr/archive/refs/tags/2.2.1.zip
-ae28c57b236c8d5a50edcc645d57bc51,scanoss,engine,4.2.5,2021-08-14,GPL-2.0-only,pkg:github/scanoss/engine,https://github.com/scanoss/engine/archive/refs/tags/4.2.5.zip
+611e5c3a58a3c2b78385556368c5230e,scanoss,webhook,1.0,20200320,BSD-3-Clause,pkg:github/scanoss/webhook,https://github.com/scanoss/webhook/archive/1.0.tar.gz 
 ```
+
+Other metadata are saved in `mined/attribution.csv`, `mined/copyrights.csv`, `mined/cryptography.csv`, `mined/licenses.csv` and `mined/quality.csv` files. <!--FIXME: add more details here -->
 
 ## Files 
 
-OSS files are split in 256 files named `00.csv` to `ff.csv` containing the component archive md5, the file md5, the file length and the file name, as follows: 
+OSS files are split in 256 files named `00.csv` to `ff.csv` containing the component archive md5, the file md5 and the file name, as follows: 
 
 ```
-6c067f97266c817b339f0e989499c8e4,00fc6e8b3ae062fbcfbe8d2e40d36e68,47214,bison-3.5/src/ielr.c
-6c067f97266c817b339f0e989499c8e4,00ac96f26eed6fab33d7451e8f697939,17570,bison-3.5/lib/stat-w32.c 
+6c067f97266c817b339f0e989499c8e4,00fc6e8b3ae062fbcfbe8d2e40d36e68,bison-3.5/src/ielr.c
+6c067f97266c817b339f0e989499c8e4,00ac96f26eed6fab33d7451e8f697939,bison-3.5/lib/stat-w32.c 
 ```
 
 ## Snippets 
