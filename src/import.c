@@ -23,10 +23,10 @@
 #include <libgen.h>
 #include <dirent.h>
 
+#include "minr.h"
 #include "import.h"
 #include "ldb.h"
 #include "ignored_wfp.h"
-#include "minr.h"
 #include "bsort.h"
 #include "file.h"
 #include "hex.h"
@@ -299,8 +299,15 @@ bool valid_hex(char *str, int bytes)
 	return true;
 }
 
-bool ldb_import_csv(char *db_name, char *filename, char *table, int expected_fields, bool is_file_table, bool skip_delete)
+/* Import a CSV file into the LDB database */
+bool ldb_import_csv(struct minr_job *job, char *filename, char *table, int nfields)
 {
+	bool is_file_table = false;
+	if (!strcmp(table, "file")) is_file_table = true;
+
+	bool skip_delete = job->skip_delete;
+	int expected_fields = (job->skip_csv_check ? 0 : nfields);
+
 	FILE * fp;
 	char * line = NULL;
 	size_t len = 0;
@@ -339,12 +346,12 @@ bool ldb_import_csv(char *db_name, char *filename, char *table, int expected_fie
 	ldb_hex_to_bin(basename(filename), 2, &first_byte);
 
 	/* Create table if it doesn't exist */
-	if (!ldb_database_exists(db_name)) ldb_create_database(db_name);
-	if (!ldb_table_exists(db_name, table)) ldb_create_table(db_name, table, 16, 0);
+	if (!ldb_database_exists(job->dbname)) ldb_create_database(job->dbname);
+	if (!ldb_table_exists(job->dbname, table)) ldb_create_table(job->dbname, table, 16, 0);
 
 	/* Create table structure for bulk import (32-bit key) */
 	struct ldb_table oss_bulk;
-	strcpy(oss_bulk.db, db_name);
+	strcpy(oss_bulk.db, job->dbname);
 	strcpy(oss_bulk.table, table);
 	oss_bulk.key_ln = 4;
 	oss_bulk.rec_ln = 0;
@@ -546,231 +553,176 @@ bool bin_sort(char * file_path, bool skip_sort)
 	return bsort(file_path);
 }
 
-
-/* Import urls */
-void import_urls(char *db_name, char *mined_path, bool skip_sort, bool skip_csv_check, bool skip_delete)
+/* Wipes table before importing (-O) */
+void wipe_table(char *table, struct minr_job *job)
 {
-	char path[MAX_PATH_LEN] = "\0";
-	sprintf(path, "%s/urls.csv", mined_path);
+	if (!job->import_overwrite) return;
 
-	if (is_file(path))
+	bool is_mz = false;
+	if (!strcmp(table, "sources") || !strcmp(table, "notices")) is_mz = true;
+
+	char path[2 * MAX_PATH_LEN] = "\0";
+	sprintf(path, "%s/%s/%s", LDB_ROOT, job->dbname, table);
+
+	printf("Wiping  %s\n", path);
+	if (is_dir(path))
 	{
-		if (csv_sort(path, skip_sort))
+		for (int i = 0; i < (is_mz ? 65535 : 256); i++)
 		{
-			/* 8 fields expected (url id, vendor, component, version, release_date, license, purl, download_url) */
-			ldb_import_csv(db_name, path, "url", skip_csv_check ? 0 : 8, false, skip_delete);
+			if (is_mz) sprintf(path, "%s/%s/%s/%04x.mz", LDB_ROOT, job->dbname, table, i);
+			else sprintf(path, "%s/%s/%s/%02x.ldb", LDB_ROOT, job->dbname, table, i);
+			unlink(path);
 		}
 	}
 }
 
+
 /* Import files */
-void import_files(char *db_name, char *mined_path, bool skip_sort, bool skip_csv_check, bool skip_delete)
+void import_files(struct minr_job *job)
 {
-	char path[MAX_PATH_LEN] = "\0";
-	sprintf(path, "%s/files", mined_path);
+	/* Wipe existing data if overwrite is requested */
+	wipe_table("file", job);
+
+	char path[2 * MAX_PATH_LEN] = "\0";
+	sprintf(path, "%s/files", job->import_path);
 
 	if (is_dir(path))
 	{
 		for (int i = 0; i < 256; i++)
 		{
-			sprintf(path, "%s/files/%02x.csv", mined_path, i);
-			if (csv_sort(path, skip_sort))
+			sprintf(path, "%s/files/%02x.csv", job->import_path, i);
+			if (csv_sort(path, job->skip_sort))
 			{
 				/* 3 fields expected (file id, url id, URL) */
-				ldb_import_csv(db_name, path, "file", skip_csv_check ? 0 : 3, true, skip_delete);
+				ldb_import_csv(job, path, "file", 3);
 			}
 		}
-		sprintf(path, "%s/files", mined_path);
-		if (!skip_delete) rmdir(path);
+		sprintf(path, "%s/files", job->import_path);
+		if (!job->skip_delete) rmdir(path);
 	}
 }
 
 /* Import snippets */
-void import_snippets(char *db_name, char *mined_path, bool skip_sort, bool skip_delete)
+void import_snippets(struct minr_job *job)
 {
-	char path[MAX_PATH_LEN] = "\0";
-	sprintf(path, "%s/snippets", mined_path);
+	/* Wipe existing data if overwrite is requested */
+	wipe_table("wfp", job);
+
+	char path[2 * MAX_PATH_LEN] = "\0";
+	sprintf(path, "%s/snippets", job->import_path);
 	if (is_dir(path))
 	{
 		printf("WFP IDs in ignorelist: %lu\n", IGNORED_WFP_LN / 4);
 		for (int i = 0; i < 256; i++)
 		{
-			sprintf(path, "%s/snippets/%02x.bin", mined_path, i);
-			if (bin_sort(path, skip_sort))
+			sprintf(path, "%s/snippets/%02x.bin", job->import_path, i);
+			if (bin_sort(path, job->skip_sort))
 			{
-				ldb_import_snippets(db_name, path, skip_delete);
+				ldb_import_snippets(job->dbname, path, job->skip_delete);
 			}
 		}
 	}
-	sprintf(path, "%s/snippets", mined_path);
-	if (!skip_delete) rmdir(path);
+	sprintf(path, "%s/snippets", job->import_path);
+	if (!job->skip_delete) rmdir(path);
 }
 
-/* Import licenses. 3 CSV fields expected (id, source, license) */
-void import_licenses(char *db_name, char *mined_path, bool skip_sort, bool skip_csv_check, bool skip_delete)
+bool this_table(char *table, struct minr_job *job)
 {
-	char path[MAX_PATH_LEN] = "\0";
-	sprintf(path, "%s/licenses.csv", mined_path);
+	if (!*job->import_table) return true;
+	if (!strcmp(job->import_table, table)) return true;
+	return false;
+}
+
+void single_file_import(struct minr_job *job, char *filename, char *tablename, int nfields)
+{
+	if (!this_table(tablename, job)) return;
+
+	/* Wipe existing data if overwrite is requested */
+	wipe_table(tablename, job);
+
+	printf("Importing %s\n", filename);
+
+	char path[2 * MAX_PATH_LEN] = "\0";
+	sprintf(path, "%s/%s", job->import_path, filename);
 	if (is_file(path))
 	{
-		if (csv_sort(path, skip_sort))
+		if (csv_sort(path, job->skip_sort))
 		{
-			/* 3 CSV fields expected (id, source, license) */
-			ldb_import_csv(db_name, path, "license", skip_csv_check ? 0 : 3, false, skip_delete);
+			ldb_import_csv(job, path, tablename, nfields);
 		}
 	}
 }
 
-/* Import dependencies */
-void import_dependencies(char *db_name, char *mined_path, bool skip_sort, bool skip_csv_check, bool skip_delete)
+void import_mz(struct minr_job *job)
 {
-	char path[MAX_PATH_LEN] = "\0";
-	sprintf(path, "%s/dependencies.csv", mined_path);
-	if (is_file(path))
-	{
-		if (csv_sort(path, skip_sort))
-		{
-			/* 5 CSV fields expected (id, source, vendor, component, version) */
-			ldb_import_csv(db_name, path, "dependency", skip_csv_check ? 0 : 5, false, skip_delete);
-		}
-	}
-}
+	char path[2 * MAX_PATH_LEN] = "\0";
 
-/* Import copyrights */
-void import_copyrights(char *db_name, char *mined_path, bool skip_sort, bool skip_csv_check, bool skip_delete)
-{
-	char path[MAX_PATH_LEN] = "\0";
-	sprintf(path, "%s/copyrights.csv", mined_path);
-	if (is_file(path))
-	{
-		if (csv_sort(path, skip_sort))
-		{
-			/* 3 CSV fields expected (id, source, copyright statement) */
-			ldb_import_csv(db_name, path, "copyright", skip_csv_check ? 0 : 3, false, skip_delete);
-		}
-	}
-}
+	char db_path[MAX_PATH_LEN * 2];
+	sprintf(db_path, "%s/%s", LDB_ROOT, job->dbname);
 
-/* Import vulnerabilities */
-void import_vulnerabilities(char *db_name, char *mined_path, bool skip_sort, bool skip_csv_check, bool skip_delete)
-{
-	char path[MAX_PATH_LEN] = "\0";
-	sprintf(path, "%s/vulnerabilities.csv", mined_path);
-	if (is_file(path))
-	{
-		if (csv_sort(path, skip_sort))
-		{
-			/* 10 CSV fields expected (id, source, purl, version from, 
-				 version patched, CVE, advisory ID (Github/CPE), Severity, Date, Summary) */
-			ldb_import_csv(db_name, path, "vulnerability", skip_csv_check ? 0 : 10, false, skip_delete);
-		}
-	}
-}
-
-/* Import quality */
-void import_quality(char *db_name, char *mined_path, bool skip_sort, bool skip_csv_check, bool skip_delete)
-{
-	char path[MAX_PATH_LEN] = "\0";
-	sprintf(path, "%s/quality.csv", mined_path);
-	if (is_file(path))
-	{
-		if (csv_sort(path, skip_sort))
-		{
-			/* 3 CSV fields expected (id, source, value) */
-			ldb_import_csv(db_name, path, "quality", skip_csv_check ? 0 : 3, false, skip_delete);
-		}
-	}
-}
-
-/* Import cryptography data */
-void import_cryptography(char *db_name, char *mined_path, bool skip_sort, bool skip_csv_check, bool skip_delete)
-{
-	char path[MAX_PATH_LEN] = "\0";
-	sprintf(path, "%s/cryptography.csv", mined_path);
-	if (is_file(path))
-	{
-		if (csv_sort(path, skip_sort))
-		{
-			/* 3 CSV fields expected (id, algorithm, strength) */
-			ldb_import_csv(db_name, path, "cryptography", skip_csv_check ? 0 : 3, false, skip_delete);
-		}
-	}
-}
-
-/* Import attribution pointers */
-void import_attribution(char *db_name, char *mined_path, bool skip_sort, bool skip_delete)
-{
-	char path[MAX_PATH_LEN] = "\0";
-	sprintf(path, "%s/attribution.csv", mined_path);
-	if (is_file(path))
-	{
-		if (csv_sort(path, skip_sort))
-		{
-			/* 2 CSV fields expected (id, notice ID) */
-			ldb_import_csv(db_name, path, "attribution", 2, false, skip_delete);
-		}
-	}
-}
-
-/* Import purl popularity and relationships */
-void import_purls(char *db_name, char *mined_path, bool skip_sort, bool skip_csv_check, bool skip_delete)
-{
-	char path[MAX_PATH_LEN] = "\0";
-	sprintf(path, "%s/purls.csv", mined_path);
-	if (is_file(path))
-	{
-		if (csv_sort(path, skip_sort))
-		{
-			/* 7 CSV fields expected (id, created, latest, updated, star, watch, fork) */
-			/* Alternatively, purl relations are declared here with a single field: related PURL) */
-			ldb_import_csv(db_name, path, "purl", 0, false, skip_delete);
-		}
-	}
-}
-
-void import_mz(char *db_name, char *mined_path, bool skip_delete)
-{
-	char path[MAX_PATH_LEN] = "\0";
-
-	char db_path[MAX_PATH_LEN];
-	sprintf(db_path, "/var/lib/ldb/%s", db_name);
-
-	sprintf(path, "%s/sources", mined_path);
+	sprintf(path, "%s/sources", job->import_path);
 	if (is_dir(path))
 	{
-		minr_join_mz(mined_path, db_path, skip_delete);
+		/* Wipe existing data if overwrite is requested */
+		wipe_table("sources", job);
+
+		minr_join_mz(job->import_path, db_path, job->skip_delete);
 	}
 
-	sprintf(path, "%s/notices", mined_path);
+	sprintf(path, "%s/notices", job->import_path);
 	if (is_dir(path))
 	{
-		minr_join_mz(mined_path, db_path, skip_delete);
+		/* Wipe existing data if overwrite is requested */
+		wipe_table("notices", job);
+
+		minr_join_mz(job->import_path, db_path, job->skip_delete);
 	}
 }
 
-void mined_import(char *db_name, char *mined_path, bool skip_sort, bool skip_csv_check, bool skip_delete)
+void mined_import(struct minr_job *job)
 {
 	/* Create database */
-	if (!ldb_database_exists(db_name)) ldb_create_database(db_name);
+	if (!ldb_database_exists(job->dbname)) ldb_create_database(job->dbname);
 
 	/* Import MZ archives */
-	import_mz(db_name, mined_path, skip_delete);
+	if (this_table("sources", job)) import_mz(job);
 
-	/* Import CSVs */
-	import_attribution(db_name, mined_path, skip_sort, skip_delete);
-	import_purls(db_name, mined_path, skip_sort, skip_csv_check, skip_delete);
-	import_dependencies(db_name, mined_path, skip_sort, skip_csv_check, skip_delete);
-	import_licenses(db_name, mined_path, skip_sort, skip_csv_check, skip_delete);
-	import_copyrights(db_name, mined_path, skip_sort, skip_csv_check, skip_delete);
-	import_vulnerabilities(db_name, mined_path, skip_sort, skip_csv_check, skip_delete);
-	import_quality(db_name, mined_path, skip_sort, skip_csv_check, skip_delete);
-	import_cryptography(db_name, mined_path, skip_sort, skip_csv_check, skip_delete);
-	import_urls(db_name, mined_path, skip_sort, skip_csv_check, skip_delete);
-	import_files(db_name, mined_path, skip_sort, skip_csv_check, skip_delete);
+	/* Attribution expects 2 fields: id, notice ID */
+	single_file_import(job, "attribution.csv", "attribution", 2);
+
+	/* PURLs expects either:
+	 * 7 fields: id, created, latest, updated, star, watch, fork
+	 * or a single field: related PURL. Therefore, 0 is passed as required fields */
+	single_file_import(job, "purls.csv", "purl", 0);
+
+	/* Dependencies expect 5 fields: id, source, vendor, component, version */
+	single_file_import(job, "dependencies.csv", "dependency", 5);
+
+	/* Licenses expects 3 fields: id, source, license */
+	single_file_import(job, "licenses.csv", "license", 3);
+
+	/* Copyrights expects 3 fields: id, source, copyright statement */
+	single_file_import(job, "copyrights.csv", "copyright", 3);
+
+	/* Vulnerability expects 10 fields: id, source, purl, version from, 
+	   version patched, CVE, advisory ID (Github/CPE), Severity, Date, Summary */
+	single_file_import(job, "vulnerabilities.csv", "vulnerability", 10);
+
+	/* Quality expects 3 CSV fields: id, source, value */
+	single_file_import(job, "quality.csv", "quality", 3);
+
+	/* Cryptography expects 3 fields: id, algorithm, strength */
+	single_file_import(job, "cryptography.csv", "cryptography", 3);
+
+	/* URLs expects 8 fields: url id, vendor, component, version, release_date, license, purl, download_url */
+	single_file_import(job, "urls.csv", "url", 8);
+
+	/* Import files */
+	if (this_table("file", job)) import_files(job);
 
 	/* Import .bin files */
-	import_snippets(db_name, mined_path, skip_sort, skip_delete);
+	if (this_table("wfp", job)) import_snippets(job);
 
 	/* Remove mined directory */
-	if (!skip_delete) rmdir(mined_path);
+	if (!job->skip_delete) rmdir(job->import_path);
 }

@@ -56,8 +56,7 @@ int main(int argc, char *argv[])
 	strcpy(tmp_path, "/dev/shm");
 	struct minr_job job;
 	strcpy(job.mined_path, ".");
-
-	char OSS_DB_NAME[MAX_ARG_LEN] = "oss";
+	strcpy(job.dbname, "oss");
 
 	// Minr job
 	*job.path = 0;
@@ -78,6 +77,8 @@ int main(int argc, char *argv[])
 	job.skip_csv_check = false;
 	job.skip_delete = false;
 	*job.import_path=0;
+	*job.import_table=0;
+	job.import_overwrite=false;
 
 	// Join job
 	*job.join_from=0;
@@ -100,7 +101,7 @@ int main(int argc, char *argv[])
 	int option;
 	bool invalid_argument = false;
 
-	while ((option = getopt(argc, argv, ":c:C:L:Q:Y:o:m:g:w:t:f:T:i:l:z:u:U:d:D:xXsnkeahv")) != -1)
+	while ((option = getopt(argc, argv, ":c:C:L:Q:Y:o:m:g:w:t:f:T:i:I:l:z:u:U:d:D:xXsnkeahvO")) != -1)
 	{
 
 		/* Check valid alpha is entered */
@@ -152,12 +153,20 @@ int main(int argc, char *argv[])
 				strcpy(job.import_path, optarg);
 				break;
 
+			case 'I':
+				strcpy(job.import_table, optarg);
+				break;
+
+			case 'O':
+				job.import_overwrite = true;
+				break;
+
 			case 'l':
 				generate_license_ids_c(optarg);
 				exit(EXIT_SUCCESS);
 
 			case 'D':
-				strcpy(OSS_DB_NAME, optarg);
+				strcpy(job.dbname, optarg);
 				break;
 
 			case 'c':
@@ -264,7 +273,17 @@ int main(int argc, char *argv[])
 	strcat(job.mined_path, "/mined");
 
 	/* Import mined/ into the LDB */
-	if (*job.import_path) mined_import(OSS_DB_NAME, job.import_path, job.skip_sort, job.skip_csv_check, job.skip_delete);
+	if (*job.import_path)
+	{
+		if (!*job.import_table && job.import_overwrite)
+		{
+			fprintf(stderr, "Cannot overwrite all tables. Use of -O requires -I\n");
+		}
+		else
+		{
+			mined_import(&job);
+		}
+	}
 
 	/* Join mined/ structures */
 	else if (*job.join_from && *job.join_to) minr_join(&job);

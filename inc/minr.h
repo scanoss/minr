@@ -29,7 +29,7 @@
 #include <string.h>
 
 /* Definitions */
-#define MINR_VERSION "2.2.6"
+#define MINR_VERSION "2.2.7"
 #define FILE_FILES 256
 #define MAX_ARG_LEN 1024
 #define MIN_FILE_REC_LEN 70
@@ -57,6 +57,8 @@
 
 #define MAX_LICENSE_ID 64
 #define MAX_LICENSE_TEXT 1024
+
+#define LDB_ROOT "/var/lib/ldb"
 
 /* Structures */
 typedef struct normalized_license
@@ -92,10 +94,14 @@ struct minr_job
 	char local_mining;
 	
 	// minr -i
+	char dbname[MAX_PATH_LEN];
 	char import_path[MAX_PATH_LEN];
+	char import_table[MAX_PATH_LEN];
+	bool import_overwrite;
 	bool skip_sort; // Do not sort before importing
 	bool skip_csv_check; // Do not check number of CSV fields
 	bool skip_delete; // Do not delete, -k(eep) files after importing
+
 
 	// minr -f -t
 	char join_from[MAX_PATH_LEN];
@@ -143,5 +149,5 @@ void mine_local_directory(struct minr_job *job, char* root);
 void mine_local_file(struct minr_job *job, char *path);
 void extract_csv(char *out, char *in, int n, long limit);
 int count_chr(char chr, char *str);
-
+bool load_file(struct minr_job *job, char *path);
 #endif

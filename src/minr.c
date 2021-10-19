@@ -25,6 +25,7 @@
 #include <libgen.h>
 #include <sys/stat.h>
 #include <zlib.h>
+#include "attributions.h"
 #include "file.h"
 #include "md5.h"
 #include "hex.h"
@@ -37,34 +38,6 @@
 char mined_path[MAX_ARG_LEN] = ".";
 char tmp_path[MAX_ARG_LEN] = "/dev/shm";
 int min_file_size = MIN_FILE_SIZE;
-
-char *ATTRIBUTION_NOTICES[] =
-{
-"COPYING",
-"COPYING.lib",
-"LICENSE",
-"LICENSE.md",
-"LICENSE.txt",
-"LICENSE-Community.txt",
-"LICENSES",
-"NOTICE",
-NULL
-};
-
-/* Return true if file in path is an attribution notice */
-bool is_attribution_notice(char *path)
-{
-	char *file = basename(path);
-	if (!file) return true;
-	if (!*file) return true;
-
-	int i=0;
-	while (ATTRIBUTION_NOTICES[i])
-		if (stricmp(ATTRIBUTION_NOTICES[i++], file))
-			return true;
-
-	return false;
-}
 
 /* Return true if data is binary */
 bool is_binary(char *data, long len)
@@ -265,7 +238,7 @@ bool load_file(struct minr_job *job, char *path)
 
 	/* Read file contents into src and close it */
 	fseeko64(fp, 0, SEEK_SET);
-	//job->src=(char *)malloc(job->src_ln+1);
+
 	if (!fread(job->src, 1, job->src_ln, fp)) printf("Error reading %s\n", path);
 	job->src[job->src_ln] = 0;
 	fclose(fp);
@@ -304,73 +277,6 @@ void extract_csv(char *out, char *in, int n, long limit)
 	} while (*tmp++ && (n_counter <= n) && ((out_ptr + 1) < limit));
 
 	out[out_ptr] = 0;
-}
-
-/* Write entry id to attribution.csv */
-void attribution_add(struct minr_job *job)
-{
-	char path[MAX_PATH_LEN]="\0";
-	sprintf(path, "%s/attribution.csv", job->mined_path);
-
-	char notice_id[MD5_LEN * 2 + 1] = "\0";
-	ldb_bin_to_hex(job->md5, MD5_LEN, notice_id);
-
-	FILE *fp = fopen(path, "a");
-	if (!fp)
-	{
-		printf("Cannot create file %s\n", path);
-		exit(EXIT_FAILURE);
-	}
-	fprintf(fp, "%s,%s\n", job->purlid, notice_id);
-	fclose(fp);
-}
-
-/* Appends attribution notice to archive */
-void mine_attribution_notice(struct minr_job *job, char *path)
-{
-	if (!load_file(job,path)) return;
-
-	mine_license(job, job->purlid, true);
-
-	/* Write entry to mined/attribution.csv */
-	attribution_add(job);
-
-	/* Create sources directory */
-	char mzpath[LDB_MAX_PATH * 2];
-	sprintf(mzpath, "%s/notices", job->mined_path);
-
-	ldb_prepare_dir(mzpath);
-
-	/* Compress data */
-	job->zsrc_ln = compressBound(job->src_ln + 1);
-
-	/* Save the first bytes of zsrc to accomodate the MZ header */
-	compress(job->zsrc + MZ_HEAD, &job->zsrc_ln, (uint8_t *) job->src, job->src_ln + 1);
-	uint32_t zln = job->zsrc_ln;
-
-	/* Only the last 14 bytes of the MD5 go to the mz record (first two bytes are the file name) */
-	memcpy(job->zsrc, job->md5 + 2, MZ_MD5);
-
-	/* Add the 32-bit compressed file length */
-	memcpy(job->zsrc + MZ_MD5, (char *) &zln, MZ_SIZE);
-
-	int mzid = uint16(job->md5);
-	int mzlen = job->zsrc_ln + MZ_HEAD;
-
-	sprintf(mzpath, "%s/notices/%04x.mz", job->mined_path, mzid);
-	FILE *f = fopen(mzpath, "a");
-	if (f)
-	{
-		size_t written = fwrite(job->zsrc, mzlen, 1, f);
-		if (!written)
-		{
-			printf("Error writing %s\n", mzpath);
-			exit(EXIT_FAILURE);
-		}
-		fclose(f);
-	}
-
-	mine_copyright(job->mined_path, job->purlid, job->src, job->src_ln, true);
 }
 
 /* Mine the given path */
