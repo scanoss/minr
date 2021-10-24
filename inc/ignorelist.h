@@ -28,6 +28,18 @@
 #include <stdbool.h>
 #include <stdio.h>
 
+/* File squareness ranking */
+typedef struct ranking
+{
+	int length;
+	int counter;
+} ranking;
+
+/* Squareness check affects files over MIN_LINES
+   with a bigger SQUARENESS percent */
+#define SQUARENESS_MIN_LINES 500
+#define MAX_SQUARENESS 70
+
 extern char *IGNORED_PATHS[];
 extern char *IGNORED_HEADERS[];
 extern char *IGNORED_EXTENSIONS[];
@@ -39,7 +51,7 @@ bool ignored_extension(char *name);
 bool unwanted_path(char *path);
 bool headicmp(char *a, char *b);
 bool unwanted_header(char *src);
-
-
+bool too_much_squareness(char *src);
+bool skip_mz_extension(char *name);
 
 #endif

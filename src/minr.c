@@ -300,13 +300,16 @@ void mine(struct minr_job *job, char *path)
 	/* File discrimination check: Unwanted header? */
 	if (unwanted_header(job->src)) return;
 
+	/* Is the content too square? */
+	if (too_much_squareness(job->src)) return;
+
 	/* Add to .mz */
 	if (!job->exclude_mz)
 	{
 		/* File discrimination check: Binary? */
 		if (is_binary(job->src, job->src_ln))
 			job->exclude_detection = true;
-		else
+		else if (!skip_mz_extension(path))
 			mz_add(job->mined_path, job->md5, job->src, job->src_ln, true, job->zsrc, job->mz_cache);
 	}
 
@@ -326,50 +329,52 @@ void mine(struct minr_job *job, char *path)
 void mine_local_file(struct minr_job *job, char *path)
 {
 	job->src = calloc(MAX_FILE_SIZE + 1, 1);
+	bool skip = false;
 
 	/* Load file contents and calculate md5 */
-	if (!load_file(job,path))
-	{
-		free(job->src);
-		return;
-	}
+	if (!load_file(job,path)) skip = true;
+
 	/* File discrimination check: Unwanted header? */
-	if (unwanted_header(job->src) || is_binary(job->src, job->src_ln)) {
-		free(job->src);
-		return;
-	}
-	switch(job->local_mining)
+	if (!skip) if (unwanted_header(job->src)) skip = true;
+
+	/* Is it binary */
+	if (!skip) if (is_binary(job->src, job->src_ln)) skip = true;
+
+	if (!skip)
 	{
-		case 1:
-			mine_crypto(NULL,path, job->src, job->src_ln);
-			break;
+		switch(job->local_mining)
+		{
+			case 1:
+				mine_crypto(NULL,path, job->src, job->src_ln);
+				break;
 
-		case 2:
-			mine_license(job, path, false);
-			break;
+			case 2:
+				mine_license(job, path, false);
+				break;
 
-		case 3:
-			mine_quality(NULL,
-					path,
-					job->src,
-					job->src_ln);
-			break;
+			case 3:
+				mine_quality(NULL,
+						path,
+						job->src,
+						job->src_ln);
+				break;
 
-		case 4:
-			mine_copyright(NULL,
-					path,
-					job->src,
-					job->src_ln, false);
-			break;
+			case 4:
+				mine_copyright(NULL,
+						path,
+						job->src,
+						job->src_ln, false);
+				break;
+		}
 	}
 	free(job->src);
 }
 
 /**
-  @brief Local mining
-  @description Mines for Licenses, Crypto definitions and Copyrigths from a local directory. Results are presented via stdout.
-  @since 2.1.2
-  */
+	@brief Local mining
+	@description Mines for Licenses, Crypto definitions and Copyrigths from a local directory. Results are presented via stdout.
+	@since 2.1.2
+	*/
 
 void mine_local_directory(struct minr_job *job, char* root){
 

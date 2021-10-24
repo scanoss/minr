@@ -21,6 +21,7 @@
  */
 
 #include <string.h>
+#include <stdlib.h>
 #include <ctype.h>
 
 #include "ignorelist.h"
@@ -73,6 +74,16 @@ bool ignored_extension(char *name)
 	int i=0;
 	while (IGNORED_EXTENSIONS[i])
 		if (ends_with(IGNORED_EXTENSIONS[i++], name)) return true;
+
+	return false;
+}
+
+/* Returns true when the file "name" ends with a SKIP_MZ_EXTENSIONS[] string */
+bool skip_mz_extension(char *name)
+{
+	int i=0;
+	while (SKIP_MZ_EXTENSIONS[i])
+		if (ends_with(SKIP_MZ_EXTENSIONS[i++], name)) return true;
 
 	return false;
 }
@@ -158,3 +169,80 @@ char *IGNORE_KEYWORDS[] =
 	"regex", "resources", "snippet", "src", "stable", "standard", "tools",
 	"vendor", "web", "webapp", "workspace", NULL
 };
+
+/* Add line length to the squareness ranking */
+void increment_line_rank(int line_len, void *ptr)
+{
+	if (line_len <= 2) return;
+
+	/* Walk rank and increment counter for line_len) */
+	ranking *rank = ptr;
+	for (int i = 0; i < 100; i++)
+	{
+		if (rank[i].length == 0 || rank[i].length == line_len)
+		{
+			rank[i].length = line_len;
+			rank[i].counter++;
+			break;
+		}
+	}
+}
+
+/* Select first item in the squareness ranking */
+int select_first_in_ranking(void *ptr)
+{
+	int occurrences = 0;
+
+	/* Select longer line from ranking */
+	ranking *rank = ptr;
+	for (int i = 0; i < 100; i++)
+	{
+		if (rank[i].counter > occurrences)
+		{
+			occurrences = rank[i].counter;
+		}
+	}
+
+	return occurrences;
+}
+
+/* Determine if a file is over the desired squareness */
+bool too_much_squareness(char *data)
+{
+	/* Declare/init variables */
+	char *data_ptr = data;
+	int line_len = 0;
+	int line_counter = 1;
+	bool unwanted = false;
+	ranking *rank = calloc(100, sizeof(ranking));
+
+	/* Walk data byte by byte */
+	while (*data_ptr)
+	{
+		line_len++;
+
+		if (*data_ptr == '\n')
+		{
+			increment_line_rank(line_len, rank);
+			line_counter++;
+			line_len = 0;
+		}
+		data_ptr++;
+	}
+
+	if (line_counter > 2)
+	{
+		/* Select first in ranking */
+		int occurrences = select_first_in_ranking(rank);
+
+		/* Print ID if conditions are matched */
+		if (((100 * occurrences) / line_counter) > MAX_SQUARENESS && \
+				line_counter > SQUARENESS_MIN_LINES)
+		{
+			unwanted = true;
+		}
+	}
+
+	free(rank);
+	return unwanted;
+}

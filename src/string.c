@@ -25,6 +25,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <ctype.h>
+#include "minr.h"
 
 /* Replace character */
 void char_replace(char *string, char replace, char with)
@@ -110,3 +111,9 @@ int linelen(char *str)
 	return count;
 }
 
+/* Print md5 hash in hex */
+void print_md5(uint8_t *md5)
+{
+	for (int i = 0; i < MD5_LEN; i++) printf("%02x", md5[i]);
+	printf("\n");
+}

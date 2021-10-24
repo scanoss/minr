@@ -37,6 +37,9 @@ void extract_wfp(uint8_t *md5, char *src, int length, bool check_mz)
 	/* File discrimination check: Unwanted header? */
 	if (unwanted_header(src)) return;
 
+	/* Check if data is too square */
+	if (too_much_squareness(src)) return;
+
 	/* File discrimination check: Binary? */
 	int src_ln = strlen(src);
 	if (length != src_ln) return;

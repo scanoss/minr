@@ -79,16 +79,34 @@ bool mz_optimise_handler(struct mz_job *job)
 	uint64_t src_ln = MAX_FILE_SIZE;
 	if (Z_OK != uncompress((uint8_t *)job->data, &src_ln, job->zdata, job->zdata_ln))
 	{
-		printf("[CORRUPTED]\n");
-		exit(EXIT_SUCCESS);
+		printf("[DECOMPRESS FAILED] ");
+		print_md5(job->id);
+		return true;
 	}
 	job->data_ln = src_ln - 1;
 	job->data[job->data_ln] = 0;
+
+	uint8_t md5[16];
+	MD5((uint8_t *)job->data, job->data_ln, md5);
+
+	/* Skip if corrupted file */
+	if (memcmp(job->id, md5, MZ_MD5))
+	{
+		printf("[CORRUPTED] ");
+		print_md5(job->id);
+		return true;
+	}
 
 	/* Check if data contains unwanted header */
 	if (job->data_ln < MIN_FILE_SIZE)
 	{
 		job->min_c++;
+	}
+
+	/* Check if data is too square */
+	else if (too_much_squareness(job->data))
+	{
+		job->igl_c++;
 	}
 
 	/* Check if data contains unwanted header */

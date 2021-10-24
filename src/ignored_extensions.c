@@ -40,7 +40,11 @@ char *IGNORED_EXTENSIONS[] = {
 	".spec", ".sql", ".sub", ".svg", ".svn-base", ".tab", ".template", ".test",
 	".tex", ".tiff", ".toml", ".ttf", ".txt", ".utf-8", ".vim", ".wav", ".whl",
 	".woff", ".xht", ".xhtml", ".xls", ".xml", ".xpm", ".xsd", ".xul", ".yaml",
-	".yml",
+	".yml", ".LAS",".MF",".adk",".asc",".base64",".cif",".cli",".cosmo",".deploy",
+	".dfm",".dmm",".fa",".fasta",".fcb",".flm",".fna",".gbr",".gen",".gro",
+	".hgtags",".hh",".ihex",".kp",".mpx",".pdb",".poly",".prn",".ps",".ref",
+	".resx",".s",".smp",".stg",".tfa",".tsv",".vcf",".vhd",".xy",".xyz",
+
 
 	/* File endings */
 	"-DOC", "CHANGELOG", "CONFIG", "COPYING", "COPYING.LIB", "LICENSE",
@@ -50,3 +54,6 @@ char *IGNORED_EXTENSIONS[] = {
 	/* End with null */
 	NULL
 };
+
+/* Extensions that will skip snippet mining */
+char *SKIP_MZ_EXTENSIONS[] = {".min.js", NULL};
