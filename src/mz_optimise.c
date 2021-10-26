@@ -68,6 +68,15 @@ bool mz_id_exists_in_ldb(struct mz_job *job)
 	return true;
 }
 
+
+bool mz_md5_match(uint8_t *mz1, uint8_t *mz2)
+{
+	for (int i = 0; i < MZ_MD5; i++)
+	if (mz1[i] != mz2[i]) return false;
+
+	return true;
+}
+
 /*	
 		Handler function to be passed to mz_parse()
 		Eliminates duplicated data, unwanted content
@@ -80,7 +89,7 @@ bool mz_optimise_handler(struct mz_job *job)
 	if (Z_OK != uncompress((uint8_t *)job->data, &src_ln, job->zdata, job->zdata_ln))
 	{
 		printf("[DECOMPRESS FAILED] ");
-		print_md5(job->id);
+		ldb_hexprint(job->id, 14, 14);
 		return true;
 	}
 	job->data_ln = src_ln - 1;
@@ -90,15 +99,13 @@ bool mz_optimise_handler(struct mz_job *job)
 	MD5((uint8_t *)job->data, job->data_ln, md5);
 
 	/* Skip if corrupted file */
-	if (memcmp(job->id, md5, MZ_MD5))
+	if (!mz_md5_match(job->id, md5 + 2))
 	{
-		printf("[CORRUPTED] ");
-		print_md5(job->id);
-		return true;
+		job->igl_c++;
 	}
 
 	/* Check if data contains unwanted header */
-	if (job->data_ln < MIN_FILE_SIZE)
+	else if (job->data_ln < MIN_FILE_SIZE)
 	{
 		job->min_c++;
 	}

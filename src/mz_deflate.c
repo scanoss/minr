@@ -97,7 +97,7 @@ bool mz_list_handler(struct mz_job *job)
 
 	if (strcmp(job->md5, actual))
 	{
-		mz_corrupted();
+		printf("%s [NOK] %lu bytes\n", job->md5, job->data_ln);
 	}
 	else if (!job->check_only)
 	{

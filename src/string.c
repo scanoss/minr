@@ -110,10 +110,3 @@ int linelen(char *str)
 	}
 	return count;
 }
-
-/* Print md5 hash in hex */
-void print_md5(uint8_t *md5)
-{
-	for (int i = 0; i < MD5_LEN; i++) printf("%02x", md5[i]);
-	printf("\n");
-}

@@ -292,6 +292,7 @@ void mine(struct minr_job *job, char *path)
 
 	/* File discrimination check #2: Is the extension ignored or path not wanted? */
 	if (!job->all_extensions) if (ignored_extension(path)) return;
+
 	if (unwanted_path(path)) return;
 
 	/* Load file contents and calculate md5 */
@@ -300,17 +301,24 @@ void mine(struct minr_job *job, char *path)
 	/* File discrimination check: Unwanted header? */
 	if (unwanted_header(job->src)) return;
 
-	/* Is the content too square? */
-	if (too_much_squareness(job->src)) return;
-
 	/* Add to .mz */
 	if (!job->exclude_mz)
 	{
 		/* File discrimination check: Binary? */
 		if (is_binary(job->src, job->src_ln))
 			job->exclude_detection = true;
-		else if (!skip_mz_extension(path))
-			mz_add(job->mined_path, job->md5, job->src, job->src_ln, true, job->zsrc, job->mz_cache);
+		else
+		{
+			bool skip = false;
+
+			/* Is the file extension supposed to be skipped for snippet hashing? */
+			if (skip_mz_extension(path)) skip = true;
+
+			/* Is the content too square? */
+			if (too_much_squareness(job->src)) skip = true;
+
+			if (!skip) mz_add(job->mined_path, job->md5, job->src, job->src_ln, true, job->zsrc, job->mz_cache);
+		}
 	}
 
 	/* Mine more */
