@@ -300,32 +300,48 @@ int main(int argc, char *argv[])
 	/* Process mz file */
 	else if (*job.mz)
 	{
-		if (!is_dir(job.mz))
+		if (!is_dir(job.mz) && !is_file(job.mz))
 		{
-			printf("Cannot access directory %s\n", job.mz);
+			printf("Cannot access %s\n", job.mz);
 			exit(EXIT_FAILURE);
 		}
 
 		buffer = malloc(BUFFER_SIZE * 256);
 		hashes = malloc(MAX_FILE_SIZE);
 		lines  = malloc(MAX_FILE_SIZE);
+		grams = calloc(MAX_FILE_SIZE,1);
+		windows = calloc (MAX_FILE_SIZE*4,1);
+		char *file_path = calloc(MAX_PATH_LEN + 1, 1);
 
 		/* Open all file handlers in mined/snippets (256 files) */
-		out_snippet = open_snippet(job.mz);
+		if (is_dir(job.mz))
+			out_snippet = open_snippet(job.mz);
+		else
+			out_snippet = open_snippet(job.mined_path);
 
-		/* Import snippets */
-		for (int i = 0; i < MZ_FILES; i++)
+		/* Import snippets from the entire sources/ directory */
+		if (is_dir(job.mz))
 		{
-			char *file_path = calloc(MAX_PATH_LEN + 1, 1);
-			sprintf(file_path, "%s/sources/%04x.mz", job.mz, i);
-			if (file_size(file_path))
+			for (int i = 0; i < MZ_FILES; i++)
 			{
-				printf("%s\n", file_path);
-				mz_wfp_extract(file_path);
+				sprintf(file_path, "%s/sources/%04x.mz", job.mz, i);
+				if (file_size(file_path))
+				{
+					printf("%s\n", file_path);
+					mz_wfp_extract(file_path);
+				}
 			}
-			free(file_path);
 		}
 
+		/* Import snippets from a single file */
+		else
+		{
+			mz_wfp_extract(job.mz);
+		}
+
+		free (grams);
+		free (windows);
+		free(file_path);
 		free(buffer);
 		free(hashes);
 		free(lines);

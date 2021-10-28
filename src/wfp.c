@@ -49,7 +49,7 @@ void extract_wfp(uint8_t *md5, char *src, int length, bool check_mz)
 	for (int i = 0; i < 256; i++) buffer_ln[i]=0;
 
 	/* Capture hashes (Winnowing) */
-	uint32_t size = winnowing(src, hashes, lines, MAX_FILE_SIZE);
+	uint32_t size = winnowing(src, hashes, lines, MAX_FILE_SIZE, grams, windows);
 
 	uint8_t n = 0;
 	uint16_t line = 0;

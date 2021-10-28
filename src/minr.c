@@ -38,6 +38,8 @@
 char mined_path[MAX_ARG_LEN] = ".";
 char tmp_path[MAX_ARG_LEN] = "/dev/shm";
 int min_file_size = MIN_FILE_SIZE;
+uint8_t *grams;
+uint32_t *windows;
 
 /* Return true if data is binary */
 bool is_binary(char *data, long len)
