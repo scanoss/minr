@@ -20,6 +20,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+
+/**
+  * @file copyright.c
+  * @date 9 June 2021 
+  * @brief ???
+  */
+
 #include <libgen.h>
 
 #include "minr.h"
@@ -33,6 +40,13 @@ int count_nonalnum(char *str);
 int count_alnum(char *str);
 int linelen(char *str);
 
+/**
+ * @brief Determines whether a string begins with the characters of a specified string
+ * 
+ * @param str Long string
+ * @param start Short string 
+ * @return true if the given characters are found at the beginning of the string; otherwise, false.
+ */
 bool string_starts_with(char *str, char *start)
 {
 	int len = strlen(start);
@@ -40,7 +54,13 @@ bool string_starts_with(char *str, char *start)
 	return false;
 }
 
-/* Returns true if word copyright is followed by non wanted words */
+/**
+ * @brief Returns true if word copyright is followed by non wanted words
+ * 
+ * @param str 
+ * @return true 
+ * @return false 
+ */
 bool ignore_copyright(char *str)
 {
 	if (string_starts_with(str, "copyright notice")) return true;
@@ -52,7 +72,12 @@ bool ignore_copyright(char *str)
 	return false;
 }
 
-/* Return true if src contains a @author doxygen tag */
+/**
+ * @brief Search in src an '@author' doxygen tag
+ * 
+ * @param src String to search the tag
+ * @return true exists the tag, false otherwise.
+ */
 bool is_author(char *src)
 {
 	int tag_len = 0;
@@ -73,7 +98,12 @@ bool is_author(char *src)
 }
 
 
-/* Return true if src contains a copyright declaration */
+/**
+ * @brief Verify if the string src contains a copyright declaration
+ * 
+ * @param src String to search the copyright
+ * @return true If the string contains a copyright declaration, false otherwise.
+ */
 bool is_copyright(char *src)
 {
 	int tag_len = 0;
@@ -99,8 +129,12 @@ bool is_copyright(char *src)
 	return true;
 }
 
-/* Calculate the length of the copyright until end of line or end of txt
-   or MAX_COPYRIGHT_LEN */
+/**
+* @brief Calculate the length of the copyright until end of line or end of txt or MAX_COPYRIGHT_LEN
+* 
+* @param txt 
+* @return int 
+*/
 int copyright_len(char *txt)
 {
 	for (int i = 0; i < MAX_COPYRIGHT_LEN; i++)
@@ -110,7 +144,12 @@ int copyright_len(char *txt)
 	return MAX_COPYRIGHT_LEN;
 }
 
-/* Allocates memory, copies copyright declaration and returns pointer (or NULL) */
+/**
+ * @brief Allocates memory, copies copyright declaration and returns pointer (or NULL)
+ * 
+ * @param txt 
+ * @return char*  
+ */
 char *extract_copyright(char *txt)
 {
 	int len = copyright_len(txt);
@@ -126,12 +165,19 @@ char *extract_copyright(char *txt)
 	return copyright;
 }
 
-/* Extract a copyright statement from src
-	 Copyright sources
-	 0 = Declared in component
-	 1 = Detected in file header
-	 2 = Declared in LICENSE file
-	 */
+/**
+ * @brief Extract a copyright statement from src
+ * Copyright sources
+ * 0 = Declared in component
+ * 1 = Detected in file header
+ * 2 = Declared in LICENSE file
+ * 
+ * @param mined_path 
+ * @param md5 
+ * @param src 
+ * @param src_ln 
+ * @param license_file 
+ */
 void mine_copyright(char *mined_path, char *md5, char *src, uint64_t src_ln, bool license_file)
 {
 	/* Max bytes/lines to analyze */

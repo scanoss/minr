@@ -20,6 +20,12 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+  * @file mz_main.c
+  * @date 2 Sep 2021 
+  * @brief ???
+  */
+
 #include <ctype.h>
 #include <dirent.h>
 #include <errno.h>
@@ -76,6 +82,13 @@ void help()
 	exit(EXIT_SUCCESS);
 }
 
+/**
+ * @brief Check the characters are in the range of a hexadecimal number
+ * 
+ * @param txt 
+ * @return true 
+ * @return false 
+ */
 bool validate_md5(char *txt)
 {
     /* Check length */
@@ -92,7 +105,12 @@ bool validate_md5(char *txt)
     return true;
 }
 
-/* Copy arg into str (exit if argument is too long) */
+/**
+ * @brief Copy arg into str (exit if argument is too long)
+ * 
+ * @param str 
+ * @param arg 
+ */
 void argcpy(char *str, char *arg)
 {
 	if (strlen(arg) >= MAX_ARG_LEN)

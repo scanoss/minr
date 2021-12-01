@@ -20,6 +20,12 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+  * @file ignored_extensions.c
+  * @date 26 October 2021 
+  * @brief ???
+  */
+
 #include <stddef.h>
 
 /* File extensions to be skipped */

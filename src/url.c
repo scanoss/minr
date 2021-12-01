@@ -20,6 +20,12 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+  * @file url.c
+  * @date 22 Sep 2021 
+  * @brief ???
+  */
+
 #include <ctype.h>
 #include <openssl/md5.h>
 #include <stdbool.h>
@@ -31,7 +37,11 @@
 #include "minr.h"
 #include "ldb.h"
 
-/* Calculate purl md5 */
+/**
+ * @brief Calculate purl md5
+ * 
+ * @param job 
+ */
 void get_purl_id(struct minr_job *job)
 {
 	/* Clear memory */
@@ -58,6 +68,11 @@ void get_purl_id(struct minr_job *job)
 	ldb_bin_to_hex(job->version_md5, MD5_LEN, job->versionid);
 }
 
+/**
+ * @brief 
+ * 
+ * @param job 
+ */
 void url_add(struct minr_job *job)
 {
 	char path[MAX_PATH_LEN]="\0";
@@ -92,6 +107,11 @@ void url_add(struct minr_job *job)
 	}
 }
 
+/**
+ * @brief Removes temporary files and directories
+ * 
+ * @param job 
+ */
 void rm_tmpdir(struct minr_job *job)
 {
 	/* Assemble command */
@@ -103,6 +123,11 @@ void rm_tmpdir(struct minr_job *job)
 	pclose(fp);
 }
 
+/**
+ * @brief 
+ * 
+ * @param job 
+ */
 void url_download(struct minr_job *job)
 {
 	bool downloaded = false;

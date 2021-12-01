@@ -19,6 +19,13 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+
+/**
+  * @file import.c
+  * @date 25 October 2021 
+  * @brief ???
+  */
+
 #include <sys/time.h>
 #include <libgen.h>
 #include <dirent.h>
@@ -35,7 +42,15 @@
 
 double progress_timer = 0;
 
-/* Checks if two blocks of memory contain the same data, from last to first byte */
+
+/**
+ * @brief Checks if two blocks of memory contain the same data, from last to first byte
+ * 
+ * @param a 
+ * @param b 
+ * @param bytes 
+ * @return true 
+ */
 bool reverse_memcmp(uint8_t *a, uint8_t *b, int bytes) 
 {
 	for (int i = (bytes - 1); i >= 0; i--)
@@ -43,7 +58,12 @@ bool reverse_memcmp(uint8_t *a, uint8_t *b, int bytes)
 	return true;
 }
 
-/* Extract the numeric value of the two nibbles making the file name */
+/**
+ * @brief Extract the numeric value of the two nibbles making the file name
+ * 
+ * @param filename 
+ * @return uint8_t 
+ */
 uint8_t first_byte(char *filename)
 {
 	long byte = strtol(basename(filename), NULL, 16);
@@ -61,6 +81,14 @@ uint8_t first_byte(char *filename)
 	return (uint8_t) byte;
 }
 
+/**
+ * @brief 
+ * 
+ * @param prompt 
+ * @param count 
+ * @param max 
+ * @param percent 
+ */
 void progress(char *prompt, size_t count, size_t max, bool percent)
 {
 	struct timeval t;
@@ -77,10 +105,15 @@ void progress(char *prompt, size_t count, size_t max, bool percent)
 	fflush(stdout);
 }
 
-/* Import a raw wfp file which simply contains a series of 21-byte records
-	 containing wfp(3)+md5(16)+line(2). While the wfp is 4 bytes, the first
-	 byte is the file name
-	 */
+/**
+ * @brief Import a raw wfp file which simply contains a series of 21-byte records containing wfp(3)+md5(16)+line(2). While the wfp is 4 bytes, 
+ * the first byte is the file name
+ * 
+ * @param db_name 
+ * @param filename 
+ * @param skip_delete 
+ * @return true 
+ */
 bool ldb_import_snippets(char *db_name, char *filename, bool skip_delete)
 {
 	/* Table definition */
@@ -232,7 +265,12 @@ bool ldb_import_snippets(char *db_name, char *filename, bool skip_delete)
 	return true;
 }
 
-/* Count number of comma delimited fields in data */
+/**
+ * @brief Count number of comma delimited fields in data
+ * 
+ * @param data 
+ * @return int 
+ */
 int csv_fields(char *data)
 {
 	int commas = 0;
@@ -240,7 +278,13 @@ int csv_fields(char *data)
 	return commas + 1;
 }
 
-/* Returns a pointer to field n in data */
+/**
+ * @brief Returns a pointer to field n in data
+ * 
+ * @param n 
+ * @param data 
+ * @return char* 
+ */
 char *field_n(int n, char *data)
 {
 	int commas = 0;
@@ -248,8 +292,19 @@ char *field_n(int n, char *data)
 	return NULL;
 }
 
-/* Extract binary item ID (and optional first field binary ID) from CSV line
-	 where the first field is the hex itemid and the second could also be hex (if is_file_table) */
+/**
+ * @brief Extract binary item ID (and optional first field binary ID) from CSV line 
+ * where the first field is the hex itemid and the second could also be hex (if is_file_table)
+ * 
+ * @param line 
+ * @param first_byte 
+ * @param got_1st_byte 
+ * @param itemid 
+ * @param field2 
+ * @param is_file_table 
+ * @return true 
+ * @return false 
+ */
 bool file_id_to_bin(char *line, uint8_t first_byte, bool got_1st_byte, uint8_t *itemid, uint8_t *field2, bool is_file_table)
 {
 
@@ -289,6 +344,14 @@ bool file_id_to_bin(char *line, uint8_t first_byte, bool got_1st_byte, uint8_t *
 	return true;
 }
 
+/**
+ * @brief Vaerify if a string is a valid hexadecimal number
+ * 
+ * @param str 
+ * @param bytes 
+ * @return true 
+ * @return false 
+ */
 bool valid_hex(char *str, int bytes)
 {
 	for (int i = 0; i < bytes; i++)
@@ -299,7 +362,17 @@ bool valid_hex(char *str, int bytes)
 	return true;
 }
 
-/* Import a CSV file into the LDB database */
+
+/**
+ * @brief Import a CSV file into the LDB database
+ * 
+ * @param job 
+ * @param filename 
+ * @param table 
+ * @param nfields 
+ * @return true 
+ * @return false 
+ */
 bool ldb_import_csv(struct minr_job *job, char *filename, char *table, int nfields)
 {
 	bool is_file_table = false;
@@ -520,6 +593,13 @@ bool ldb_import_csv(struct minr_job *job, char *filename, char *table, int nfiel
 	return true;
 }
 
+/**
+ * @brief Sort a csv file invokinkg a new process and executing a sort command
+ * 
+ * @param file_path 
+ * @param skip_sort 
+ * @return true 
+ */
 bool csv_sort(char *file_path, bool skip_sort)
 {
 	if (skip_sort) return true;
@@ -541,6 +621,13 @@ bool csv_sort(char *file_path, bool skip_sort)
 	return true;
 }
 
+/**
+ * @brief 
+ * 
+ * @param file_path 
+ * @param skip_sort 
+ * @return true 
+ */
 bool bin_sort(char * file_path, bool skip_sort)
 {
 	if (!file_size(file_path)) return false;
@@ -549,7 +636,12 @@ bool bin_sort(char * file_path, bool skip_sort)
 	return bsort(file_path);
 }
 
-/* Wipes table before importing (-O) */
+/**
+ * @brief Wipes table before importing (-O)
+ * 
+ * @param table 
+ * @param job 
+ */
 void wipe_table(char *table, struct minr_job *job)
 {
 	if (!job->import_overwrite) return;
@@ -573,7 +665,11 @@ void wipe_table(char *table, struct minr_job *job)
 }
 
 
-/* Import files */
+/**
+ * @brief Import files
+ * 
+ * @param job 
+ */
 void import_files(struct minr_job *job)
 {
 	/* Wipe existing data if overwrite is requested */
@@ -622,6 +718,14 @@ void import_snippets(struct minr_job *job)
 	if (!job->skip_delete) rmdir(path);
 }
 
+
+/**
+ * @brief 
+ * 
+ * @param table 
+ * @param job 
+ * @return true 
+ */
 bool this_table(char *table, struct minr_job *job)
 {
 	if (!*job->import_table) return true;
@@ -629,6 +733,15 @@ bool this_table(char *table, struct minr_job *job)
 	return false;
 }
 
+
+/**
+ * @brief 
+ * 
+ * @param job 
+ * @param filename 
+ * @param tablename 
+ * @param nfields 
+ */
 void single_file_import(struct minr_job *job, char *filename, char *tablename, int nfields)
 {
 	if (!this_table(tablename, job)) return;
@@ -649,6 +762,11 @@ void single_file_import(struct minr_job *job, char *filename, char *tablename, i
 	}
 }
 
+/**
+ * @brief Import MZ archives
+ * 
+ * @param job 
+ */
 void import_mz(struct minr_job *job)
 {
 	char path[2 * MAX_PATH_LEN] = "\0";
@@ -675,6 +793,11 @@ void import_mz(struct minr_job *job)
 	}
 }
 
+/**
+ * @brief Import CSV files and load into database
+ * 
+ * @param job 
+ */
 void mined_import(struct minr_job *job)
 {
 	/* Create database */

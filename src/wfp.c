@@ -19,6 +19,13 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+
+/**
+  * @file wfp.c.c
+  * @date 28 Oct 2021 
+  * @brief ???
+  */
+
 #include <stdint.h>
 #include <libgen.h>
 #include <stdbool.h>
@@ -32,6 +39,14 @@
 #include "hex.h"
 #include "wfp.h"
 
+/**
+ * @brief 
+ * 
+ * @param md5 
+ * @param src 
+ * @param length 
+ * @param check_mz 
+ */
 void extract_wfp(uint8_t *md5, char *src, int length, bool check_mz)
 {
 	/* File discrimination check: Unwanted header? */
@@ -87,6 +102,13 @@ void extract_wfp(uint8_t *md5, char *src, int length, bool check_mz)
 				printf("Warning: error writing snippet sector\n");
 }
 
+/**
+ * @brief 
+ * 
+ * @param job 
+ * @return true 
+ * @return false 
+ */
 bool mz_wfp_extract_handler(struct mz_job *job)
 {
 	/* Fill MD5 with item id */
@@ -101,7 +123,11 @@ bool mz_wfp_extract_handler(struct mz_job *job)
 	return true;
 }
 
-/* Extracts wfps from the given mz file path */
+/**
+ * @brief Extracts wfps from the given mz file path 
+ * 
+ * @param path 
+ */
 void mz_wfp_extract(char *path)
 {
 	char *src = calloc(MAX_FILE_SIZE + 1, 1);

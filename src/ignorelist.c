@@ -20,6 +20,12 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+  * @file ignoredlist.c
+  * @date 16 Nov 2021 
+  * @brief ???
+  */
+
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
@@ -27,7 +33,12 @@
 #include "ignorelist.h"
 #include "ignored_extensions.h"
 
-/* Returns a pointer to the file extension of "path" */
+/**
+ * @brief Returns a pointer to the file extension of "path"
+ * 
+ * @param path 
+ * @return char* 
+ */
 char *extension(char *path)
 {
 	char *dot   = strrchr(path, '.');
@@ -39,14 +50,26 @@ char *extension(char *path)
 	return NULL;
 }
 
-/* Case insensitive string comparison */
+/**
+ * @brief Case insensitive string comparison
+ * 
+ * @param a 
+ * @param b 
+ * @return true when strings are equal. False otherwise.
+ */
 bool stricmp(char *a, char *b)
 {
 	while (*a && *b) if (tolower(*a++) != tolower(*b++)) return false;
 	return (*a == *b);
 }
 
-/* Compare if strings have the same ending */
+/**
+ * @brief Compare if strings have the same ending
+ * 
+ * @param a 
+ * @param b 
+ * @return true when strings have the same ending. False otherwise
+ */
 bool ends_with(char *a, char *b)
 {
 
@@ -68,7 +91,13 @@ bool ends_with(char *a, char *b)
 	return true;
 }
 
-/* Returns true when the file "name" ends with a IGNORED_EXTENSIONS[] string */
+/**
+ * @brief Returns true when the file "name" ends with a IGNORED_EXTENSIONS[] string 
+ * 
+ * @param name 
+ * @return true 
+ * @return false 
+ */
 bool ignored_extension(char *name)
 {
 	int i=0;
@@ -78,7 +107,13 @@ bool ignored_extension(char *name)
 	return false;
 }
 
-/* Returns true when the file "name" ends with a SKIP_MZ_EXTENSIONS[] string */
+/**
+ * @brief Returns true when the file "name" ends with a SKIP_MZ_EXTENSIONS[] string
+ * 
+ * @param name 
+ * @return true 
+ * @return false 
+ */
 bool skip_mz_extension(char *name)
 {
 	int i=0;
@@ -88,7 +123,12 @@ bool skip_mz_extension(char *name)
 	return false;
 }
 
-/* Returns true when dotfile, dotdir or any element in IGNORED_PATHS is found in path */
+/**
+ * @brief Returns true when dotfile, dotdir or any element in IGNORED_PATHS is found in path
+ * 
+ * @param path 
+ * @return true 
+ */
 bool unwanted_path(char *path)
 {
 	/* Path starts with a dot */
@@ -109,14 +149,26 @@ bool unwanted_path(char *path)
 	return false;
 }
 
-/* Case insensitive string comparison of starting of either string */
+
+/**
+ * @brief Case insensitive string comparison of starting of either string
+ * 
+ * @param a 
+ * @param b 
+ * @return true when strings are equal. False otherwise.
+ */
 bool headicmp(char *a, char *b)
 {
 	while (*a && *b) if (tolower(*a++) != tolower(*b++)) return false;
 	return true;
 }
 
-/* Returns true when src starts with any of the unwanted IGNORED_HEADER strings */
+/**
+ * @brief Returns true when src starts with any of the unwanted IGNORED_HEADER strings
+ * 
+ * @param src 
+ * @return true 
+ */
 bool unwanted_header(char *src)
 {
 	int i=0;
@@ -132,7 +184,11 @@ bool unwanted_header(char *src)
 	return false;
 }
 
-/* File paths to be skipped in results */
+
+/**
+ * @brief File paths to be skipped in results
+ * 
+ */
 char *IGNORED_PATHS[] = {
 	"/__pycache__/",
 	"/__pypackages__",
@@ -147,7 +203,10 @@ char *IGNORED_PATHS[] = {
 	NULL
 };
 
-/* Files starting with any of these character sets will be skipped */
+/**
+ * @brief Files starting with any of these character sets will be skipped
+ * 
+ */
 char *IGNORED_HEADERS[] =
 {
 	"{",
@@ -159,7 +218,10 @@ char *IGNORED_HEADERS[] =
 	NULL
 };
 
-/* Ignore these words as path keywords */
+/**
+ * @brief Ignore these words as path keywords
+ * 
+ */
 char *IGNORE_KEYWORDS[] = 
 {
 	"archive", "arch", "assets", "backend", "beta", "beta1", "bridge",
@@ -170,7 +232,13 @@ char *IGNORE_KEYWORDS[] =
 	"vendor", "web", "webapp", "workspace", NULL
 };
 
-/* Add line length to the squareness ranking */
+
+/**
+ * @brief Add line length to the squareness ranking
+ * 
+ * @param line_len 
+ * @param ptr 
+ */
 void increment_line_rank(int line_len, void *ptr)
 {
 	if (line_len <= 2) return;
@@ -188,7 +256,12 @@ void increment_line_rank(int line_len, void *ptr)
 	}
 }
 
-/* Select first item in the squareness ranking */
+/**
+ * @brief Select first item in the squareness ranking
+ * 
+ * @param ptr 
+ * @return int 
+ */
 int select_first_in_ranking(void *ptr)
 {
 	int occurrences = 0;
@@ -206,7 +279,14 @@ int select_first_in_ranking(void *ptr)
 	return occurrences;
 }
 
-/* Determine if a file is over the desired squareness */
+
+/**
+ * @brief Determine if a file is over the desired squareness
+ * 
+ * @param data 
+ * @return true 
+ * @return false 
+ */
 bool too_much_squareness(char *data)
 {
 	/* Declare/init variables */

@@ -19,6 +19,13 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+
+/**
+  * @file help.c
+  * @date 19 October 2021 
+  * @brief Contains the help function
+  */
+
 #include "minr.h"
 #include "help.h"
 void show_help ()

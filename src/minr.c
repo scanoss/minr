@@ -20,6 +20,12 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+  * @file minr.c
+  * @date 28 Oct 2021 
+  * @brief ???
+  */
+
 #include "minr.h"
 #include <dirent.h>
 #include <libgen.h>
@@ -41,7 +47,15 @@ int min_file_size = MIN_FILE_SIZE;
 uint8_t *grams;
 uint32_t *windows;
 
-/* Return true if data is binary */
+
+/**
+ * @brief Return true if data is binary
+ * 
+ * @param data 
+ * @param len 
+ * @return true 
+ * @return false 
+ */
 bool is_binary(char *data, long len)
 {
 		/* Is it a zip? */
@@ -51,6 +65,12 @@ bool is_binary(char *data, long len)
 		return (len != strlen(data));
 }
 
+/**
+ * @brief Execute the command specified by the string command. It shall create a pipe between the calling program
+ * 
+ * @param command 
+ * @return uint32_t 
+ */
 uint32_t execute_command(char *command)
 {
 	/* Execute command */
@@ -63,7 +83,13 @@ uint32_t execute_command(char *command)
 	return pclose(fp);
 }
 
-/* Returns the command needed to decompress the "url" */
+
+/**
+ * @brief Returns the command needed to decompress the "url"
+ * 
+ * @param url 
+ * @return char* 
+ */
 char *decompress(char *url)
 {
 
@@ -105,7 +131,12 @@ char *decompress(char *url)
 	return out;
 }
 
-/* Returns path to the downloadad tmp file */
+/**
+ * @brief Returns path to the downloadad tmp file
+ * 
+ * @param tmp_dir 
+ * @return char* 
+ */
 char *downloaded_file(char *tmp_dir)
 {
 	DIR *dp;
@@ -139,7 +170,13 @@ char *downloaded_file(char *tmp_dir)
 
 }
 
-/* Calculate the MD5 of tmp_file and load it into job->urlid */
+
+/**
+ * @brief Calculate the MD5 of tmp_file and load it into job->urlid
+ * 
+ * @param job 
+ * @param tmp_file 
+ */
 void load_urlid(struct minr_job *job, char *tmp_file)
 {
 	uint8_t *bin_md5 = file_md5(tmp_file);
@@ -149,7 +186,12 @@ void load_urlid(struct minr_job *job, char *tmp_file)
 	free(bin_md5);
 }
 
-/* Launch command to either download (url) or copy (file) target */
+/**
+ * @brief Launch command to either download (url) or copy (file) target
+ * 
+ * @param job 
+ * @return uint32_t 
+ */
 uint32_t download_file(struct minr_job *job)
 {
 	/* Assemble download/copy command */
@@ -166,7 +208,13 @@ uint32_t download_file(struct minr_job *job)
 	return outcome;
 }
 
-/* Download and process URL */
+/**
+ * @brief Download and process URL
+ * 
+ * @param job 
+ * @return true 
+ * @return false 
+ */
 bool download(struct minr_job *job)
 {
 	/* Download file */
@@ -218,6 +266,14 @@ bool download(struct minr_job *job)
 	return true;
 }
 
+/**
+ * @brief 
+ * 
+ * @param job 
+ * @param path 
+ * @return true 
+ * @return false 
+ */
 bool load_file(struct minr_job *job, char *path)
 {
 	/* Open file and obtain file length */
@@ -254,7 +310,14 @@ bool load_file(struct minr_job *job, char *path)
 	return true;
 }
 
-/* Extracts the "n"th value from the comma separated "in" string */
+/**
+ * @brief Extracts the "n"th value from the comma separated "in" string 
+ * 
+ * @param out 
+ * @param in 
+ * @param n 
+ * @param limit 
+ */
 void extract_csv(char *out, char *in, int n, long limit)
 {
 	*out = 0;
@@ -281,7 +344,13 @@ void extract_csv(char *out, char *in, int n, long limit)
 	out[out_ptr] = 0;
 }
 
-/* Mine the given path */
+
+/**
+ * @brief  Mine the given path 
+ * 
+ * @param job 
+ * @param path 
+ */
 void mine(struct minr_job *job, char *path)
 {
 	/* Mine attribution notice */
@@ -336,6 +405,13 @@ void mine(struct minr_job *job, char *path)
 	fprintf(out_file[*job->md5], "%s,%s,%s\n", job->fileid + 2, job->urlid, path + strlen(job->tmp_dir) + 1);
 }
 
+
+/**
+ * @brief 
+ * 
+ * @param job 
+ * @param path 
+ */
 void mine_local_file(struct minr_job *job, char *path)
 {
 	job->src = calloc(MAX_FILE_SIZE + 1, 1);
@@ -381,11 +457,13 @@ void mine_local_file(struct minr_job *job, char *path)
 }
 
 /**
-	@brief Local mining
-	@description Mines for Licenses, Crypto definitions and Copyrigths from a local directory. Results are presented via stdout.
-	@since 2.1.2
-	*/
-
+ * @brief Local mining.
+ * Mines for Licenses, Crypto definitions and Copyrigths from a local directory. Results are presented via stdout.
+ * @since 2.1.2
+ * 
+ * @param job 
+ * @param root 
+ */
 void mine_local_directory(struct minr_job *job, char* root){
 
 	DIR *dir;
@@ -411,7 +489,13 @@ void mine_local_directory(struct minr_job *job, char* root){
 
 }
 
-/* Recursive directory reading */
+
+/**
+ * @brief Recursive directory reading
+ * 
+ * @param job 
+ * @param path 
+ */
 void recurse(struct minr_job *job, char *path)
 {
 	DIR *dp;
@@ -440,7 +524,12 @@ void recurse(struct minr_job *job, char *path)
 	if (dp) closedir(dp);
 }
 
-/* Verify that required binaries are installed */
+/**
+ * @brief Verify that required binaries are installed
+ * 
+ * @return true 
+ * @return false 
+ */
 bool check_dependencies()
 {	
 	load_crypto_definitions();
@@ -470,7 +559,13 @@ bool check_dependencies()
 	return true;
 }
 
-/* Returns true if file ends with LF or if it is empty */
+/**
+ * @brief Returns true if file ends with LF or if it is empty
+ * 
+ * @param path 
+ * @return true 
+ * @return false 
+ */
 bool ends_with_chr10(char *path)
 {
 	/* Read source into memory */
@@ -509,7 +604,14 @@ bool ends_with_chr10(char *path)
 	return false;
 }
 
-/* Validate source and destination files for join and sort */
+/**
+ * @brief Validate source and destination files for join and sort
+ * 
+ * @param file 
+ * @param destination 
+ * @return true 
+ * @return false 
+ */
 bool valid_source_destination(char *file, char *destination)
 {
 	if (strcmp(extension(file), extension(destination)))

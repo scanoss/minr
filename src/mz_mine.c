@@ -20,6 +20,12 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+  * @file mz_mine.c
+  * @date 9 June 2021 
+  * @brief ???
+  */
+
 #include <libgen.h>
 #include "minr.h"
 #include "ldb.h"
@@ -29,6 +35,13 @@
 #include "mz_mine.h"
 #include "crypto.h"
 
+/**
+ * @brief 
+ * 
+ * @param job 
+ * @return true 
+ * @return false 
+ */
 bool mz_quality_handler(struct mz_job *job)
 {
 	/* Decompress */
@@ -43,6 +56,11 @@ bool mz_quality_handler(struct mz_job *job)
 	return true;
 }
 
+/**
+ * @brief 
+ * 
+ * @param job 
+ */
 void mz_mine_quality(struct mz_job *job)
 {
 	/* Extract first two MD5 bytes from the file name */
@@ -57,12 +75,18 @@ void mz_mine_quality(struct mz_job *job)
 	free(job->mz);
 }
 
-/* License types
-   0 = Declared in component
-   1 = Declared in file with SPDX-License-Identifier
-   2 = Detected in header
-   3 = Detected in LICENSE file
-   */
+
+/**
+ * @brief License types
+ *  0 = Declared in component
+ *  1 = Declared in file with SPDX-License-Identifier
+ *  2 = Detected in header
+ *  3 = Detected in LICENSE file
+ * 
+ * @param job 
+ * @return true 
+ * @return false 
+ */
 bool mz_license_handler(struct mz_job *job)
 {
 	/* Decompress */
@@ -83,6 +107,11 @@ bool mz_license_handler(struct mz_job *job)
 	return true;
 }
 
+/**
+ * @brief 
+ * 
+ * @param job 
+ */
 void mz_mine_license(struct mz_job *job)
 {
 	/* Extract first two MD5 bytes from the file name */
@@ -97,6 +126,13 @@ void mz_mine_license(struct mz_job *job)
 	free(job->mz);
 }
 
+/**
+ * @brief 
+ * 
+ * @param job 
+ * @return true 
+ * @return false 
+ */
 bool mz_copyright_handler(struct mz_job *job)
 {
 	/* Decompress */
@@ -111,6 +147,11 @@ bool mz_copyright_handler(struct mz_job *job)
 	return true;
 }
 
+/**
+ * @brief 
+ * 
+ * @param job 
+ */
 void mz_mine_copyright(struct mz_job *job)
 {
 	/* Extract first two MD5 bytes from the file name */
@@ -125,6 +166,13 @@ void mz_mine_copyright(struct mz_job *job)
 	free(job->mz);
 }
 
+/**
+ * @brief 
+ * 
+ * @param job 
+ * @return true 
+ * @return false 
+ */
 bool mz_crypto_handler(struct mz_job *job)
 {
 	/* Decompress */
@@ -139,6 +187,11 @@ bool mz_crypto_handler(struct mz_job *job)
 	return true;
 }
 
+/**
+ * @brief 
+ * 
+ * @param job 
+ */
 void mz_mine_crypto(struct mz_job *job)
 {
 	/* Extract first two MD5 bytes from the file name */

@@ -19,6 +19,14 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+
+
+/**
+  * @file crypto.c
+  * @date 18 Aug 2021
+  * @brief ???
+  */
+
 #include <libgen.h>
 #include <fcntl.h>
 #include <stdlib.h>
@@ -32,7 +40,9 @@
 #include <string.h>
 #include "crypto_loads.h"
 
-/** Definition for forward recursive reference*/
+/**
+ * @brief Definition for forward recursive reference
+ */
 struct T_SearchResult;
 
 struct T_SearchResult{
@@ -43,14 +53,15 @@ struct T_SearchResult{
 struct T_TrieNode * root;
 struct T_SearchResult * results;
 
-
 /**
-@brief Appends a new result
-@description Insert a new element in the result linked list ordered by algorithm name. If the algorithm already exists, the result is discarded
-@param element Structure that contains an existing algorithm leaf
-*/
-
-
+ * @brief Appends a new result.
+ * 
+ * Insert a new element in the result linked list ordered by algorithm name. 
+ * If the algorithm already exists, the result is discarded.
+ * 
+ * @param element Structure that contains an existing algorithm leaf
+ * @return int 
+ */
 int appendToResults(struct T_TrieNode *element){
 
 	struct T_SearchResult* temp = (struct T_SearchResult*) calloc(1,sizeof(struct T_SearchResult));
@@ -95,9 +106,8 @@ bool is_dir(char *path);
 bool not_a_dot(char *path);
 
 /**
-@brief Load algorithms definitions
-@description Loads alorithms definitions from the auto-generated function
-load_default_crypto
+ * @brief Load algorithms definitions from the auto-generated functions.
+ * 
 */
 void load_crypto_definitions(void){
 
@@ -107,8 +117,12 @@ void load_crypto_definitions(void){
 }
 
 /**
-@brief Create embedded cryptographic definitions
-@description Creates an embedded function that inserts cryptographic definitions in the trie structure. Keywords are loaded from files within a (recursive) directory.
+ * @brief Create embedded cryptographic definitions.
+ * 
+ * Creates an embedded function that inserts cryptographic definitions in the trie structure. 
+ * Keywords are loaded from files within a (recursive) directory.
+ * 
+ * @param path Path to the directory containing the cryptographic definitions.
 */
 void create_crypto_definitions(char * path){
 printf("Creating definitions...\n");
@@ -140,14 +154,13 @@ printf("Creating definitions...\n");
 }
 
 /**
-@description Gets a token from a valid portion of a char array 
-@param	text The text to search from
-@param	start Begining of search area. If a valid token is found, the effective begining is returned;
-@param	end Effective index of token end.
-@param	maxLen Bounds the search to a limited index 
-	
+ * @brief Gets a token from a valid portion of a char array .
+ * 
+ * @param	text The text to search from.
+ * @param	start Begining of search area. If a valid token is found, the effective begining is returned.
+ * @param	end Effective index of token end.
+ * @param	maxLen Bounds the search to a limited index.
 */
-
 char *getNextToken(char * text,uint64_t *start,uint64_t *end,uint64_t maxLen){
 	uint64_t startToken=*start;
 	uint64_t endToken=0;
@@ -175,13 +188,9 @@ char *getNextToken(char * text,uint64_t *start,uint64_t *end,uint64_t maxLen){
 }
 
 /**
-@description Gets a token from a valid portion of a char array 
-@param	text The text to search from
-@param	start Begining of search area. If a valid token is found, the effective begining is returned;
-@param	end Effective index of token end.
-@param	maxLen Bounds the search to a limited index 
-	
-*/
+ * @brief Free the memory allocated for the cryptographic definitions.
+ * 
+ */
 void clean_crypto_definitions(void)
 {
 //printf("cleaning\r\n");
@@ -192,15 +201,13 @@ cleanCrypto(root);
 
 
 /**
-@description Mines a given path that contains MD5 Files. 
-@param	mined_path 
-@param	md5 name of file to be mined.
-@param	src The contents of the MD5 file.
-@param	src_ln Size of the buffer to be mined (equal to filesize)
-@since 2.1.2	
+ * @brief Mines a given path that contains MD5 Files. 
+ * @param mined_path 
+ * @param md5 name of file to be mined.
+ * @param src The contents of the MD5 file.
+ * @param src_ln Size of the buffer to be mined (equal to filesize)
+ * @since 2.1.2	
 */
-
-
 void mine_crypto(char *mined_path, char *md5, char *src, uint64_t src_ln)
 {
 	
