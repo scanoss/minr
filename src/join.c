@@ -3,7 +3,7 @@
 /**
   * @file join.c
   * @date 14 Sep 2021 
-  * @brief ???
+  * @brief Contains functions used for implentent minr join funtionality
   */
 
 
@@ -18,7 +18,7 @@
  * @brief Append the contents of a file to the end of another file.
  * 
  * @param file Origin of the data to be appended.
- * @param destination 
+ * @param destination path to out file
  */
 void file_append(char *file, char *destination)
 {
@@ -59,7 +59,7 @@ void file_append(char *file, char *destination)
 /**
  * @brief  If the CSV file does not end with LF, eliminate the last line
  * 
- * @param path 
+ * @param path string path
  */
 void truncate_csv(char *path)
 {
@@ -113,7 +113,7 @@ void truncate_csv(char *path)
 /**
  * @brief Creates a directory with 0755 permissions.
  * 
- * @param destination 
+ * @param destination destination path
  */
 void mkdir_if_not_exist(char *destination)
 {
@@ -172,12 +172,12 @@ bool move_file(char *src, char *dst, bool skip_delete) {
 }
 
 /**
- * @brief 
+ * @brief join two binary files
  * 
- * @param source 
- * @param destination 
- * @param snippets 
- * @param skip_delete 
+ * @param source path to the source file
+ * @param destination path to destination file
+ * @param snippets true if it is a snippet file
+ * @param skip_delete true to avoid deletion
  */
 void bin_join(char *source, char *destination, bool snippets, bool skip_delete)
 {
@@ -212,11 +212,11 @@ void bin_join(char *source, char *destination, bool snippets, bool skip_delete)
 }
 
 /**
- * @brief 
+ * @brief Join two csv files
  * 
- * @param source 
- * @param destination 
- * @param skip_delete 
+ * @param source path to source file
+ * @param destination path to destination file 
+ * @param skip_delete true for skip deletion
  */
 void csv_join(char *source, char *destination, bool skip_delete)
 {
@@ -246,11 +246,11 @@ void csv_join(char *source, char *destination, bool skip_delete)
 }
 
 /**
- * @brief Join mz sources
+ * @brief Join two mz sources
  * 
- * @param source 
- * @param destination 
- * @param skip_delete 
+ * @param source paht to source
+ * @param destination  path to destination
+ * @param skip_delete true to skip deletion
  */
 void minr_join_mz(char *source, char *destination, bool skip_delete)
 {
@@ -277,11 +277,11 @@ void minr_join_mz(char *source, char *destination, bool skip_delete)
 }
 
 /**
- * @brief  Join snippets
+ * @brief  Join two snippets file
  * 
- * @param source 
- * @param destination 
- * @param skip_delete 
+ * @param source path to source
+ * @param destination path to destination
+ * @param skip_delete true to skip deletion
  */
 void minr_join_snippets(char *source, char *destination, bool skip_delete)
 {
@@ -299,9 +299,9 @@ void minr_join_snippets(char *source, char *destination, bool skip_delete)
 }
 
 /**
- * @brief 
+ * @brief minr join function. Join the files specified in the job
  * 
- * @param job 
+ * @param job pointer to mnir job
  */
 void minr_join(struct minr_job *job)
 {

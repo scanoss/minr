@@ -23,7 +23,7 @@
 /**
   * @file mz_mine.c
   * @date 9 June 2021 
-  * @brief ???
+  * @brief Implement the mz mine functions
   */
 
 #include <libgen.h>
@@ -167,11 +167,10 @@ void mz_mine_copyright(struct mz_job *job)
 }
 
 /**
- * @brief 
+ * @brief Handler for mz with cryptography
  * 
  * @param job 
  * @return true 
- * @return false 
  */
 bool mz_crypto_handler(struct mz_job *job)
 {
@@ -188,9 +187,9 @@ bool mz_crypto_handler(struct mz_job *job)
 }
 
 /**
- * @brief 
+ * @brief MZ mine with cryptography
  * 
- * @param job 
+ * @param job pinter to mz job
  */
 void mz_mine_crypto(struct mz_job *job)
 {

@@ -34,9 +34,9 @@
 /**
  * @brief Prints a hexdump of 'len' bytes from 'data' organized 'width' columns
  * 
- * @param data 
- * @param len 
- * @param width 
+ * @param data pointer to data buffer
+ * @param len data lenght
+ * @param width columns width
  */
 void hexprint(uint8_t *data, uint32_t len, uint8_t width)
 {
@@ -60,9 +60,9 @@ void hexprint(uint8_t *data, uint32_t len, uint8_t width)
 /**
  * @brief Returns a hexadecimal representation of the first "len" bytes in "bin"
  * 
- * @param bin 
- * @param len 
- * @return char* 
+ * @param bin pointer to data buffer
+ * @param len data buffer len
+ * @return string with hexadecimal representation 
  */
 char *bin_to_hex(uint8_t *bin, uint32_t len)
 {
@@ -86,7 +86,7 @@ char *bin_to_hex(uint8_t *bin, uint32_t len)
  * IMPORTANT: data must be an array of at least 2 bytes.
  * 
  * @param data A pointer to the first char
- * @return uint16_t 
+ * @return return a uint16_t
  */
 uint16_t uint16(uint8_t *data)
 {
@@ -98,7 +98,7 @@ uint16_t uint16(uint8_t *data)
  * @brief  Reverse an uint32 number
  * Example: AABBCCDD -> DDCCBBAA
  * 
- * @param data 
+ * @param data pointer to the number to be inverted
  */
 void uint32_reverse(uint8_t *data)
 {

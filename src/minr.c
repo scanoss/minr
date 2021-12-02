@@ -23,7 +23,7 @@
 /**
   * @file minr.c
   * @date 28 Oct 2021 
-  * @brief ???
+  * @brief Contains the main minr functionalities
   */
 
 #include "minr.h"
@@ -51,10 +51,9 @@ uint32_t *windows;
 /**
  * @brief Return true if data is binary
  * 
- * @param data 
- * @param len 
- * @return true 
- * @return false 
+ * @param data data buffer
+ * @param len data size
+ * @return true if it is binary
  */
 bool is_binary(char *data, long len)
 {
@@ -68,8 +67,8 @@ bool is_binary(char *data, long len)
 /**
  * @brief Execute the command specified by the string command. It shall create a pipe between the calling program
  * 
- * @param command 
- * @return uint32_t 
+ * @param command command string
+ * @return uint32_t error code
  */
 uint32_t execute_command(char *command)
 {
@@ -87,8 +86,8 @@ uint32_t execute_command(char *command)
 /**
  * @brief Returns the command needed to decompress the "url"
  * 
- * @param url 
- * @return char* 
+ * @param url url string
+ * @return char* command to decompress
  */
 char *decompress(char *url)
 {
@@ -134,8 +133,8 @@ char *decompress(char *url)
 /**
  * @brief Returns path to the downloadad tmp file
  * 
- * @param tmp_dir 
- * @return char* 
+ * @param tmp_dir temp dir string
+ * @return char* path to file
  */
 char *downloaded_file(char *tmp_dir)
 {
@@ -174,8 +173,8 @@ char *downloaded_file(char *tmp_dir)
 /**
  * @brief Calculate the MD5 of tmp_file and load it into job->urlid
  * 
- * @param job 
- * @param tmp_file 
+ * @param job pointer to minr job
+ * @param tmp_file path to temp file
  */
 void load_urlid(struct minr_job *job, char *tmp_file)
 {
@@ -189,8 +188,8 @@ void load_urlid(struct minr_job *job, char *tmp_file)
 /**
  * @brief Launch command to either download (url) or copy (file) target
  * 
- * @param job 
- * @return uint32_t 
+ * @param job pointer to minr job
+ * @return uint32_t error code
  */
 uint32_t download_file(struct minr_job *job)
 {
@@ -211,9 +210,8 @@ uint32_t download_file(struct minr_job *job)
 /**
  * @brief Download and process URL
  * 
- * @param job 
- * @return true 
- * @return false 
+ * @param job pointer to minr job
+ * @return true if succed
  */
 bool download(struct minr_job *job)
 {
@@ -267,12 +265,11 @@ bool download(struct minr_job *job)
 }
 
 /**
- * @brief 
+ * @brief Open a file and fullyfil the minr job structure
  * 
- * @param job 
- * @param path 
- * @return true 
- * @return false 
+ * @param job pointer to minr job
+ * @param path path to file
+ * @return true if succed
  */
 bool load_file(struct minr_job *job, char *path)
 {
@@ -313,10 +310,10 @@ bool load_file(struct minr_job *job, char *path)
 /**
  * @brief Extracts the "n"th value from the comma separated "in" string 
  * 
- * @param out 
- * @param in 
- * @param n 
- * @param limit 
+ * @param out[out] pointer to the wanted field
+ * @param in data buffer
+ * @param n filed number
+ * @param limit field len limit
  */
 void extract_csv(char *out, char *in, int n, long limit)
 {
@@ -348,8 +345,8 @@ void extract_csv(char *out, char *in, int n, long limit)
 /**
  * @brief  Mine the given path 
  * 
- * @param job 
- * @param path 
+ * @param job ponter to minr job
+ * @param path path to be mined
  */
 void mine(struct minr_job *job, char *path)
 {
@@ -407,10 +404,10 @@ void mine(struct minr_job *job, char *path)
 
 
 /**
- * @brief 
+ * @brief Mine a local file
  * 
- * @param job 
- * @param path 
+ * @param job pointer to minr job
+ * @param path string path
  */
 void mine_local_file(struct minr_job *job, char *path)
 {
@@ -461,8 +458,8 @@ void mine_local_file(struct minr_job *job, char *path)
  * Mines for Licenses, Crypto definitions and Copyrigths from a local directory. Results are presented via stdout.
  * @since 2.1.2
  * 
- * @param job 
- * @param root 
+ * @param job pointer to minr job
+ * @param root path to the root
  */
 void mine_local_directory(struct minr_job *job, char* root){
 
@@ -493,8 +490,8 @@ void mine_local_directory(struct minr_job *job, char* root){
 /**
  * @brief Recursive directory reading
  * 
- * @param job 
- * @param path 
+ * @param job pointer to minr job
+ * @param path root path
  */
 void recurse(struct minr_job *job, char *path)
 {
@@ -527,8 +524,7 @@ void recurse(struct minr_job *job, char *path)
 /**
  * @brief Verify that required binaries are installed
  * 
- * @return true 
- * @return false 
+ * @return true if succed
  */
 bool check_dependencies()
 {	
@@ -562,9 +558,8 @@ bool check_dependencies()
 /**
  * @brief Returns true if file ends with LF or if it is empty
  * 
- * @param path 
- * @return true 
- * @return false 
+ * @param path string path
+ * @return true if succed
  */
 bool ends_with_chr10(char *path)
 {
@@ -607,8 +602,8 @@ bool ends_with_chr10(char *path)
 /**
  * @brief Validate source and destination files for join and sort
  * 
- * @param file 
- * @param destination 
+ * @param file path string
+ * @param destination path string
  * @return true 
  * @return false 
  */

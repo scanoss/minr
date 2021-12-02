@@ -23,7 +23,7 @@
 /**
   * @file mz_deflate.c
   * @date 26 Oct 2021 
-  * @brief ???
+  * @brief <Implement the functions used to deplate MZ files
   */
 
 #include <libgen.h>
@@ -34,11 +34,11 @@
 #include "hex.h"
 
 /**
- * @brief 
+ * @brief Compare two mz keys
  * 
- * @param a 
- * @param b 
- * @return int 
+ * @param a	key a
+ * @param b	key b
+ * @return 1 if a > b. -1 if b < a, 0 if they are equals
  */
 int mz_key_cmp(const void * a, const void * b)
 {
@@ -58,9 +58,8 @@ int mz_key_cmp(const void * a, const void * b)
 /**
  * @brief Handling function for listing mz keys
  * 
- * @param job 
+ * @param job pointer to mz job
  * @return true 
- * @return false 
  */
 bool mz_dump_keys_handler(struct mz_job *job)
 {
@@ -76,7 +75,7 @@ bool mz_dump_keys_handler(struct mz_job *job)
 /**
  * @brief  Output unique mz keys to STDOUT (binary) 
  * 
- * @param job 
+ * @param job pointer to mz job
  */
 void mz_dump_keys(struct mz_job *job)
 {
@@ -108,7 +107,6 @@ void mz_dump_keys(struct mz_job *job)
  * 
  * @param job 
  * @return true 
- * @return false 
  */
 bool mz_list_handler(struct mz_job *job)
 {
@@ -139,9 +137,9 @@ bool mz_list_handler(struct mz_job *job)
 }
 
 /**
- * @brief 
+ * @brief List the content of a mz file
  * 
- * @param job 
+ * @param job pointer to mz job
  */
 void mz_list(struct mz_job *job)
 {
@@ -161,9 +159,9 @@ void mz_list(struct mz_job *job)
 }
 
 /**
- * @brief 
+ * @brief Decompress and print a mz file (handler)
  * 
- * @param job 
+ * @param job pointer to mz job
  * @return true 
  * @return false 
  */
@@ -183,10 +181,10 @@ bool mz_cat_handler(struct mz_job *job)
 }
 
 /**
- * @brief 
+ * @brief Decompress and print a mz file
  * 
- * @param job 
- * @param key 
+ * @param job pointer to mz job
+ * @param key key to be found
  */
 void mz_cat(struct mz_job *job, char *key)
 {
@@ -212,11 +210,10 @@ void mz_cat(struct mz_job *job, char *key)
 }
 
 /**
- * @brief 
+ * @brief Handler for mz extraction
  * 
- * @param job 
+ * @param job pointer to mz job
  * @return true 
- * @return false 
  */
 bool mz_extract_handler(struct mz_job *job)
 {
@@ -251,9 +248,9 @@ bool mz_extract_handler(struct mz_job *job)
 }
 
 /**
- * @brief 
+ * @brief Extract the content of a mz file
  * 
- * @param job 
+ * @param job pointer to mz job
  */
 void mz_extract(struct mz_job *job)
 {

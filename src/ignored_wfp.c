@@ -23,7 +23,7 @@
 /**
   * @file ignored_wfp.c
   * @date 1 June 2021 
-  * @brief ???
+  * @brief Define the wfp to be ignored
   */
 
 #include <stdint.h>

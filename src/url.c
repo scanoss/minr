@@ -23,7 +23,7 @@
 /**
   * @file url.c
   * @date 22 Sep 2021 
-  * @brief ???
+  * @brief Implement functions used to mine a URL
   */
 
 #include <ctype.h>
@@ -40,7 +40,7 @@
 /**
  * @brief Calculate purl md5
  * 
- * @param job 
+ * @param job pointer to minr job
  */
 void get_purl_id(struct minr_job *job)
 {
@@ -69,9 +69,9 @@ void get_purl_id(struct minr_job *job)
 }
 
 /**
- * @brief 
+ * @brief Add url to mnir job
  * 
- * @param job 
+ * @param job pointer to minr job
  */
 void url_add(struct minr_job *job)
 {
@@ -110,7 +110,7 @@ void url_add(struct minr_job *job)
 /**
  * @brief Removes temporary files and directories
  * 
- * @param job 
+ * @param job pointer to miner job
  */
 void rm_tmpdir(struct minr_job *job)
 {
@@ -124,9 +124,9 @@ void rm_tmpdir(struct minr_job *job)
 }
 
 /**
- * @brief 
+ * @brief Download a URL for a job
  * 
- * @param job 
+ * @param job pointer to minr job
  */
 void url_download(struct minr_job *job)
 {

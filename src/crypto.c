@@ -24,7 +24,7 @@
 /**
   * @file crypto.c
   * @date 18 Aug 2021
-  * @brief ???
+  * @brief Implement functions to process cryptography
   */
 
 #include <libgen.h>

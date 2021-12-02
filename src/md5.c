@@ -25,7 +25,7 @@
 /**
   * @file md5.c
   * @date 7 Feb 2021
-  * @brief ???
+  * @brief Implement MD5 calculation
   */
 #include <openssl/md5.h>
 
@@ -35,8 +35,8 @@
 /**
  * @brief Calculate the md5 sum of a file
  * 
- * @param path 
- * @return uint8_t* 
+ * @param path string path
+ * @return uint8_t* pointer to md5
  */
 uint8_t *file_md5 (char *path)
 {
@@ -59,6 +59,12 @@ uint8_t *file_md5 (char *path)
 	}
 	return c;
 }
+/**
+ * @brief Calculate the md5 sum of a data set
+ * 
+ * @param data pointer to data
+ * @return uint8_t* pointer to md5
+ */
 
 void calc_md5(char *data, int size, uint8_t *out)
 {
