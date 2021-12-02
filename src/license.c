@@ -23,7 +23,7 @@
 /**
   * @file license.c
   * @date 2 Sep 2021 
-  * @brief ???
+  * @brief Implements functions for license processing
   */
 
 #include <libgen.h>
@@ -61,7 +61,7 @@ bool is_spdx_license_identifier(char *src)
 /**
  * @brief Returns pointer to SPDX-License-Identifier tag (null if not found)
  * 
- * @param src 
+ * @param src source string
  * @return char* 
  */
 char *spdx_license_identifier(char *src)
@@ -103,9 +103,9 @@ char *spdx_license_identifier(char *src)
 /**
  * @brief Return a pointer to the SPDX-License-Identifier if found in src header.
  * 
- * @param src 
- * @param src_ln 
- * @return char* 
+ * @param src source string
+ * @param src_ln source lenght
+ * @return char* pointer to spdx
  */
 char *mine_spdx_license_identifier(char *src, uint64_t src_ln)
 {
@@ -132,8 +132,8 @@ char *mine_spdx_license_identifier(char *src, uint64_t src_ln)
 /**
  * @brief Normalize the license in *path and output license definition lines for license_ids.c
  * 
- * @param path 
- * @param counter 
+ * @param path path to file
+ * @param counter extern counter
  */
 void normalize_license(char *path, int counter)
 {
@@ -170,9 +170,9 @@ void normalize_license(char *path, int counter)
 /**
  * @brief Return the number of files present in the path dir structure
  * 
- * @param path 
- * @param count 
- * @return int 
+ * @param path dir path
+ * @param count [out] number of files
+ * @return number of files
  */
 
 int count_files(char *path, int *count)
@@ -200,9 +200,9 @@ int count_files(char *path, int *count)
 /**
  * @brief Recurse the provided directory
  * 
- * @param path 
- * @param counter 
- * @return int 
+ * @param path string path
+ * @param counter[out] number of files
+ * @return int number of files
  */
 int recurse_dir(char *path, int *counter)
 {
@@ -236,7 +236,7 @@ int recurse_dir(char *path, int *counter)
 /**
  * @brief Auto-generate a license_ids.c file with normalized license texts for license detection
  * 
- * @param path 
+ * @param path string path
  */
 void generate_license_ids_c(char *path)
 {
@@ -254,8 +254,8 @@ void generate_license_ids_c(char *path)
 /**
  * @brief Return true if *l is entirely found at *s
  * 
- * @param s 
- * @param l 
+ * @param s input string
+ * @param l input string
  * @return true 
  * @return false 
  */
@@ -269,11 +269,11 @@ bool license_cmp(char *s, char *l)
 /**
  * @brief Attempt license detection in the header of *src
  * 
- * @param src 
- * @param src_ln 
- * @param licenses 
- * @param license_count 
- * @return char* 
+ * @param src input buffer
+ * @param src_ln input buffer lenght
+ * @param licenses pointer to license list
+ * @param license_count number of licenses
+ * @return char* pointer to found license
  */
 char *mine_license_header(char *src, uint64_t src_ln, normalized_license *licenses, int license_count)
 {
@@ -302,9 +302,9 @@ char *mine_license_header(char *src, uint64_t src_ln, normalized_license *licens
  *   	1 = Declared in file with SPDX-License-Identifier
  *    	2 = Detected in header
  *  	3 = Declared in LICENSE file
- * @param job 
- * @param id 
- * @param license_file 
+ * @param job pointer to minr job
+ * @param id ID string
+ * @param license_file tru for license files
  */
 void mine_license(struct minr_job *job, char *id, bool license_file)
 {

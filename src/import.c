@@ -23,7 +23,7 @@
 /**
   * @file import.c
   * @date 25 October 2021 
-  * @brief ???
+  * @brief Implement the functions used for import
   */
 
 #include <sys/time.h>
@@ -82,12 +82,12 @@ uint8_t first_byte(char *filename)
 }
 
 /**
- * @brief 
+ * @brief Show progress in stdout
  * 
- * @param prompt 
- * @param count 
- * @param max 
- * @param percent 
+ * @param prompt string message to show
+ * @param count actual count
+ * @param max maximum value
+ * @param percent true for percent mode
  */
 void progress(char *prompt, size_t count, size_t max, bool percent)
 {
@@ -109,10 +109,10 @@ void progress(char *prompt, size_t count, size_t max, bool percent)
  * @brief Import a raw wfp file which simply contains a series of 21-byte records containing wfp(3)+md5(16)+line(2). While the wfp is 4 bytes, 
  * the first byte is the file name
  * 
- * @param db_name 
- * @param filename 
- * @param skip_delete 
- * @return true 
+ * @param db_name DB name
+ * @param filename filename string
+ * @param skip_delete true to avoid delete
+ * @return true is succed
  */
 bool ldb_import_snippets(char *db_name, char *filename, bool skip_delete)
 {
@@ -268,8 +268,8 @@ bool ldb_import_snippets(char *db_name, char *filename, bool skip_delete)
 /**
  * @brief Count number of comma delimited fields in data
  * 
- * @param data 
- * @return int 
+ * @param data pointer to data
+ * @return int count
  */
 int csv_fields(char *data)
 {
@@ -281,9 +281,9 @@ int csv_fields(char *data)
 /**
  * @brief Returns a pointer to field n in data
  * 
- * @param n 
- * @param data 
- * @return char* 
+ * @param n filed number
+ * @param data data buffer
+ * @return char* to field
  */
 char *field_n(int n, char *data)
 {
@@ -296,14 +296,13 @@ char *field_n(int n, char *data)
  * @brief Extract binary item ID (and optional first field binary ID) from CSV line 
  * where the first field is the hex itemid and the second could also be hex (if is_file_table)
  * 
- * @param line 
- * @param first_byte 
- * @param got_1st_byte 
- * @param itemid 
- * @param field2 
- * @param is_file_table 
- * @return true 
- * @return false 
+ * @param line pointer to line
+ * @param first_byte fisrt byte to be added
+ * @param got_1st_byte true if the line got the 1st byte.
+ * @param itemid pointer to item id
+ * @param field2 pointer to second field
+ * @param is_file_table true for processing a file table
+ * @return true if succed
  */
 bool file_id_to_bin(char *line, uint8_t first_byte, bool got_1st_byte, uint8_t *itemid, uint8_t *field2, bool is_file_table)
 {
@@ -347,10 +346,9 @@ bool file_id_to_bin(char *line, uint8_t first_byte, bool got_1st_byte, uint8_t *
 /**
  * @brief Vaerify if a string is a valid hexadecimal number
  * 
- * @param str 
- * @param bytes 
- * @return true 
- * @return false 
+ * @param str input string
+ * @param bytes bytes to be processed
+ * @return true if it is valid
  */
 bool valid_hex(char *str, int bytes)
 {
@@ -366,12 +364,11 @@ bool valid_hex(char *str, int bytes)
 /**
  * @brief Import a CSV file into the LDB database
  * 
- * @param job 
- * @param filename 
- * @param table 
- * @param nfields 
- * @return true 
- * @return false 
+ * @param job pointer to minr job
+ * @param filename file name string
+ * @param table table name string
+ * @param nfields number of fileds
+ * @return true if succed
  */
 bool ldb_import_csv(struct minr_job *job, char *filename, char *table, int nfields)
 {
@@ -596,9 +593,9 @@ bool ldb_import_csv(struct minr_job *job, char *filename, char *table, int nfiel
 /**
  * @brief Sort a csv file invokinkg a new process and executing a sort command
  * 
- * @param file_path 
- * @param skip_sort 
- * @return true 
+ * @param file_path file path to be processed
+ * @param skip_sort true to skip sort
+ * @return true if succed
  */
 bool csv_sort(char *file_path, bool skip_sort)
 {
@@ -622,9 +619,9 @@ bool csv_sort(char *file_path, bool skip_sort)
 }
 
 /**
- * @brief 
+ * @brief Execute bsort over a file
  * 
- * @param file_path 
+ * @param file_path pointer to file path
  * @param skip_sort 
  * @return true 
  */
@@ -639,8 +636,8 @@ bool bin_sort(char * file_path, bool skip_sort)
 /**
  * @brief Wipes table before importing (-O)
  * 
- * @param table 
- * @param job 
+ * @param table path to table
+ * @param job pointer to mner job
  */
 void wipe_table(char *table, struct minr_job *job)
 {
@@ -668,7 +665,7 @@ void wipe_table(char *table, struct minr_job *job)
 /**
  * @brief Import files
  * 
- * @param job 
+ * @param job pointer to minr job
  */
 void import_files(struct minr_job *job)
 {
@@ -722,9 +719,9 @@ void import_snippets(struct minr_job *job)
 /**
  * @brief 
  * 
- * @param table 
- * @param job 
- * @return true 
+ * @param table table path
+ * @param job pointer to minr job 
+ * @return true if succed
  */
 bool this_table(char *table, struct minr_job *job)
 {
@@ -735,12 +732,12 @@ bool this_table(char *table, struct minr_job *job)
 
 
 /**
- * @brief 
+ * @brief Import a single file
  * 
- * @param job 
- * @param filename 
- * @param tablename 
- * @param nfields 
+ * @param job pointer to minr job
+ * @param filename file name string
+ * @param tablename table name sting
+ * @param nfields number of fields 
  */
 void single_file_import(struct minr_job *job, char *filename, char *tablename, int nfields)
 {
@@ -765,7 +762,7 @@ void single_file_import(struct minr_job *job, char *filename, char *tablename, i
 /**
  * @brief Import MZ archives
  * 
- * @param job 
+ * @param job pointer to minr job
  */
 void import_mz(struct minr_job *job)
 {
@@ -796,7 +793,7 @@ void import_mz(struct minr_job *job)
 /**
  * @brief Import CSV files and load into database
  * 
- * @param job 
+ * @param job pointer to mnir job
  */
 void mined_import(struct minr_job *job)
 {

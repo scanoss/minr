@@ -23,7 +23,7 @@
 /**
   * @file ignoredlist.c
   * @date 16 Nov 2021 
-  * @brief ???
+  * @brief Implement the functions to ignore unwanted information.
   */
 
 #include <string.h>
@@ -36,8 +36,8 @@
 /**
  * @brief Returns a pointer to the file extension of "path"
  * 
- * @param path 
- * @return char* 
+ * @param path string path
+ * @return pointer to extension
  */
 char *extension(char *path)
 {
@@ -53,8 +53,8 @@ char *extension(char *path)
 /**
  * @brief Case insensitive string comparison
  * 
- * @param a 
- * @param b 
+ * @param a string a
+ * @param b string b
  * @return true when strings are equal. False otherwise.
  */
 bool stricmp(char *a, char *b)
@@ -66,8 +66,8 @@ bool stricmp(char *a, char *b)
 /**
  * @brief Compare if strings have the same ending
  * 
- * @param a 
- * @param b 
+ * @param a string a
+ * @param b string b
  * @return true when strings have the same ending. False otherwise
  */
 bool ends_with(char *a, char *b)

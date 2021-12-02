@@ -23,7 +23,7 @@
 /**
   * @file ignored_files.c
   * @date 28 June 2021 
-  * @brief ???
+  * @brief Define the files to be ignores
   */
 
 #include <stdbool.h>

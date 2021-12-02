@@ -24,7 +24,7 @@
 /**
   * @file copyright.c
   * @date 9 June 2021 
-  * @brief ???
+  * @brief Implement functions used for copyright processing.
   */
 
 #include <libgen.h>

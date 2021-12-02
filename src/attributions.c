@@ -23,7 +23,7 @@
 /**
   * @file attributions.c
   * @date 19 October 2021 
-  * @brief ???
+  * @brief Contains the functions for processing attribution and notices.
   */
 
 #include <stdbool.h>
@@ -70,7 +70,7 @@ bool is_attribution_notice(char *path)
 /**
  * @brief Write entry id to attribution.csv
  * 
- * @param job 
+ * @param job pointer to minr job
  */
 void attribution_add(struct minr_job *job)
 {
@@ -93,8 +93,8 @@ void attribution_add(struct minr_job *job)
 /**
  * @brief Append attribution notice to archive
  * 
- * @param job 
- * @param path 
+ * @param job pointer to mnir job
+ * @param path string path
  */
 void mine_attribution_notice(struct minr_job *job, char *path)
 {

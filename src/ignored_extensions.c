@@ -23,7 +23,7 @@
 /**
   * @file ignored_extensions.c
   * @date 26 October 2021 
-  * @brief ???
+  * @brief Define the extension to be ignored
   */
 
 #include <stddef.h>
