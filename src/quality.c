@@ -22,10 +22,24 @@
 
 /* Make quality assessment on an individual file */
 
+/**
+  * @file quality.c
+  * @date 7 Feb 2021 
+  * @brief ???
+  */
+
 #include "minr.h"
 #include "license.h"
 #include "quality.h"
 
+/**
+ * @brief 
+ * 
+ * @param mined_path 
+ * @param md5 
+ * @param src 
+ * @param size 
+ */
 void mine_quality(char *mined_path, char *md5, char *src, long size)
 {
 	/* Skip files below MIN_FILE_SIZE */

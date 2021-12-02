@@ -19,6 +19,13 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+
+/**
+  * @file mz_optimize.c
+  * @date 26 Oct 2021 
+  * @brief ???
+  */
+
 #include <zlib.h>
 #include <libgen.h>
 
@@ -28,7 +35,13 @@
 #include "ignorelist.h"
 #include "ldb.h"
 
-/* Check if job->id is found in job->xkeys (see -X) */
+/**
+ * @brief Check if job->id is found in job->xkeys (see -X)
+ * 
+ * @param job 
+ * @return true 
+ * @return false 
+ */
 bool mz_id_excluded(struct mz_job *job)
 {
 	if (!job->xkeys_ln) return false;
@@ -46,7 +59,13 @@ bool mz_id_excluded(struct mz_job *job)
 	return false;
 }
 
-/* Check if job->id is found in the LDB */
+/**
+ * @brief Check if job->id is found in the LDB
+ * 
+ * @param job 
+ * @return true 
+ * @return false 
+ */
 bool mz_id_exists_in_ldb(struct mz_job *job)
 {
 	if (!job->orphan_rm) return true;
@@ -68,7 +87,14 @@ bool mz_id_exists_in_ldb(struct mz_job *job)
 	return true;
 }
 
-
+/**
+ * @brief 
+ * 
+ * @param mz1 
+ * @param mz2 
+ * @return true 
+ * @return false 
+ */
 bool mz_md5_match(uint8_t *mz1, uint8_t *mz2)
 {
 	for (int i = 0; i < MZ_MD5; i++)
@@ -77,11 +103,14 @@ bool mz_md5_match(uint8_t *mz1, uint8_t *mz2)
 	return true;
 }
 
-/*	
-		Handler function to be passed to mz_parse()
-		Eliminates duplicated data, unwanted content
-		and (optionally) orphan files (not found in the KB)
-		*/
+/**
+ * @brief Handler function to be passed to mz_parse()
+ *		Eliminates duplicated data, unwanted content and (optionally) orphan files (not found in the KB)
+ * 
+ * @param job 
+ * @return true 
+ * @return false 
+ */
 bool mz_optimise_handler(struct mz_job *job)
 {
 	/* Uncompress */
@@ -149,7 +178,11 @@ bool mz_optimise_handler(struct mz_job *job)
 	return true;
 }
 
-/* Optimise an mz file removing duplicated data */
+/**
+ * @brief Optimise an mz file removing duplicated data
+ * 
+ * @param job 
+ */
 void mz_optimise(struct mz_job *job)
 {
 	/* Extract first two MD5 bytes from the file name */

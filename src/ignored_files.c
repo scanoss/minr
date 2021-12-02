@@ -20,6 +20,12 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+  * @file ignored_files.c
+  * @date 28 June 2021 
+  * @brief ???
+  */
+
 #include <stdbool.h>
 #include "minr.h"
 
@@ -59,6 +65,12 @@ e909b282419acd3b63f5fb68db3bbc9b\
 f10f4e8a24a6f29f60f73caf7341f44d\
 fdb446fc9fbdb44dd511ce3d449504b0";
 
+/**
+ * @brief 
+ * 
+ * @param file_id 
+ * @return true 
+ */
 bool ignored_file(char *file_id)
 {
 	char *ignore_id = IGNORE_FILE;

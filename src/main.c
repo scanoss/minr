@@ -20,6 +20,12 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+  * @file license.c
+  * @date 28 Oct 2021 
+  * @brief ???
+  */
+
 #include <ctype.h>
 #include <dirent.h>
 #include <errno.h>

@@ -20,6 +20,12 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+  * @file attributions.c
+  * @date 19 October 2021 
+  * @brief ???
+  */
+
 #include <stdbool.h>
 #include <stdint.h>
 #include <zlib.h>
@@ -41,7 +47,12 @@ char *ATTRIBUTION_NOTICES[] =
 NULL
 };
 
-/* Return true if file in path is an attribution notice */
+/**
+ * @brief Verify if the filename is an attribution notice
+ * 
+ * @param path  
+ * @return true 
+ */
 bool is_attribution_notice(char *path)
 {
 	char *file = basename(path);
@@ -56,7 +67,11 @@ bool is_attribution_notice(char *path)
 	return false;
 }
 
-/* Write entry id to attribution.csv */
+/**
+ * @brief Write entry id to attribution.csv
+ * 
+ * @param job 
+ */
 void attribution_add(struct minr_job *job)
 {
 	char path[MAX_PATH_LEN]="\0";
@@ -75,7 +90,12 @@ void attribution_add(struct minr_job *job)
 	fclose(fp);
 }
 
-/* Appends attribution notice to archive */
+/**
+ * @brief Append attribution notice to archive
+ * 
+ * @param job 
+ * @param path 
+ */
 void mine_attribution_notice(struct minr_job *job, char *path)
 {
 	if (!load_file(job,path)) return;

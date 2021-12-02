@@ -1,4 +1,12 @@
 
+
+/**
+  * @file join.c
+  * @date 14 Sep 2021 
+  * @brief ???
+  */
+
+
 #include <unistd.h>
 #include <libgen.h>
 #include <sys/stat.h>
@@ -6,6 +14,12 @@
 #include "minr.h"
 #include "file.h"
 
+/**
+ * @brief Append the contents of a file to the end of another file.
+ * 
+ * @param file Origin of the data to be appended.
+ * @param destination 
+ */
 void file_append(char *file, char *destination)
 {
 	FILE *f;
@@ -42,7 +56,11 @@ void file_append(char *file, char *destination)
 	free(buffer);	
 }
 
-/* If the CSV file does not end with LF, eliminate the last line */
+/**
+ * @brief  If the CSV file does not end with LF, eliminate the last line
+ * 
+ * @param path 
+ */
 void truncate_csv(char *path)
 {
 
@@ -92,6 +110,11 @@ void truncate_csv(char *path)
 	return;
 }
 
+/**
+ * @brief Creates a directory with 0755 permissions.
+ * 
+ * @param destination 
+ */
 void mkdir_if_not_exist(char *destination)
 {
 	char *dst_dir = strdup(destination);
@@ -114,6 +137,15 @@ void mkdir_if_not_exist(char *destination)
 	free(dst_dir);
 }
 
+/**
+ * @brief Move a file to a new location by copying byte by byte.
+ * If the file already exist it is overwritten.
+ * 
+ * @param src src path
+ * @param dst dst path 
+ * @param skip_delete if true the src file is not deleted after the copy is done.
+ * @return true success. False otherwise.
+ */
 bool move_file(char *src, char *dst, bool skip_delete) {
 		
 	mkdir_if_not_exist(dst);
@@ -139,6 +171,14 @@ bool move_file(char *src, char *dst, bool skip_delete) {
 	return true;
 }
 
+/**
+ * @brief 
+ * 
+ * @param source 
+ * @param destination 
+ * @param snippets 
+ * @param skip_delete 
+ */
 void bin_join(char *source, char *destination, bool snippets, bool skip_delete)
 {
 	/* If source does not exist, no need to join */
@@ -171,6 +211,13 @@ void bin_join(char *source, char *destination, bool snippets, bool skip_delete)
 	if (!skip_delete) unlink(source);
 }
 
+/**
+ * @brief 
+ * 
+ * @param source 
+ * @param destination 
+ * @param skip_delete 
+ */
 void csv_join(char *source, char *destination, bool skip_delete)
 {
 	/* If source does not exist, no need to join */
@@ -198,7 +245,13 @@ void csv_join(char *source, char *destination, bool skip_delete)
 	if (!skip_delete) unlink(source);
 }
 
-/* Join mz sources */
+/**
+ * @brief Join mz sources
+ * 
+ * @param source 
+ * @param destination 
+ * @param skip_delete 
+ */
 void minr_join_mz(char *source, char *destination, bool skip_delete)
 {
 	char src_path[MAX_PATH_LEN] = "\0";
@@ -223,7 +276,13 @@ void minr_join_mz(char *source, char *destination, bool skip_delete)
 	if (!skip_delete) rmdir(src_path);
 }
 
-/* Join snippets */
+/**
+ * @brief  Join snippets
+ * 
+ * @param source 
+ * @param destination 
+ * @param skip_delete 
+ */
 void minr_join_snippets(char *source, char *destination, bool skip_delete)
 {
 	char src_path[MAX_PATH_LEN] = "\0";
@@ -239,6 +298,11 @@ void minr_join_snippets(char *source, char *destination, bool skip_delete)
 	if (!skip_delete) rmdir(src_path);
 }
 
+/**
+ * @brief 
+ * 
+ * @param job 
+ */
 void minr_join(struct minr_job *job)
 {
 	char *source = job->join_from;

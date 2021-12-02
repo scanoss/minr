@@ -21,11 +21,23 @@
  */
 
 /* Returns the hexadecimal md5 sum for "path" */
+
+/**
+  * @file md5.c
+  * @date 7 Feb 2021
+  * @brief ???
+  */
 #include <openssl/md5.h>
 
 #include "minr.h"
 #include "md5.h"
 
+/**
+ * @brief Calculate the md5 sum of a file
+ * 
+ * @param path 
+ * @return uint8_t* 
+ */
 uint8_t *file_md5 (char *path)
 {
 	uint8_t *c = calloc(16,1);

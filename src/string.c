@@ -21,13 +21,25 @@
  */
 
 
-/* Perform a fast case-insensitive string comparison */
+/**
+  * @file string.c
+  * @date 26 Oct 2021 
+  * @brief ???
+  */
+
+
 #include <stdbool.h>
 #include <stdint.h>
 #include <ctype.h>
 #include "minr.h"
 
-/* Replace character */
+/**
+ * @brief Replace character
+ * 
+ * @param string 
+ * @param replace 
+ * @param with 
+ */
 void char_replace(char *string, char replace, char with)
 {
 	char *s = string;
@@ -38,13 +50,30 @@ void char_replace(char *string, char replace, char with)
 	}
 }
 
-/* Case insensitive string comparison */
+/**
+ * @brief Case insensitive string comparison
+ * 
+ * @param a 
+ * @param b 
+ * @param len 
+ * @return true 
+ * @return false 
+ */
 bool strn_icmp(char *a, char *b, int len)
 {
 	for (int i = 0; i < len; i++) if (tolower(a[i]) != tolower(b[i])) return false;
 	return true;
 }
 
+/**
+ * @brief 
+ * 
+ * @param src 
+ * @param src_ln 
+ * @param out 
+ * @param max_in 
+ * @param max_out 
+ */
 void normalize_src(char *src, uint64_t src_ln, char *out, int max_in, int max_out)
 {
 	int out_ptr = 0;
@@ -59,7 +88,12 @@ void normalize_src(char *src, uint64_t src_ln, char *out, int max_in, int max_ou
 	out[out_ptr] = 0;
 }
 
-/* Count number of non alphanumeric (nor spaces) characters in string until EOL */
+/**
+ * @brief Count number of non alphanumeric (nor spaces) characters in string until EOL
+ * 
+ * @param str 
+ * @return int 
+ */
 int count_nonalnum(char *str)
 {
 	char *s = str;
@@ -72,7 +106,12 @@ int count_nonalnum(char *str)
 	return count;
 }
 
-/* Count number of alphanumeric characters in string until EOL */
+/**
+ * @brief Count number of alphanumeric characters in string until EOL
+ * 
+ * @param str 
+ * @return int 
+ */
 int count_alnum(char *str)
 {
 	char *s = str;
@@ -85,7 +124,13 @@ int count_alnum(char *str)
 	return count;
 }
 
-/* Count number of chr occurrences in str */
+/**
+ * @brief Count number of chr occurrences in str
+ * 
+ * @param chr 
+ * @param str 
+ * @return int 
+ */
 int count_chr(char chr, char *str)
 {
 	char *s = str;
@@ -98,7 +143,12 @@ int count_chr(char chr, char *str)
 	return count;
 }
 
-/* Count number of chars in str until EOL */
+/**
+ * @brief Count number of chars in str until EOL
+ * 
+ * @param str 
+ * @return int 
+ */
 int linelen(char *str)
 {
 	char *s = str;

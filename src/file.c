@@ -20,6 +20,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+  * @file file.c
+  * @date 7 Feb 2021
+  * @brief Utilities functions to process files.
+  */
 
 #include <sys/stat.h>
 #include <openssl/md5.h>
@@ -36,6 +41,12 @@
 #include "minr.h"
 #include "file.h"
 
+/**
+ * @brief Verify if a path is a file and exists.
+ * 
+ * @param path Path to verify.
+ * @return true the path is a file, false otherwise. 
+ */
 bool is_file(char *path)
 {
 
@@ -45,7 +56,12 @@ bool is_file(char *path)
 
 }
 
-/* Returns true if "path" is a directory */
+/**
+ * @brief Verify if a path is a directory and exists.
+ * 
+ * @param path Path to verify. 
+ * @return true The path is a directory, false otherwise.
+ */
 bool is_dir(char *path)
 {
     struct stat pstat;
@@ -53,13 +69,27 @@ bool is_dir(char *path)
     return false;
 }
 
+/**
+ * @brief Creates a directory with 0755 permissions.
+ * If the folder already exists the folder is not replaced.
+ * 
+ * @param path Path to the folder to create.
+ * @return true Folder created or already exists. False in error case.
+ */
 bool create_dir(char *path)
 {
   if (is_dir(path)) return true;
   if (mkdir(path, 0755)) return false;
   return true;
 }
-		
+
+/**
+ * @brief Checks if a concatenation of path and filename exists not exceeds the max_path_length.
+ * 
+ * @param dir 
+ * @param file 
+ * @return true valid path. False otherwise.
+ */
 bool valid_path(char *dir, char *file)
 {
 	int path_len = strlen(dir) + 1 + strlen(file);
@@ -67,14 +97,25 @@ bool valid_path(char *dir, char *file)
 }
 
 
-/* Returns true if "path" is not a single nor a double dot */
+
+/**
+ * @brief Returns true if "path" is not a single nor a double dot 
+ * 
+ * @param path 
+ * @return true 
+ */
 bool not_a_dot (char *path)
 {
 	if (strcmp(path, ".") && strcmp(path, "..")) return true;
 	return false;
 }
 
-/* Open 256 "file" descriptors */
+/**
+ * @brief Open 256 "file" descriptors
+ * 
+ * @param mined_path 
+ * @return FILE** 
+ */
 FILE **open_file (char *mined_path)
 {
 	char *path = calloc(MAX_PATH_LEN, 1);
@@ -104,7 +145,13 @@ FILE **open_file (char *mined_path)
 	return out;
 }
 
-/* Open 256 "snippet" descriptors */
+
+/**
+ * @brief Open 256 "snippet" descriptors
+ * 
+ * @param base_path 
+ * @return int* 
+ */
 int *open_snippet (char *base_path)
 {
 	char *path = calloc(MAX_PATH_LEN, 1);
@@ -134,6 +181,12 @@ int *open_snippet (char *base_path)
 	return out;
 }
 
+/**
+ * @brief Gets the size of a file.
+ * 
+ * @param path Path to the file. 
+ * @return uint64_t Size of the file in bytes. 
+ */
 uint64_t file_size(char *path)
 {
 	/* Open file */
@@ -147,6 +200,13 @@ uint64_t file_size(char *path)
 	return size;
 }
 
+/**
+ * @brief Verify if there is enough space to store X bytes in a disk.
+ * 
+ * @param file the pathname of any file within the mounted filesystem
+ * @param needed space needed in bytes
+ * @return true 
+ */
 bool check_disk_free(char *file, uint64_t needed)
 {
 	struct statvfs stat;

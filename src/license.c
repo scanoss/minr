@@ -19,6 +19,13 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+
+/**
+  * @file license.c
+  * @date 2 Sep 2021 
+  * @brief ???
+  */
+
 #include <libgen.h>
 #include <fcntl.h>
 #include <stdlib.h>
@@ -37,7 +44,13 @@ void normalize_src(char *src, uint64_t src_ln, char *out, int max_in, int max_ou
 bool strn_icmp(char *a, char *b, int len);
 
 
-/* Check if SPDX-License-Identifier is found at *src */
+
+/**
+ * @brief Check if SPDX-License-Identifier is found at *src
+ * @param src 
+ * @return true 
+ * @return false 
+ */
 bool is_spdx_license_identifier(char *src)
 {
 	int tag_len = 24; // length of "SPDX-License-Identifier:"
@@ -45,7 +58,12 @@ bool is_spdx_license_identifier(char *src)
 }
 
 
-/* Returns pointer to SPDX-License-Identifier tag (null if not found) */
+/**
+ * @brief Returns pointer to SPDX-License-Identifier tag (null if not found)
+ * 
+ * @param src 
+ * @return char* 
+ */
 char *spdx_license_identifier(char *src)
 {
 	int tag_len = 24; // length of "SPDX-License-Identifier:"
@@ -82,7 +100,13 @@ char *spdx_license_identifier(char *src)
 	return out;
 }
 
-/* Return a pointer to the SPDX-License-Identifier if found in src header */
+/**
+ * @brief Return a pointer to the SPDX-License-Identifier if found in src header.
+ * 
+ * @param src 
+ * @param src_ln 
+ * @return char* 
+ */
 char *mine_spdx_license_identifier(char *src, uint64_t src_ln)
 {
 	/* Max bytes/lines to analyze */
@@ -105,8 +129,12 @@ char *mine_spdx_license_identifier(char *src, uint64_t src_ln)
 	return NULL;
 }
 
-/* Normalize the license in *path and output license definition
-   lines for license_ids.c */
+/**
+ * @brief Normalize the license in *path and output license definition lines for license_ids.c
+ * 
+ * @param path 
+ * @param counter 
+ */
 void normalize_license(char *path, int counter)
 {
 	/* Open file */
@@ -139,7 +167,14 @@ void normalize_license(char *path, int counter)
 	free(src);
 }
 
-/* Return the number of files present in the path dir structure */
+/**
+ * @brief Return the number of files present in the path dir structure
+ * 
+ * @param path 
+ * @param count 
+ * @return int 
+ */
+
 int count_files(char *path, int *count)
 {
 	char newpath[MAX_PATH_LEN];
@@ -162,7 +197,13 @@ int count_files(char *path, int *count)
 	return *count;
 }
 
-/* Recurse the provided directory */
+/**
+ * @brief Recurse the provided directory
+ * 
+ * @param path 
+ * @param counter 
+ * @return int 
+ */
 int recurse_dir(char *path, int *counter)
 {
 	char newpath[MAX_PATH_LEN];
@@ -192,7 +233,11 @@ int recurse_dir(char *path, int *counter)
 	return *counter;
 }
 
-/* Auto-generate a license_ids.c file with normalized license texts for license detection */
+/**
+ * @brief Auto-generate a license_ids.c file with normalized license texts for license detection
+ * 
+ * @param path 
+ */
 void generate_license_ids_c(char *path)
 {
 	int count = 0;
@@ -206,7 +251,14 @@ void generate_license_ids_c(char *path)
 	printf("\n  *count = %d;\n  return licenses;\n}\n", counter);
 }
 
-/* Return true if *l is entirely found at *s */
+/**
+ * @brief Return true if *l is entirely found at *s
+ * 
+ * @param s 
+ * @param l 
+ * @return true 
+ * @return false 
+ */
 bool license_cmp(char *s, char *l)
 {
 	while (*s && *l) if (*(l++) != *(s++)) return false;
@@ -214,7 +266,15 @@ bool license_cmp(char *s, char *l)
 	return false;
 }
 
-/* Attempt license detection in the header of *src */
+/**
+ * @brief Attempt license detection in the header of *src
+ * 
+ * @param src 
+ * @param src_ln 
+ * @param licenses 
+ * @param license_count 
+ * @return char* 
+ */
 char *mine_license_header(char *src, uint64_t src_ln, normalized_license *licenses, int license_count)
 {
 	/* Max bytes/lines to analyze */
@@ -236,12 +296,16 @@ char *mine_license_header(char *src, uint64_t src_ln, normalized_license *licens
 	return NULL;
 }
 
-/* License sources
-   0 = Declared in component
-   1 = Declared in file with SPDX-License-Identifier
-   2 = Detected in header
-   3 = Declared in LICENSE file
-   */
+/**
+ * @brief License sources
+ *    	0 = Declared in component
+ *   	1 = Declared in file with SPDX-License-Identifier
+ *    	2 = Detected in header
+ *  	3 = Declared in LICENSE file
+ * @param job 
+ * @param id 
+ * @param license_file 
+ */
 void mine_license(struct minr_job *job, char *id, bool license_file)
 {
 	FILE *fp;

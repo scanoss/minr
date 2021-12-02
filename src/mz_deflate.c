@@ -19,6 +19,13 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+
+/**
+  * @file mz_deflate.c
+  * @date 26 Oct 2021 
+  * @brief ???
+  */
+
 #include <libgen.h>
 
 #include "ldb.h"
@@ -26,6 +33,13 @@
 #include "md5.h"
 #include "hex.h"
 
+/**
+ * @brief 
+ * 
+ * @param a 
+ * @param b 
+ * @return int 
+ */
 int mz_key_cmp(const void * a, const void * b)
 {
     const uint8_t *va = a;
@@ -41,7 +55,13 @@ int mz_key_cmp(const void * a, const void * b)
     return 0;
 }
 
-/* Handling function for listing mz keys */
+/**
+ * @brief Handling function for listing mz keys
+ * 
+ * @param job 
+ * @return true 
+ * @return false 
+ */
 bool mz_dump_keys_handler(struct mz_job *job)
 {
 	/* Fill MD5 with item id */
@@ -53,7 +73,11 @@ bool mz_dump_keys_handler(struct mz_job *job)
 	return true;
 }
 
-/* Output unique mz keys to STDOUT (binary) */
+/**
+ * @brief  Output unique mz keys to STDOUT (binary) 
+ * 
+ * @param job 
+ */
 void mz_dump_keys(struct mz_job *job)
 {
 	/* Use job->ptr to store keys */
@@ -79,7 +103,13 @@ void mz_dump_keys(struct mz_job *job)
 	free(job->ptr);
 }
 
-/* Handling function for listing mz contents */
+/**
+ * @brief Handling function for listing mz contents
+ * 
+ * @param job 
+ * @return true 
+ * @return false 
+ */
 bool mz_list_handler(struct mz_job *job)
 {
 	/* Fill MD5 with item id */
@@ -108,6 +138,11 @@ bool mz_list_handler(struct mz_job *job)
 	return true;
 }
 
+/**
+ * @brief 
+ * 
+ * @param job 
+ */
 void mz_list(struct mz_job *job)
 {
 	/* Extract first two MD5 bytes from the file name */
@@ -125,6 +160,13 @@ void mz_list(struct mz_job *job)
 	free(job->mz);
 }
 
+/**
+ * @brief 
+ * 
+ * @param job 
+ * @return true 
+ * @return false 
+ */
 bool mz_cat_handler(struct mz_job *job)
 {
 	if (!memcmp(job->id, job->key + 2, MZ_MD5))
@@ -140,6 +182,12 @@ bool mz_cat_handler(struct mz_job *job)
 	return true;
 }
 
+/**
+ * @brief 
+ * 
+ * @param job 
+ * @param key 
+ */
 void mz_cat(struct mz_job *job, char *key)
 {
 	/* Calculate mz file path */
@@ -163,6 +211,13 @@ void mz_cat(struct mz_job *job, char *key)
 	free(job->mz);
 }
 
+/**
+ * @brief 
+ * 
+ * @param job 
+ * @return true 
+ * @return false 
+ */
 bool mz_extract_handler(struct mz_job *job)
 {
 	/* Fill MD5 with item id */
@@ -195,6 +250,11 @@ bool mz_extract_handler(struct mz_job *job)
 	return true;
 }
 
+/**
+ * @brief 
+ * 
+ * @param job 
+ */
 void mz_extract(struct mz_job *job)
 {
 	/* Extract first two MD5 bytes from the file name */
