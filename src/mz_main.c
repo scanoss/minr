@@ -23,7 +23,7 @@
 /**
   * @file mz_main.c
   * @date 2 Sep 2021 
-  * @brief ???
+  * @brief Implement MZ interpreter
   */
 
 #include <ctype.h>

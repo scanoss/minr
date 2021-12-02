@@ -24,7 +24,7 @@
 /**
   * @file string.c
   * @date 26 Oct 2021 
-  * @brief ???
+  * @brief Implements useful string functions
   */
 
 
@@ -36,9 +36,9 @@
 /**
  * @brief Replace character
  * 
- * @param string 
- * @param replace 
- * @param with 
+ * @param string input string
+ * @param replace char to be replaced
+ * @param with replacement char
  */
 void char_replace(char *string, char replace, char with)
 {
@@ -53,11 +53,10 @@ void char_replace(char *string, char replace, char with)
 /**
  * @brief Case insensitive string comparison
  * 
- * @param a 
- * @param b 
- * @param len 
- * @return true 
- * @return false 
+ * @param a string a
+ * @param b  string b
+ * @param len string len
+ * @return true if they are the equals
  */
 bool strn_icmp(char *a, char *b, int len)
 {
@@ -66,13 +65,13 @@ bool strn_icmp(char *a, char *b, int len)
 }
 
 /**
- * @brief 
+ * @brief Normalize string removed unwanted characters
  * 
- * @param src 
- * @param src_ln 
- * @param out 
- * @param max_in 
- * @param max_out 
+ * @param src input string
+ * @param src_ln string size
+ * @param out out string
+ * @param max_in max input characters
+ * @param max_out max output characters
  */
 void normalize_src(char *src, uint64_t src_ln, char *out, int max_in, int max_out)
 {
@@ -91,8 +90,8 @@ void normalize_src(char *src, uint64_t src_ln, char *out, int max_in, int max_ou
 /**
  * @brief Count number of non alphanumeric (nor spaces) characters in string until EOL
  * 
- * @param str 
- * @return int 
+ * @param str input string
+ * @return int number of non alphanumeric characters
  */
 int count_nonalnum(char *str)
 {
@@ -109,8 +108,8 @@ int count_nonalnum(char *str)
 /**
  * @brief Count number of alphanumeric characters in string until EOL
  * 
- * @param str 
- * @return int 
+ * @param str input string
+ * @return int numbre of alphanumeric
  */
 int count_alnum(char *str)
 {
@@ -127,9 +126,9 @@ int count_alnum(char *str)
 /**
  * @brief Count number of chr occurrences in str
  * 
- * @param chr 
- * @param str 
- * @return int 
+ * @param chr wanted char
+ * @param str input string
+ * @return int number of ocurrences
  */
 int count_chr(char chr, char *str)
 {
@@ -146,8 +145,8 @@ int count_chr(char chr, char *str)
 /**
  * @brief Count number of chars in str until EOL
  * 
- * @param str 
- * @return int 
+ * @param str input string
+ * @return int number of chars
  */
 int linelen(char *str)
 {

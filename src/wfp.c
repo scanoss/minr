@@ -40,12 +40,11 @@
 #include "wfp.h"
 
 /**
- * @brief 
+ * @brief Extrac wfp from a surce
  * 
- * @param md5 
- * @param src 
- * @param length 
- * @param check_mz 
+ * @param md5 file md5
+ * @param src data source
+ * @param length data lenght
  */
 void extract_wfp(uint8_t *md5, char *src, int length, bool check_mz)
 {
@@ -103,11 +102,10 @@ void extract_wfp(uint8_t *md5, char *src, int length, bool check_mz)
 }
 
 /**
- * @brief 
+ * @brief MZ wfp extract handler
  * 
- * @param job 
+ * @param job pointer mz job
  * @return true 
- * @return false 
  */
 bool mz_wfp_extract_handler(struct mz_job *job)
 {
@@ -126,7 +124,7 @@ bool mz_wfp_extract_handler(struct mz_job *job)
 /**
  * @brief Extracts wfps from the given mz file path 
  * 
- * @param path 
+ * @param path path to mz file
  */
 void mz_wfp_extract(char *path)
 {

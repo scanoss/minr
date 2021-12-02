@@ -23,7 +23,7 @@
 /**
   * @file mz_optimize.c
   * @date 26 Oct 2021 
-  * @brief ???
+  * @brief Implement MZ optimization functions
   */
 
 #include <zlib.h>
@@ -38,9 +38,8 @@
 /**
  * @brief Check if job->id is found in job->xkeys (see -X)
  * 
- * @param job 
- * @return true 
- * @return false 
+ * @param job pointer to mz job
+ * @return true if it was found
  */
 bool mz_id_excluded(struct mz_job *job)
 {
@@ -62,9 +61,8 @@ bool mz_id_excluded(struct mz_job *job)
 /**
  * @brief Check if job->id is found in the LDB
  * 
- * @param job 
- * @return true 
- * @return false 
+ * @param job pointee to mz job.
+ * @return true if exist
  */
 bool mz_id_exists_in_ldb(struct mz_job *job)
 {
@@ -88,12 +86,11 @@ bool mz_id_exists_in_ldb(struct mz_job *job)
 }
 
 /**
- * @brief 
+ * @brief Check a md5 match
  * 
- * @param mz1 
- * @param mz2 
- * @return true 
- * @return false 
+ * @param mz1 input 1
+ * @param mz2 input 2
+ * @return true if they match
  */
 bool mz_md5_match(uint8_t *mz1, uint8_t *mz2)
 {
@@ -107,9 +104,8 @@ bool mz_md5_match(uint8_t *mz1, uint8_t *mz2)
  * @brief Handler function to be passed to mz_parse()
  *		Eliminates duplicated data, unwanted content and (optionally) orphan files (not found in the KB)
  * 
- * @param job 
+ * @param job pointer to mz job
  * @return true 
- * @return false 
  */
 bool mz_optimise_handler(struct mz_job *job)
 {
@@ -181,7 +177,7 @@ bool mz_optimise_handler(struct mz_job *job)
 /**
  * @brief Optimise an mz file removing duplicated data
  * 
- * @param job 
+ * @param job pointer to mz job
  */
 void mz_optimise(struct mz_job *job)
 {

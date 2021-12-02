@@ -25,7 +25,7 @@
 /**
   * @file quality.c
   * @date 7 Feb 2021 
-  * @brief ???
+  * @brief Contains functions used to mine quality
   */
 
 #include "minr.h"
@@ -33,12 +33,12 @@
 #include "quality.h"
 
 /**
- * @brief 
+ * @brief Mine quality statistics from the code
  * 
- * @param mined_path 
- * @param md5 
- * @param src 
- * @param size 
+ * @param mined_path path to mine
+ * @param md5 file mdz
+ * @param src pointer to data source
+ * @param size data size
  */
 void mine_quality(char *mined_path, char *md5, char *src, long size)
 {
