@@ -34,13 +34,11 @@ bool scancode_run(char * path)
 {
 	FILE *sc_file;
 	char * command;
-	asprintf(&command, "scancode -cl --quiet -n 6 --timeout 2 --json scancode.json %s", path);
+	asprintf(&command, "scancode -cl --quiet -n 6 --timeout 2 --json scancode.json %s &&\
+	 					jq -r '.files[] | \"\\(.path),4,\\(.licenses[].spdx_license_key)\"' scancode.json | sort -u | cut -d/ -f2- > licenses.csv", path);
 	printf(command);
 	sc_file = popen( command, "r");
-	/*
-	char c;
-	while ((c = getc(sc_file)) != EOF)
-    putchar(c);*/
+
     fclose(sc_file);
 	free(command);
     return true;
