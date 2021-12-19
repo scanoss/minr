@@ -91,6 +91,7 @@ struct minr_job
 	bool all_extensions;
 	bool exclude_mz;
 	bool exclude_detection;
+	bool scancode_mode;
 	char local_mining;
 	
 	// minr -i

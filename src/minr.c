@@ -259,8 +259,12 @@ bool download(struct minr_job *job)
 	}
 
 	if (unzipcommand) free(unzipcommand);
+	/* Add de unziped folder to tmp path */
+	char * ext = strrchr(tmp_file,'.');
+	if (ext)
+		ext[0] = '\0';
+	strcpy(job->tmp_dir,tmp_file);
 	free(tmp_file);
-
 	return true;
 }
 

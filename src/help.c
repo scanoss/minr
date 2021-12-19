@@ -48,6 +48,7 @@ void show_help ()
 	printf("-d METADATA  Comma separated list of vendor,component,version,release_date,license,purl\n");
 	printf("-u URL       Url to be mined (it also accepts a local folder)\n");
 	printf("-U URL       Optional URL to be recorded instead of the mined one (-u)\n");
+	printf("-S For SCANCODE license mining\n");
 	printf("\n");
 
 	printf("Mining configuration:\n");

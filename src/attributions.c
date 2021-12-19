@@ -100,7 +100,10 @@ void mine_attribution_notice(struct minr_job *job, char *path)
 {
 	if (!load_file(job,path)) return;
 
-	mine_license(job, job->purlid, true);
+	if (!job->scancode_mode)
+	{
+		mine_license(job, job->purlid, true);
+	}
 
 	/* Reload file after license analysis */
 	if (!load_file(job,path)) return;

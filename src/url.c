@@ -34,8 +34,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include "file.h"
-#include "minr.h"
+//#include "minr.h"
 #include "ldb.h"
+#include "scancode.h"
 
 /**
  * @brief Calculate purl md5
@@ -178,6 +179,9 @@ void url_download(struct minr_job *job)
 	{
 		/* Add info to urls.csv */
 		url_add(job);
+		
+		if (job->scancode_mode)
+			scancode_mine_attribution_notice(job);
 
 		recurse(job, job->tmp_dir);
 

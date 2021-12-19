@@ -51,7 +51,6 @@
 #include "import.h"
 #include "crypto.h"
 #include "url.h"
-#include "scancode.h"
 int main(int argc, char *argv[])
 {
 	if (!check_dependencies()) exit(1);
@@ -106,7 +105,7 @@ int main(int argc, char *argv[])
 	int option;
 	bool invalid_argument = false;
 
-	while ((option = getopt(argc, argv, ":c:C:L:Q:Y:o:m:g:w:t:f:T:i:I:l:z:u:U:d:D:S:xXsnkeahvO")) != -1)
+	while ((option = getopt(argc, argv, ":c:C:L:Q:Y:o:m:g:w:t:f:T:i:I:l:z:u:U:d:D:SxXsnkeahvO")) != -1)
 	{
 
 		/* Check valid alpha is entered */
@@ -220,11 +219,8 @@ int main(int argc, char *argv[])
 				job.skip_sort = true;
 				break;
 			case 'S':
-			{
-				scancode_run(optarg);
-				exit(EXIT_SUCCESS);
+				job.scancode_mode = true;
 				break;
-			}
 			case 'n':
 				job.skip_csv_check = true;
 				break;
@@ -396,4 +392,3 @@ int main(int argc, char *argv[])
 	clean_crypto_definitions();
 	exit(exit_code);
 }
-
