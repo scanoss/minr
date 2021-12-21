@@ -52,7 +52,7 @@ void get_purl_id(struct minr_job *job)
 	char purl[MAX_PATH_LEN] = "\0";
 	char version[MAX_PATH_LEN] = "\0";
 	extract_csv(purl, job->metadata, 6, MAX_ARG_LEN);
-	extract_csv(version, job->metadata, 6, MAX_ARG_LEN);
+	extract_csv(version, job->metadata, 3, MAX_ARG_LEN);
 	if (!*purl) return;
 
 	/* Calculate purl md5 */
