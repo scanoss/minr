@@ -29,14 +29,15 @@
  */
 #include <dirent.h>
 #include <ctype.h>
+#include "license.h"
 #include "scancode.h"
 #include "file.h"
 
 #define TMP_DIR "/tmp/minr"
 
-#define LICENSE_PATTERN_NUMBER 2
+#define LICENSE_PATTERN_NUMBER 3
 
-const char LICENSE_PATTERN[LICENSE_PATTERN_NUMBER][10] = {"LIC\0", "COPY\0"};
+const char LICENSE_PATTERN[LICENSE_PATTERN_NUMBER][10] = {"LIC\0", "COPY\0", "NOTI\0"};
 
 static bool prepare_tmp_dir(char * id)
 {
@@ -109,12 +110,13 @@ static bool validate_file(char * path)
 
 }
 
-bool find_files(char * path, char * id)
+bool find_files(struct minr_job *job, char * id)
 {
     DIR *dp;
 	struct dirent *entry;
 
     bool found = false;
+    char * path = job->tmp_dir;
 	if (!(dp = opendir(path))) 
         return found;
     printf(path);
@@ -131,6 +133,9 @@ bool find_files(char * path, char * id)
             if (validate_file(tmp_path))
             {
                 copy_to_tmp(tmp_path, id);
+                
+                if (load_file(job,tmp_path)) 
+                    mine_license(job, job->versionid, true);
                 found = true;
             }
 		}
@@ -148,10 +153,12 @@ bool scancode_mine_attribution_notice(struct minr_job *job)
     if (!job->local_mining)
         asprintf(&csv_path, "%s/licenses.csv", job->mined_path);
     
-    prepare_tmp_dir(job->purlid);
+    prepare_tmp_dir(job->versionid);
     
-    if (find_files(job->tmp_dir, job->purlid))
-        scancode_run(job->purlid, csv_path);
+    if (find_files(job, job->versionid))
+    {
+        scancode_run(job->versionid, csv_path);
+    }
 
     free(csv_path);
 

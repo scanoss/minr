@@ -3,6 +3,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include "minr.h"
 
 bool is_spdx_license_identifier(char *src);
 void mine_license(struct minr_job *job, char *id, bool license_file);

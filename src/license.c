@@ -302,6 +302,8 @@ char *mine_license_header(char *src, uint64_t src_ln, normalized_license *licens
  *   	1 = Declared in file with SPDX-License-Identifier
  *    	2 = Detected in header
  *  	3 = Declared in LICENSE file
+ * 		4 = external scancode detection
+ * 		5 = internal scancode detection
  * @param job pointer to minr job
  * @param id ID string
  * @param license_file tru for license files

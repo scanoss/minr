@@ -1,5 +1,5 @@
 #ifndef __MINR_H
-    #define _MINR_H
+    #define __MINR_H
 // SPDX-License-Identifier: GPL-2.0-or-later
 /*
  * src/minr.h
