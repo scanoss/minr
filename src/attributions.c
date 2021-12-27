@@ -33,6 +33,10 @@
 #include "ignorelist.h"
 #include "ldb.h"
 #include "minr.h"
+#include "scancode.h"
+#include "file.h"
+#include <dirent.h>
+#include <ctype.h>
 
 char *ATTRIBUTION_NOTICES[] =
 {
@@ -46,6 +50,11 @@ char *ATTRIBUTION_NOTICES[] =
 "NOTICE",
 NULL
 };
+
+#define LICENSE_PATTERN_NUMBER 3
+
+const char * LICENSE_PATTERN[] = {"LIC", "COPY", "NOTI"};
+
 
 /**
  * @brief Verify if the filename is an attribution notice
@@ -90,6 +99,97 @@ void attribution_add(struct minr_job *job)
 	fclose(fp);
 }
 
+
+static bool validate_file(char * path)
+{
+    if (!is_file(path))
+        return false;
+    
+    char * file_name = strrchr(path, '/') + 1; //find the las /
+    if (!file_name) //if there is not / then point to the path
+        file_name = path;
+    
+    char upper_file_name[strlen(file_name)+1];
+    memset(upper_file_name, 0, sizeof(upper_file_name));
+    int i = 0;
+     while (*file_name)
+     {
+         upper_file_name[i] = toupper(*file_name);
+         i++;
+         file_name++;
+     }
+
+    for (int j = 0; j < LICENSE_PATTERN_NUMBER; j++)
+    {
+        if (strstr(upper_file_name, LICENSE_PATTERN[j]))
+        {
+            return true;
+        }
+    }
+
+    return false;
+
+}
+
+static bool find_files(struct minr_job *job, char * id)
+{
+    DIR *dp;
+	struct dirent *entry;
+
+    bool found = false;
+    char * path = job->tmp_dir;
+	if (!(dp = opendir(path))) 
+        return found;
+
+	while ((entry = readdir(dp)))
+	{
+        if (valid_path(path, entry->d_name))
+		{
+			/* Assemble path */
+			char tmp_path[MAX_PATH_LEN] = "\0";
+			sprintf(tmp_path, "%s/%s", path, entry->d_name);
+
+			/* File discrimination check #1: Is this an actual file? */
+            if (validate_file(tmp_path))
+            {
+                if (job->scancode_mode)
+					scancode_copy_to_tmp(tmp_path, id);
+                
+                if (load_file(job,tmp_path)) 
+                    mine_license(job, job->versionid, true);
+                found = true;
+            }
+		}
+	}
+
+	if (dp) closedir(dp);
+    return found;
+}
+
+bool mine_license_exec(struct minr_job *job)
+{
+    char *csv_path = NULL;
+    /* Assemble csv path */
+    if (!job->local_mining)
+        asprintf(&csv_path, "%s/licenses.csv", job->mined_path);
+    
+    if (job->scancode_mode)
+		scancode_prepare_tmp_dir(job->versionid);
+    
+    if (find_files(job, job->versionid))
+    {
+    	if (job->scancode_mode)
+			scancode_run(job->versionid, csv_path);
+    }
+
+    free(csv_path);
+
+    return true;
+}
+
+
+
+
 /**
  * @brief Append attribution notice to archive
  * 
@@ -99,11 +199,6 @@ void attribution_add(struct minr_job *job)
 void mine_attribution_notice(struct minr_job *job, char *path)
 {
 	if (!load_file(job,path)) return;
-
-	if (!job->scancode_mode)
-	{
-		mine_license(job, job->purlid, true);
-	}
 
 	/* Reload file after license analysis */
 	if (!load_file(job,path)) return;
@@ -148,3 +243,5 @@ void mine_attribution_notice(struct minr_job *job, char *path)
 
 	mine_copyright(job->mined_path, job->purlid, job->src, job->src_ln, true);
 }
+
+

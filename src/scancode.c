@@ -27,19 +27,14 @@
  * @date 12 Dec 2021
  * @brief Contains functions used to call scancode external module
  */
-#include <dirent.h>
-#include <ctype.h>
+
 #include "license.h"
 #include "scancode.h"
-#include "file.h"
 
 #define TMP_DIR "/tmp/minr"
 
-#define LICENSE_PATTERN_NUMBER 3
 
-const char LICENSE_PATTERN[LICENSE_PATTERN_NUMBER][10] = {"LIC\0", "COPY\0", "NOTI\0"};
-
-static bool prepare_tmp_dir(char * id)
+bool scancode_prepare_tmp_dir(char * id)
 {
     FILE *sc_file;
     char *command;
@@ -51,7 +46,7 @@ static bool prepare_tmp_dir(char * id)
     return true;
 }
 
-static bool copy_to_tmp(char *path, char *id)
+bool scancode_copy_to_tmp(char *path, char *id)
 {
     FILE *sc_file;
     char *command;
@@ -63,7 +58,7 @@ static bool copy_to_tmp(char *path, char *id)
     return true;
 }
 
-static bool scancode_run(char * id, char *csv_file)
+bool scancode_run(char * id, char *csv_file)
 {
     char *command;
     if (csv_file)
@@ -78,89 +73,27 @@ static bool scancode_run(char * id, char *csv_file)
     return true;
 }
 
-static bool validate_file(char * path)
+bool scancode_check(void)
 {
-    if (!is_file(path))
-        return false;
-    
-    char * file_name = strrchr(path, '/') + 1; //find the las /
-    if (!file_name) //if there is not / then point to the path
-        file_name = path;
-    
-    char upper_file_name[strlen(file_name)];
-    memset(upper_file_name, 0, sizeof(upper_file_name));
-    int i = 0;
-     while (*file_name)
-     {
-         upper_file_name[i] = toupper(*file_name);
-         i++;
-         file_name++;
-     }
-
-    for (int j = 0; j < LICENSE_PATTERN_NUMBER; j++)
+    FILE *sc_file;
+    sc_file = popen("scancode --version 2>scancode_error.txt", "r");
+    char * line = NULL;
+    size_t len = 0;
+    int read = 0;
+    bool result = false;
+    while ((read = getline(&line, &len, sc_file)) != -1)
     {
-        if (strstr(upper_file_name, LICENSE_PATTERN[j]))
+        if (read > 0 && strstr(line, "version"))
         {
-            fprintf(stderr,"\n%s - %s\n", path, upper_file_name);
-            return true;
+            result = true;
+            break;
         }
     }
 
-    return false;
-
-}
-
-bool find_files(struct minr_job *job, char * id)
-{
-    DIR *dp;
-	struct dirent *entry;
-
-    bool found = false;
-    char * path = job->tmp_dir;
-	if (!(dp = opendir(path))) 
-        return found;
-    printf(path);
-
-	while ((entry = readdir(dp)))
-	{
-        if (valid_path(path, entry->d_name))
-		{
-			/* Assemble path */
-			char tmp_path[MAX_PATH_LEN] = "\0";
-			sprintf(tmp_path, "%s/%s", path, entry->d_name);
-
-			/* File discrimination check #1: Is this an actual file? */
-            if (validate_file(tmp_path))
-            {
-                copy_to_tmp(tmp_path, id);
-                
-                if (load_file(job,tmp_path)) 
-                    mine_license(job, job->versionid, true);
-                found = true;
-            }
-		}
-	}
-
-	if (dp) closedir(dp);
-    return found;
-
-}
-
-bool scancode_mine_attribution_notice(struct minr_job *job)
-{
-    char *csv_path = NULL;
-    /* Assemble csv path */
-    if (!job->local_mining)
-        asprintf(&csv_path, "%s/licenses.csv", job->mined_path);
+    fclose(sc_file);
     
-    prepare_tmp_dir(job->versionid);
+    if (line)
+        free(line);
     
-    if (find_files(job, job->versionid))
-    {
-        scancode_run(job->versionid, csv_path);
-    }
-
-    free(csv_path);
-
-    return true;
+    return result;   
 }

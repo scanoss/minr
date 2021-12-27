@@ -51,6 +51,7 @@
 #include "import.h"
 #include "crypto.h"
 #include "url.h"
+#include "scancode.h"
 int main(int argc, char *argv[])
 {
 	if (!check_dependencies()) exit(1);
@@ -219,7 +220,10 @@ int main(int argc, char *argv[])
 				job.skip_sort = true;
 				break;
 			case 'S':
-				job.scancode_mode = true;
+				if (scancode_check())
+					job.scancode_mode = true;
+				else
+					fprintf(stderr, "Error, scancode is not present in the system");
 				break;
 			case 'n':
 				job.skip_csv_check = true;

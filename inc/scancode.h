@@ -8,6 +8,8 @@
 #include <string.h>
 #include "minr.h"
 
-bool scancode_mine_attribution_notice(struct minr_job *job);
-
+bool scancode_prepare_tmp_dir(char * id);
+bool scancode_copy_to_tmp(char *path, char *id);
+bool scancode_run(char * id, char *csv_file);
+bool scancode_check(void);
 #endif
