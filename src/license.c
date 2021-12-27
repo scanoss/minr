@@ -341,7 +341,7 @@ void mine_license(struct minr_job *job, char *id, bool license_file)
 		if (!job->local_mining)
 		{
 			fp = fopen(csv_path, "a");
-			fprintf(fp, "%s,%d,%s\n", id, job->is_attribution_notice ? 3 : 1, license);
+			fprintf(fp, "%s,%d,%s\n", id, license_file ? 3 : 1, license);
 			fclose(fp);
 		}
 		else
