@@ -33,7 +33,11 @@
 
 #define TMP_DIR "/tmp/minr"
 
-
+/**
+ * @brief Preparare the directory for temporary file
+ * 
+ * @param id string id used as directory name
+ */
 bool scancode_prepare_tmp_dir(char * id)
 {
     FILE *sc_file;
@@ -45,7 +49,12 @@ bool scancode_prepare_tmp_dir(char * id)
     free(command);
     return true;
 }
-
+/** 
+ * @brief Copy a file to the tmp dir
+ * 
+ * @param path path to the file
+ * @param id id of the tmp dir
+ */
 bool scancode_copy_to_tmp(char *path, char *id)
 {
     FILE *sc_file;
@@ -58,6 +67,11 @@ bool scancode_copy_to_tmp(char *path, char *id)
     return true;
 }
 
+/** 
+ * @brief Call scancode process
+ * @param id id of the tmp dir
+ * @param csv_file result file
+ */
 bool scancode_run(char * id, char *csv_file)
 {
     char *command;
@@ -73,6 +87,11 @@ bool scancode_run(char * id, char *csv_file)
     return true;
 }
 
+
+/** 
+ * @brief Check is a version of scancode is present in the system
+ * @return true if it is present
+ */
 bool scancode_check(void)
 {
     FILE *sc_file;

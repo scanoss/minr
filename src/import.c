@@ -759,6 +759,26 @@ void single_file_import(struct minr_job *job, char *filename, char *tablename, i
 	}
 }
 
+void version_import(struct minr_job *job)
+{
+	char * path =  NULL;
+	asprintf(&path, "%s/version.json",job->import_path);
+		
+	if (is_file(path))
+	{
+		FILE *f = fopen(path, "rb");
+		fseek(f, 0, SEEK_END);
+		long len = ftell(f);
+		fseek(f, 0, SEEK_SET);  /* same as rewind(f); */
+
+		char *string = malloc(len + 1);
+		fread(string, len, 1, f);
+		fclose(f);
+
+		
+	}
+}
+
 /**
  * @brief Import MZ archives
  * 
