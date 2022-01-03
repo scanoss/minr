@@ -807,44 +807,114 @@ void single_file_import(struct minr_job *job, char *filename, char *tablename, i
 	}
 }
 
+static char * version_get_daily(char * json)
+{
+	if (!json)
+		return NULL;
+
+	char * daily = strstr(json, "\"daily\":");
+
+	if (daily)
+	{
+		daily = strchr(daily,':') + 2;
+		char * daily_date = strndup(daily, 8);
+		return daily_date;
+	}
+
+	return NULL;
+
+}
+
+static char * version_get_monthly(char * json)
+{
+	if (!json)
+		return NULL;
+
+	char * monthly = strstr(json, "\"monthly\":");
+
+	if (monthly)
+	{
+		monthly = strchr(monthly,':') + 2;
+		char * monthly_date = strndup(monthly, 5);
+		return monthly_date;
+	}
+
+	return NULL;
+}
+
+static char * version_file_open(char * path)
+{
+	FILE *f = fopen(path, "rb");
+	if (!f)
+		return NULL;
+
+	fseek(f, 0, SEEK_END);
+	long len = ftell(f);
+	fseek(f, 0, SEEK_SET);
+
+	char * file_content = malloc(len + 1);
+	fread(file_content, len, 1, f);
+	fclose(f);
+
+	return file_content;
+}
+
+
 /**
  * @brief Import version.json
  * @param job pointer to minr job
+ * @return true if succed
  */
-void version_import(struct minr_job *job)
+bool version_import(struct minr_job *job)
 {
+	#define JSON_CONTENT  "{\"monthly\":\"%s\", \"daily\":\"%s\"}"
 	char *path = NULL;
-	char *file_content = NULL;
 	asprintf(&path, "%s/version.json", job->import_path);
 
-	if (is_file(path))
-	{
-		FILE *f = fopen(path, "rb");
-		fseek(f, 0, SEEK_END);
-		long len = ftell(f);
-		fseek(f, 0, SEEK_SET); /* same as rewind(f); */
+	if (!is_file(path))
+		return false;
+	
+	char * vf_import = version_file_open(path);
+	free(path);
 
-		file_content = malloc(len + 1);
-		fread(file_content, len, 1, f);
-		fclose(f);
-		free(path);
-	}
-	else // if the version file dont exist create a default one
-	{
-		printf("WARNING: version.json is not present, creating a default file with the day date\n");
-		time_t t = time(NULL);
-		struct tm tm = *localtime(&t);
-
-		asprintf(&file_content, "{\n\"monthly\":\"%02d.%02d\",\n \"daily\":\"%02d.%02d.%02d\"\n}\n", tm.tm_year - 100, tm.tm_mon + 1,
-				 tm.tm_year - 100, tm.tm_mon + 1, tm.tm_mday);
-	}
+	char * daily_date_i = version_get_daily(vf_import);
+	char * monthly_date_i = version_get_monthly(vf_import);
 
 	asprintf(&path, "/var/lib/ldb/%s/version.json", job->dbname);
+	char * vf_actual = version_file_open(path);		
+	char * daily_date_o = version_get_daily(vf_actual);
+	char * monthly_date_o = version_get_monthly(vf_actual);
+
+
+	if (!daily_date_i && daily_date_o)
+	{
+		daily_date_i = daily_date_o;
+		daily_date_o = NULL;
+	}
+	
+	if (!monthly_date_i && monthly_date_o)
+	{
+		monthly_date_i = monthly_date_o;
+		monthly_date_o = NULL;
+	}
+
+
 	FILE *f = fopen(path, "w");
-	fputs(file_content, f);
+	
+	if (!f)
+		return false;
+
+	fprintf(f, JSON_CONTENT, monthly_date_i == NULL ? "N/A" : monthly_date_i ,daily_date_i == NULL ? "N/A" :  daily_date_i);
 	fclose(f);
 	free(path);
-	free(file_content);
+	free(daily_date_i);
+	free(daily_date_o);
+	free(monthly_date_i);
+	free(monthly_date_o);
+	free(vf_actual);
+	free(vf_import);
+
+	return true;
 }
 
 /**
@@ -885,6 +955,13 @@ void import_mz(struct minr_job *job)
  */
 void mined_import(struct minr_job *job)
 {
+	/* Import version.json file */
+	if (!version_import(job))
+	{
+		fprintf(stderr, "Failed to import version.json file. This file must be present to continue\n");
+		return;
+	}
+	
 	/* Create database */
 	if (!ldb_database_exists(job->dbname))
 		ldb_create_database(job->dbname);
@@ -930,9 +1007,6 @@ void mined_import(struct minr_job *job)
 	/* Import .bin files */
 	if (this_table("wfp", job))
 		import_snippets(job);
-	
-	/* Import version.json file */
-	version_import(job);
 
 	/* Remove mined directory */
 	if (!job->skip_delete)
