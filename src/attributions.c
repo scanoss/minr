@@ -50,9 +50,8 @@ char *ATTRIBUTION_NOTICES[] =
 		"NOTICE",
 		NULL};
 
-#define LICENSE_PATTERN_NUMBER 3
-
-const char *LICENSE_PATTERN[] = {"LIC", "COPY", "NOTI"};
+const char *LICENSE_PATTERN[] = {"LIC", "COPY"};
+const char *LICENSE_PATTERN_START_WITH[] = {"NOTICE"};
 
 /**
  * @brief Verify if the filename is an attribution notice
@@ -126,13 +125,22 @@ static bool validate_file(char *path)
 		file_name++;
 	}
 
-	for (int j = 0; j < LICENSE_PATTERN_NUMBER; j++)
+	for (int j = 0; j < sizeof(LICENSE_PATTERN)/sizeof(LICENSE_PATTERN[0]); j++)
 	{
 		if (strstr(upper_file_name, LICENSE_PATTERN[j]))
 		{
 			return true;
 		}
 	}
+
+	for (int j = 0; j < sizeof(LICENSE_PATTERN_START_WITH)/sizeof(LICENSE_PATTERN_START_WITH[0]); j++)
+	{
+		if (!strncmp(upper_file_name, LICENSE_PATTERN_START_WITH[j], strlen(LICENSE_PATTERN_START_WITH[j])))
+		{
+			return true;
+		}
+	}
+
 
 	return false;
 }
