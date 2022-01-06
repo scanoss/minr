@@ -898,9 +898,18 @@ bool version_import(struct minr_job *job)
 	char * daily_date_i = version_get_daily(vf_import);
 	char * monthly_date_i = version_get_monthly(vf_import);
 
-	if (!daily_date_i && !monthly_date_i)
+	int test_len = strlen(vf_import);
+	
+	if (daily_date_i)
+		test_len -= (strlen(daily_date_i) + strlen("\"daily\":"));
+	if (monthly_date_i)
+		test_len -= (strlen(monthly_date_i) + strlen("\"monthly\":"));
+	//exit if cannot find daily or monthly or there are am excess of characteres in the json
+	if ((!daily_date_i && !monthly_date_i) || test_len > 10)
 	{
 		free(vf_import);
+		free(daily_date_i);
+		free(monthly_date_i);
 		return false;
 	}
 
