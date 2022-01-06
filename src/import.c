@@ -816,8 +816,18 @@ static char * version_get_daily(char * json)
 
 	if (daily)
 	{
-		daily = strchr(daily,':') + 2;
-		char * daily_date = strndup(daily, 8);
+		daily = strchr(daily,':');
+		daily = (char*) memrchr(daily,'"', 3);
+		
+		if(!daily)
+			return NULL;
+
+		char * daily_date = strndup(daily+1, 8);
+		if (strstr(daily_date, "N/A"))
+		{
+			free(daily_date);
+			return NULL;
+		}
 		return daily_date;
 	}
 
@@ -834,8 +844,16 @@ static char * version_get_monthly(char * json)
 
 	if (monthly)
 	{
-		monthly = strchr(monthly,':') + 2;
-		char * monthly_date = strndup(monthly, 5);
+		monthly = strchr(monthly,':');
+		monthly = memrchr(monthly,'"', 4);
+		if (!monthly)
+			return NULL;
+		char * monthly_date = strndup(monthly+1, 5);
+		if (strstr(monthly_date, "N/A"))
+		{
+			free(monthly_date);
+			return NULL;
+		}
 		return monthly_date;
 	}
 
@@ -879,6 +897,12 @@ bool version_import(struct minr_job *job)
 
 	char * daily_date_i = version_get_daily(vf_import);
 	char * monthly_date_i = version_get_monthly(vf_import);
+
+	if (!daily_date_i && !monthly_date_i)
+	{
+		free(vf_import);
+		return false;
+	}
 
 	asprintf(&path, "/var/lib/ldb/%s/version.json", job->dbname);
 	char * vf_actual = version_file_open(path);		
@@ -958,7 +982,7 @@ void mined_import(struct minr_job *job)
 	/* Import version.json file */
 	if (!version_import(job))
 	{
-		fprintf(stderr, "Failed to import version.json file. This file must be present to continue\n");
+		fprintf(stderr, "Failed to import version.json file. This file must be present and must has a valid format to continue\n");
 		return;
 	}
 	
