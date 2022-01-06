@@ -131,6 +131,8 @@ uint32_t *hashes, *lines;
 /* File descriptor arrays */
 FILE *out_component;
 FILE **out_file;
+FILE **out_file_extra;
+extern char extra_path[];
 int *out_snippet;
 
 extern char tmp_path[MAX_ARG_LEN];
