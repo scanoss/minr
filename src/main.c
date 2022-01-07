@@ -223,7 +223,7 @@ int main(int argc, char *argv[])
 				if (scancode_check())
 					job.scancode_mode = true;
 				else
-					fprintf(stderr, "Error, scancode is not present in the system");
+					fprintf(stderr, "Error, scancode and jq must be present in the system");
 				break;
 			case 'n':
 				job.skip_csv_check = true;

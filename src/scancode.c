@@ -95,24 +95,28 @@ bool scancode_run(char * id, char *csv_file)
 bool scancode_check(void)
 {
     FILE *sc_file;
-    sc_file = popen("scancode --version 2>scancode_error.txt", "r");
+    sc_file = popen("scancode --version 2>scancode_error.txt && jq --version 2>scancode_error.txt", "r");
     char * line = NULL;
     size_t len = 0;
     int read = 0;
-    bool result = false;
+    bool scancode_present = false;
+    bool jq_present = false;
+
     while ((read = getline(&line, &len, sc_file)) != -1)
     {
-        if (read > 0 && strstr(line, "version"))
+        if (read > 0 && strstr(line, "ScanCode version"))
         {
-            result = true;
-            break;
+            scancode_present = true;
         }
+
+        if (read > 0 && strstr(line, "jq-"))
+        {
+            jq_present = true;
+        }
+        free(line);
     }
 
     fclose(sc_file);
-    
-    if (line)
-        free(line);
-    
-    return result;   
+        
+    return (scancode_present &&  jq_present);   
 }
