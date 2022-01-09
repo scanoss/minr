@@ -51,7 +51,7 @@ void get_purl_id(struct minr_job *job)
 	char purl[MAX_PATH_LEN] = "\0";
 	char version[MAX_PATH_LEN] = "\0";
 	extract_csv(purl, job->metadata, 6, MAX_ARG_LEN);
-	extract_csv(version, job->metadata, 6, MAX_ARG_LEN);
+	extract_csv(version, job->metadata, 3, MAX_ARG_LEN);
 	if (!*purl) return;
 
 	/* Calculate purl md5 */
@@ -178,6 +178,9 @@ void url_download(struct minr_job *job)
 	{
 		/* Add info to urls.csv */
 		url_add(job);
+		
+		/* Find for license declaration into specific files in the roor dir (no recursive) */
+		mine_license_exec(job);
 
 		recurse(job, job->tmp_dir);
 

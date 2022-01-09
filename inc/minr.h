@@ -1,5 +1,5 @@
 #ifndef __MINR_H
-    #define _MINR_H
+    #define __MINR_H
 // SPDX-License-Identifier: GPL-2.0-or-later
 /*
  * src/minr.h
@@ -29,7 +29,7 @@
 #include <string.h>
 
 /* Definitions */
-#define MINR_VERSION "2.2.9"
+#define MINR_VERSION "2.3.0"
 #define FILE_FILES 256
 #define MAX_ARG_LEN 1024
 #define MIN_FILE_REC_LEN 70
@@ -91,6 +91,7 @@ struct minr_job
 	bool all_extensions;
 	bool exclude_mz;
 	bool exclude_detection;
+	bool scancode_mode;
 	char local_mining;
 	
 	// minr -i
@@ -144,6 +145,7 @@ void recurse(struct minr_job *job, char *path);
 void minr_join(struct minr_job *job);
 void minr_join_mz(char *source, char *destination, bool skip_delete);
 void mine_license(struct minr_job *job, char *id, bool license_file);
+bool mine_license_exec(struct minr_job *job);
 void mine_copyright(char *mined_path, char *md5, char *src, uint64_t src_ln, bool license_file);
 void mine_quality(char *mined_path, char *md5, char *src, long size);
 normalized_license *load_licenses(int *count);

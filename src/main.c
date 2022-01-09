@@ -25,7 +25,6 @@
   * @date 28 Oct 2021 
   * @brief ???
   */
-
 #include <ctype.h>
 #include <dirent.h>
 #include <errno.h>
@@ -52,7 +51,7 @@
 #include "import.h"
 #include "crypto.h"
 #include "url.h"
-
+#include "scancode.h"
 int main(int argc, char *argv[])
 {
 	if (!check_dependencies()) exit(1);
@@ -107,7 +106,7 @@ int main(int argc, char *argv[])
 	int option;
 	bool invalid_argument = false;
 
-	while ((option = getopt(argc, argv, ":c:C:L:Q:Y:o:m:g:w:t:f:T:i:I:l:z:u:U:d:D:xXsnkeahvO")) != -1)
+	while ((option = getopt(argc, argv, ":c:C:L:Q:Y:o:m:g:w:t:f:T:i:I:l:z:u:U:d:D:SxXsnkeahvO")) != -1)
 	{
 
 		/* Check valid alpha is entered */
@@ -220,7 +219,12 @@ int main(int argc, char *argv[])
 			case 's':
 				job.skip_sort = true;
 				break;
-
+			case 'S':
+				if (scancode_check())
+					job.scancode_mode = true;
+				else
+					fprintf(stderr, "Error, scancode and jq must be present in the system");
+				break;
 			case 'n':
 				job.skip_csv_check = true;
 				break;
@@ -392,4 +396,3 @@ int main(int argc, char *argv[])
 	clean_crypto_definitions();
 	exit(exit_code);
 }
-

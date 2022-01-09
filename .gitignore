@@ -8,3 +8,6 @@ minr.txt
 mz.txt
 compile_flags.txt
 doc
+mined
+scancode_error.txt
+.vscode

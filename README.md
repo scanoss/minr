@@ -5,6 +5,21 @@ Minr is a multi-purpose command line tool used for data mining. Minr downloads, 
 # Setup 
 Component mining requires a Knowledge database installed. Scanoss use the SCANOSS LDB (Linked-list database) as a shared library. LDB Source code and installation guide can be found on https://github.com/scanoss/ldb 
 
+# System dependencies
+- coreutils
+- gzip
+- tar
+- 7z
+- unrar
+- unzip
+- xz-utils
+- ruby
+- curl
+
+Only for scancode mode:
+- jq
+- scancode
+
 # Build and Install
 
 ```

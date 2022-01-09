@@ -36,14 +36,11 @@
 #include "minr.h"
 #include "license.h"
 
-
 bool is_file(char *path);
 bool is_dir(char *path);
 bool not_a_dot(char *path);
 void normalize_src(char *src, uint64_t src_ln, char *out, int max_in, int max_out);
 bool strn_icmp(char *a, char *b, int len);
-
-
 
 /**
  * @brief Check if SPDX-License-Identifier is found at *src
@@ -54,9 +51,8 @@ bool strn_icmp(char *a, char *b, int len);
 bool is_spdx_license_identifier(char *src)
 {
 	int tag_len = 24; // length of "SPDX-License-Identifier:"
-	return strn_icmp(src,"SPDX-License-Identifier:", tag_len);
+	return strn_icmp(src, "SPDX-License-Identifier:", tag_len);
 }
-
 
 /**
  * @brief Returns pointer to SPDX-License-Identifier tag (null if not found)
@@ -72,8 +68,10 @@ char *spdx_license_identifier(char *src)
 	/* Skip until SPDX License starts */
 	while (*s)
 	{
-		if (isalpha(*s)) break;
-		if (*s == '\n') return NULL;
+		if (isalpha(*s))
+			break;
+		if (*s == '\n')
+			return NULL;
 		s++;
 	}
 
@@ -93,8 +91,10 @@ char *spdx_license_identifier(char *src)
 	/* Eliminate trailing punctuation */
 	while (s > out)
 	{
-		if (!isalnum(*(--s))) *s = 0;
-		else break;
+		if (!isalnum(*(--s)))
+			*s = 0;
+		else
+			break;
 	}
 
 	return out;
@@ -111,20 +111,23 @@ char *mine_spdx_license_identifier(char *src, uint64_t src_ln)
 {
 	/* Max bytes/lines to analyze */
 	int max_bytes = MAX_FILE_HEADER;
-	if (src_ln < max_bytes) max_bytes = src_ln;
+	if (src_ln < max_bytes)
+		max_bytes = src_ln;
 	int max_lines = MAX_HEADER_LINES;
 	int line = 0;
 
 	char *s = src;
 	while (*s)
 	{
-		if (*s == '\n') line++;
+		if (*s == '\n')
+			line++;
 		else if (is_spdx_license_identifier(s))
 		{
 			char *license = spdx_license_identifier(s);
 			return license;
 		}
-		if (((s++)-src) > max_bytes || line > max_lines) return NULL;
+		if (((s++) - src) > max_bytes || line > max_lines)
+			return NULL;
 	}
 	return NULL;
 }
@@ -139,16 +142,19 @@ void normalize_license(char *path, int counter)
 {
 	/* Open file */
 	int fd = open(path, O_RDONLY);
-	if (fd < 0) return;
+	if (fd < 0)
+		return;
 
 	/* Obtain file size */
 	uint64_t size = lseek64(fd, 0, SEEK_END);
-	if (!size) return;
+	if (!size)
+		return;
 
 	/* Read file header to memory */
-	if (size > MAX_FILE_HEADER) size = MAX_FILE_HEADER;
+	if (size > MAX_FILE_HEADER)
+		size = MAX_FILE_HEADER;
 	char *src = malloc(size + 1);
-	lseek64 (fd, 0, SEEK_SET);
+	lseek64(fd, 0, SEEK_SET);
 	if (!read(fd, src, size))
 	{
 		free(src);
@@ -182,15 +188,18 @@ int count_files(char *path, int *count)
 	/* Open directory */
 	struct dirent *dp;
 	DIR *dir = opendir(path);
-	if (!dir) return *count;
+	if (!dir)
+		return *count;
 
 	while ((dp = readdir(dir)) != NULL)
 	{
-		if (not_a_dot (dp->d_name))
+		if (not_a_dot(dp->d_name))
 		{
 			sprintf(newpath, "%s/%s", path, dp->d_name);
-			if (is_file(newpath)) (*count)++;
-			else if (is_dir(newpath)) *count = count_files(newpath, count);
+			if (is_file(newpath))
+				(*count)++;
+			else if (is_dir(newpath))
+				*count = count_files(newpath, count);
 		}
 	}
 	closedir(dir);
@@ -211,7 +220,8 @@ int recurse_dir(char *path, int *counter)
 	/* Open directory */
 	struct dirent *dp;
 	DIR *dir = opendir(path);
-	if (!dir) return *counter;
+	if (!dir)
+		return *counter;
 
 	while ((dp = readdir(dir)) != NULL)
 	{
@@ -261,8 +271,11 @@ void generate_license_ids_c(char *path)
  */
 bool license_cmp(char *s, char *l)
 {
-	while (*s && *l) if (*(l++) != *(s++)) return false;
-	if (!*l) return true;
+	while (*s && *l)
+		if (*(l++) != *(s++))
+			return false;
+	if (!*l)
+		return true;
 	return false;
 }
 
@@ -279,7 +292,8 @@ char *mine_license_header(char *src, uint64_t src_ln, normalized_license *licens
 {
 	/* Max bytes/lines to analyze */
 	int max_bytes = MAX_FILE_HEADER - 1;
-	if (src_ln < max_bytes) max_bytes = src_ln;
+	if (src_ln < max_bytes)
+		max_bytes = src_ln;
 
 	char normalized[MAX_LICENSE_TEXT];
 	src[max_bytes] = 0;
@@ -289,7 +303,7 @@ char *mine_license_header(char *src, uint64_t src_ln, normalized_license *licens
 	while (*s)
 	{
 		for (int i = 0; i < license_count; i++)
-			if (license_cmp(s,licenses[i].text))
+			if (license_cmp(s, licenses[i].text))
 				return licenses[i].spdx_id;
 		s++;
 	}
@@ -302,6 +316,8 @@ char *mine_license_header(char *src, uint64_t src_ln, normalized_license *licens
  *   	1 = Declared in file with SPDX-License-Identifier
  *    	2 = Detected in header
  *  	3 = Declared in LICENSE file
+ * 		4 = external scancode detection
+ * 		5 = internal scancode detection
  * @param job pointer to minr job
  * @param id ID string
  * @param license_file tru for license files
@@ -325,10 +341,11 @@ void mine_license(struct minr_job *job, char *id, bool license_file)
 		if (!job->local_mining)
 		{
 			fp = fopen(csv_path, "a");
-			fprintf(fp, "%s,%d,%s\n", id, job->is_attribution_notice ? 3 : 1, license);
+			fprintf(fp, "%s,%d,%s\n", id, license_file ? 3 : 1, license);
 			fclose(fp);
 		}
-		else printf("%s,%s\n", id, license);
+		else
+			printf("%s,%s\n", id, license);
 	}
 
 	/* License header detection */
@@ -338,14 +355,17 @@ void mine_license(struct minr_job *job, char *id, bool license_file)
 		if (license)
 		{
 			char license_source[] = "2";
-			if (license_file) *license_source = '3';
+			if (license_file)
+				*license_source = '3';
+
 			if (!job->local_mining)
 			{
 				fp = fopen(csv_path, "a");
 				fprintf(fp, "%s,%s,%s\n", id, license_source, license);
 				fclose(fp);
 			}
-			else printf("%s,%s\n", id, license);
+			else
+				printf("%s,%s\n", id, license);
 		}
 	}
 }
