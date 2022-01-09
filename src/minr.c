@@ -41,8 +41,6 @@
 #include "crypto.h"
 
 /* Paths */
-char mined_path[MAX_ARG_LEN] = ".";
-char extra_path[MAX_PATH_LEN] = "./extra";
 char tmp_path[MAX_ARG_LEN] = "/dev/shm";
 int min_file_size = MIN_FILE_SIZE;
 uint8_t *grams;
@@ -372,7 +370,7 @@ void mine(struct minr_job *job, char *path)
 	/* File discrimination check #2: Is the extension ignored or path not wanted? */
 	if (!job->all_extensions)
 		if (ignored_extension(path))
-			return;
+			extra_table = true;
 
 	if (unwanted_path(path))
 		return;
@@ -406,7 +404,7 @@ void mine(struct minr_job *job, char *path)
 			if (!skip)
 			{
 				if (extra_table)
-					mz_add(extra_path, job->md5, job->src, job->src_ln, true, job->zsrc, job->mz_cache);
+					mz_add(job->mined_extra_path, job->md5, job->src, job->src_ln, true, job->zsrc, job->mz_cache);
 				else
 					mz_add(job->mined_path, job->md5, job->src, job->src_ln, true, job->zsrc, job->mz_cache);
 			}

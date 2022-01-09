@@ -87,6 +87,7 @@ struct minr_job
 	char metadata[MAX_ARG_LEN];
 	char license[MAX_ARG_LEN];    // Declared url license
 	char mined_path[MAX_ARG_LEN]; // Location of output mined/ directory
+	char mined_extra_path[MAX_ARG_LEN]; // Location of output mined/extra directory
 	char tmp_dir[MAX_ARG_LEN];    // Temporary directory for decompressing files
 	bool all_extensions;
 	bool exclude_mz;
@@ -132,7 +133,6 @@ uint32_t *hashes, *lines;
 FILE *out_component;
 FILE **out_file;
 FILE **out_file_extra;
-extern char extra_path[];
 int *out_snippet;
 
 extern char tmp_path[MAX_ARG_LEN];

@@ -281,7 +281,7 @@ int main(int argc, char *argv[])
 	}
 
 	strcat(job.mined_path, "/mined");
-	sprintf(extra_path, "%s/extra", job.mined_path);
+	sprintf(job.mined_extra_path, "%s/extra", job.mined_path);
 	/* Import mined/ into the LDB */
 	if (*job.import_path)
 	{
@@ -379,7 +379,7 @@ int main(int argc, char *argv[])
 			exit(EXIT_FAILURE);
 		}
 
-		if (!create_dir(extra_path))
+		if (!create_dir(job.mined_extra_path))
 		{
 			printf("Cannot create output structure in %s\n", job.mined_path);
 			exit(EXIT_FAILURE);
