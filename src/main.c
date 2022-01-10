@@ -76,7 +76,7 @@ int main(int argc, char *argv[])
 	job.exclude_mz = false;
 	job.exclude_detection = false;
 	job.is_attribution_notice = false;
-
+	job.mine_all = false;
 	// Import job
 	job.skip_sort = false;
 	job.skip_csv_check = false;
@@ -106,7 +106,7 @@ int main(int argc, char *argv[])
 	int option;
 	bool invalid_argument = false;
 
-	while ((option = getopt(argc, argv, ":c:C:L:Q:Y:o:m:g:w:t:f:T:i:I:l:z:u:U:d:D:SxXsnkeahvO")) != -1)
+	while ((option = getopt(argc, argv, ":c:C:L:Q:Y:o:m:g:w:t:f:T:i:I:l:z:u:U:d:D:SxXsnkeahvOA")) != -1)
 	{
 
 		/* Check valid alpha is entered */
@@ -243,6 +243,10 @@ int main(int argc, char *argv[])
 
 			case 'a':
 				job.all_extensions = true;
+				break;
+			
+			case 'A':
+				job.mine_all = true;
 				break;
 
 			case 'h':

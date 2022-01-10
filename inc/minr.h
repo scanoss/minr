@@ -103,7 +103,7 @@ struct minr_job
 	bool skip_sort; // Do not sort before importing
 	bool skip_csv_check; // Do not check number of CSV fields
 	bool skip_delete; // Do not delete, -k(eep) files after importing
-
+	bool mine_all;
 
 	// minr -f -t
 	char join_from[MAX_PATH_LEN];

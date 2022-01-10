@@ -370,7 +370,12 @@ void mine(struct minr_job *job, char *path)
 	/* File discrimination check #2: Is the extension ignored or path not wanted? */
 	if (!job->all_extensions)
 		if (ignored_extension(path))
-			extra_table = true;
+		{
+			if (job->mine_all)
+				extra_table = true;
+			else
+				return;
+		}
 
 	if (unwanted_path(path))
 		return;
@@ -381,8 +386,12 @@ void mine(struct minr_job *job, char *path)
 
 	/* File discrimination check: Unwanted header? */
 	if (unwanted_header(job->src))
-		extra_table = true;
-
+	{
+		if (job->mine_all)
+			extra_table = true;
+		else
+			return;
+	}
 	/* Add to .mz */
 	if (!job->exclude_mz)
 	{
