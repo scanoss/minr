@@ -113,9 +113,8 @@ bool scancode_check(void)
         {
             jq_present = true;
         }
-        free(line);
     }
-
+    free(line);
     fclose(sc_file);
         
     return (scancode_present &&  jq_present);   
