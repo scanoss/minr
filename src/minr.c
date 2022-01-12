@@ -366,7 +366,6 @@ void mine(struct minr_job *job, char *path)
 		mine_attribution_notice(job, path);
 		extra_table = true;
 	}
-	printf("file: %s - ", path);
 	/* File discrimination check #2: Is the extension ignored or path not wanted? */
 	if (!job->all_extensions)
 		if (ignored_extension(path))
@@ -414,12 +413,10 @@ void mine(struct minr_job *job, char *path)
 			{
 				if (extra_table)
 				{
-					printf("source EXTRA: %s - ", bin_to_hex(job->md5,16));
-					mz_add(job->mined_extra_path, job->md5, job->src, job->src_ln, true, job->zsrc, job->mz_cache_extra);
+					mz_add(job->mined_extra_path, job->md5, job->src, job->src_ln, true, job->zsrc_extra, job->mz_cache_extra);
 				}
 				else
 				{
-					printf("source  - ");
 					mz_add(job->mined_path, job->md5, job->src, job->src_ln, true, job->zsrc, job->mz_cache);
 				}
 			}
@@ -439,12 +436,10 @@ void mine(struct minr_job *job, char *path)
 	if (extra_table)
 	{
 		fprintf(out_file_extra[*job->md5], "%s,%s,%s\n", job->fileid + 2, job->urlid, path + strlen(job->tmp_dir) + 1);
-		printf("file_EXTRA\n");
 	}
 	else
 	{
 		fprintf(out_file[*job->md5], "%s,%s,%s\n", job->fileid + 2, job->urlid, path + strlen(job->tmp_dir) + 1);
-		printf("file\n");
 	}
 }
 
