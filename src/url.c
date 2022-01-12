@@ -143,7 +143,12 @@ void url_download(struct minr_job *job)
 
 		/* Reserve memory for mz_cache for mined/sources (65536 files) */
 		job->mz_cache = malloc(MZ_FILES * sizeof(struct mz_cache_item));
-		for (int i = 0; i < MZ_FILES; i++) job->mz_cache[i].length = 0;
+		job->mz_cache_extra = malloc(MZ_FILES * sizeof(struct mz_cache_item));
+		for (int i = 0; i < MZ_FILES; i++)
+		{
+			job->mz_cache[i].length = 0;
+			job->mz_cache_extra[i].length = 0;
+		}
 	}
 
 	/* Open all file handlers in mined/files (256 files) */
@@ -205,6 +210,7 @@ void url_download(struct minr_job *job)
 		mz_flush(job->mined_path, job->mz_cache);
 
 		free(job->mz_cache);
+		free(job->mz_cache_extra);
 		free(buffer);
 		free(hashes);
 		free(lines);

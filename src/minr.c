@@ -364,9 +364,9 @@ void mine(struct minr_job *job, char *path)
 	if (job->is_attribution_notice)
 	{
 		mine_attribution_notice(job, path);
-		return;
+		extra_table = true;
 	}
-
+	printf("file: %s - ", path);
 	/* File discrimination check #2: Is the extension ignored or path not wanted? */
 	if (!job->all_extensions)
 		if (ignored_extension(path))
@@ -378,7 +378,7 @@ void mine(struct minr_job *job, char *path)
 		}
 
 	if (unwanted_path(path))
-		return;
+		extra_table = true;
 
 	/* Load file contents and calculate md5 */
 	if (!load_file(job, path))
@@ -408,14 +408,20 @@ void mine(struct minr_job *job, char *path)
 
 			/* Is the content too square? */
 			if (too_much_squareness(job->src))
-				skip = true;
+				extra_table = true;
 
 			if (!skip)
 			{
 				if (extra_table)
-					mz_add(job->mined_extra_path, job->md5, job->src, job->src_ln, true, job->zsrc, job->mz_cache);
+				{
+					printf("source EXTRA: %s - ", bin_to_hex(job->md5,16));
+					mz_add(job->mined_extra_path, job->md5, job->src, job->src_ln, true, job->zsrc, job->mz_cache_extra);
+				}
 				else
+				{
+					printf("source  - ");
 					mz_add(job->mined_path, job->md5, job->src, job->src_ln, true, job->zsrc, job->mz_cache);
+				}
 			}
 		}
 	}
@@ -431,9 +437,15 @@ void mine(struct minr_job *job, char *path)
 
 	/* Output file information */
 	if (extra_table)
+	{
 		fprintf(out_file_extra[*job->md5], "%s,%s,%s\n", job->fileid + 2, job->urlid, path + strlen(job->tmp_dir) + 1);
+		printf("file_EXTRA\n");
+	}
 	else
+	{
 		fprintf(out_file[*job->md5], "%s,%s,%s\n", job->fileid + 2, job->urlid, path + strlen(job->tmp_dir) + 1);
+		printf("file\n");
+	}
 }
 
 /**

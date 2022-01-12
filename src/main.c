@@ -92,6 +92,7 @@ int main(int argc, char *argv[])
 	// Snippet mine job
 	*job.mz=0;
 	job.mz_cache = NULL;
+	job.mz_cache_extra = NULL;
 
 	// Tmp data
 	job.src_ln = 0;
