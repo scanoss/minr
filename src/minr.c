@@ -288,7 +288,7 @@ bool load_file(struct minr_job *job, char *path)
 	job->src_ln = ftello64(fp);
 
 	/* File discrimination check #3: Is it under/over the threshold */
-	if (job->src_ln < min_file_size || job->src_ln >= MAX_FILE_SIZE)
+	if ((job->src_ln < min_file_size && !job->mine_all) || job->src_ln >= MAX_FILE_SIZE)
 	{
 		if (fp)
 			fclose(fp);
@@ -299,7 +299,11 @@ bool load_file(struct minr_job *job, char *path)
 	fseeko64(fp, 0, SEEK_SET);
 
 	if (!fread(job->src, 1, job->src_ln, fp))
-		printf("Error reading %s\n", path);
+	{
+		fprintf(stderr,"Error reading %s\n", path);
+		fclose(fp);
+		return false;
+	}
 	job->src[job->src_ln] = 0;
 	fclose(fp);
 
@@ -382,6 +386,15 @@ void mine(struct minr_job *job, char *path)
 	/* Load file contents and calculate md5 */
 	if (!load_file(job, path))
 		return;
+	
+	/*File discrimination check #3: Is it under*/
+	if (job->src_ln < min_file_size)
+	{
+		if (job->mine_all)
+			extra_table = true;
+		else
+			return;
+	}
 
 	/* File discrimination check: Unwanted header? */
 	if (unwanted_header(job->src))
