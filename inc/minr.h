@@ -156,6 +156,6 @@ void mine_local_directory(struct minr_job *job, char* root);
 void mine_local_file(struct minr_job *job, char *path);
 void extract_csv(char *out, char *in, int n, long limit);
 int count_chr(char chr, char *str);
-bool load_file(struct minr_job *job, char *path);
+int load_file(struct minr_job *job, char *path);
 void print_md5(uint8_t *md5);
 #endif

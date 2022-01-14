@@ -272,8 +272,9 @@ bool download(struct minr_job *job)
  * @param path path to file
  * @return true if succed
  */
-bool load_file(struct minr_job *job, char *path)
+int load_file(struct minr_job *job, char *path)
 {
+	int result = 1;
 	/* Open file and obtain file length */
 	FILE *fp;
 	if (!is_file(path))
@@ -288,13 +289,23 @@ bool load_file(struct minr_job *job, char *path)
 	job->src_ln = ftello64(fp);
 
 	/* File discrimination check #3: Is it under/over the threshold */
-	if ((job->src_ln < min_file_size && !job->mine_all) || job->src_ln >= MAX_FILE_SIZE)
+	if ((job->src_ln < min_file_size  || job->src_ln >= MAX_FILE_SIZE) && !job->mine_all)
 	{
+		
+		fprintf(stderr,"File size out of bound: %s\n", path);
 		if (fp)
 			fclose(fp);
 		return false;
 	}
 
+	if (job->src_ln < min_file_size)
+		result = 2;
+ 	if (job->src_ln >= MAX_FILE_SIZE)
+	{
+		result = 2;
+		fprintf(stderr, "Warning - trunkated file %s to %u of %lu bytes\n", path, MAX_FILE_SIZE, job->src_ln);
+		job->src_ln = MAX_FILE_SIZE;
+	}
 	/* Read file contents into src and close it */
 	fseeko64(fp, 0, SEEK_SET);
 
@@ -312,9 +323,14 @@ bool load_file(struct minr_job *job, char *path)
 	ldb_bin_to_hex(job->md5, MD5_LEN, job->fileid);
 
 	if (ignored_file(job->fileid))
-		return false;
-
-	return true;
+	{
+		if (job->mine_all)
+			return 2;
+		else
+			return false;
+	}
+		
+	return result;
 }
 
 /**
@@ -381,11 +397,19 @@ void mine(struct minr_job *job, char *path)
 		}
 
 	if (unwanted_path(path))
-		extra_table = true;
+	{
+		if (job->mine_all)
+			extra_table = true;
+		else
+			return;
+	}
 
 	/* Load file contents and calculate md5 */
-	if (!load_file(job, path))
+	int result = load_file(job, path);
+	if (!result)
 		return;
+	else if (result > 1)
+		extra_table = true;
 	
 	/*File discrimination check #3: Is it under*/
 	if (job->src_ln < min_file_size)
@@ -416,12 +440,22 @@ void mine(struct minr_job *job, char *path)
 
 			/* Is the file extension supposed to be skipped for snippet hashing? */
 			if (skip_mz_extension(path))
-				skip = true;
-
+			{
+				if (job->mine_all)
+					extra_table = true;
+				else
+					skip = true;
+			}
+				
 			/* Is the content too square? */
 			if (too_much_squareness(job->src))
-				extra_table = true;
-
+			{
+				if (job->mine_all)
+					extra_table = true;
+				else
+					skip = true;
+			}
+			
 			if (!skip)
 			{
 				if (extra_table)
@@ -446,6 +480,7 @@ void mine(struct minr_job *job, char *path)
 	}
 
 	/* Output file information */
+
 	if (extra_table)
 	{
 		fprintf(out_file_extra[*job->md5], "%s,%s,%s\n", job->fileid + 2, job->urlid, path + strlen(job->tmp_dir) + 1);
