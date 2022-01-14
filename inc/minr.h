@@ -126,6 +126,8 @@ struct minr_job
 
 typedef enum { none, license, copyright, quality } metadata;
 
+
+
 /* Pointers */
 uint8_t *buffer;
 uint32_t *hashes, *lines;

@@ -265,20 +265,31 @@ bool download(struct minr_job *job)
 	return true;
 }
 
+enum
+{
+	FILE_IGNORED = 0,
+	FILE_ACCEPTED,
+	FILE_ACCEPTED_EXTRA_TABLES
+};
+
 /**
  * @brief Open a file and fullyfil the minr job structure
  *
  * @param job pointer to minr job
  * @param path path to file
- * @return true if succed
+ * @return FILE_IGNORED 
+ * @return FILE_ACCEPTED 
+ * @return FILE_ACCEPTED_EXTRA_TABLES
  */
 int load_file(struct minr_job *job, char *path)
 {
-	int result = 1;
+	int result = FILE_ACCEPTED;
 	/* Open file and obtain file length */
 	FILE *fp;
+
 	if (!is_file(path))
-		return false;
+		return FILE_IGNORED;
+
 	if ((fp = fopen(path, "rb")) == NULL)
 	{
 		printf("Error! Cannot load the definitions file");
@@ -295,16 +306,18 @@ int load_file(struct minr_job *job, char *path)
 		fprintf(stderr,"File size out of bound: %s\n", path);
 		if (fp)
 			fclose(fp);
-		return false;
+		return FILE_IGNORED;
 	}
 
 	if (job->src_ln < min_file_size)
-		result = 2;
+		result = FILE_ACCEPTED_EXTRA_TABLES;
+
  	if (job->src_ln >= MAX_FILE_SIZE)
 	{
-		result = 2;
-		fprintf(stderr, "Warning - trunkated file %s to %u of %lu bytes\n", path, MAX_FILE_SIZE, job->src_ln);
-		job->src_ln = MAX_FILE_SIZE;
+		result = FILE_ACCEPTED_EXTRA_TABLES;
+		fprintf(stderr, "Warning - truncated file %s to %u of %lu bytes\n", path, MAX_FILE_SIZE, job->src_ln);
+
+		job->src = realloc(job->src, job->src_ln + 1);
 	}
 	/* Read file contents into src and close it */
 	fseeko64(fp, 0, SEEK_SET);
@@ -313,21 +326,25 @@ int load_file(struct minr_job *job, char *path)
 	{
 		fprintf(stderr,"Error reading %s\n", path);
 		fclose(fp);
-		return false;
+		return FILE_IGNORED;
 	}
-	job->src[job->src_ln] = 0;
-	fclose(fp);
-
+	
 	/* Calculate file MD5 */
 	calc_md5(job->src, job->src_ln, job->md5);
 	ldb_bin_to_hex(job->md5, MD5_LEN, job->fileid);
 
+	if (job->src_ln > MAX_FILE_SIZE)
+		job->src_ln = MAX_FILE_SIZE;
+
+	job->src[job->src_ln] = 0;
+	fclose(fp);
+
 	if (ignored_file(job->fileid))
 	{
 		if (job->mine_all)
-			return 2;
+			return FILE_ACCEPTED_EXTRA_TABLES;
 		else
-			return false;
+			return FILE_IGNORED;
 	}
 		
 	return result;
