@@ -320,6 +320,12 @@ int load_file(struct minr_job *job, char *path)
 		result = FILE_ACCEPTED_EXTRA_TABLES;
 		fprintf(stderr, "Warning - truncated file %s to %u of %lu bytes\n", path, MAX_FILE_SIZE, job->src_ln);
 
+		if (job->src_ln > MAX_FILE_SIZE * 10)
+		{
+			fprintf(stderr, "Warning - This file is too big and cannot be processed: %s\n", path);	
+			return FILE_IGNORED;
+		}
+
 		job->src = realloc(job->src, job->src_ln + 1);
 	}
 	/* Read file contents into src and close it */

@@ -207,6 +207,10 @@ bool mine_license_exec(struct minr_job *job)
 			scancode_run(job->versionid, csv_path);
 	}
 
+	if (job->scancode_mode)
+		scancode_remove_tmp_dir(job->versionid);
+
+
 	free(csv_path);
 
 	return true;
