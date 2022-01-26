@@ -80,7 +80,7 @@ bool scancode_run(char * id, char *csv_file)
     if (csv_file)
         asprintf(&command, "scancode -cl --quiet -n 6 --timeout 2 --json %s/%s/scancode.json %s/%s  2> scancode_error.txt &&\
 	 	    				jq -r '.files[] | \"\\(.path),5,\\(.licenses[].spdx_license_key)\"' %s/%s/scancode.json | sort -u | sed 's/\\/[^:/:,]*,/,/g' 1>> %s &&\
-                             rm -r %s/%s && rm -r /tmp/scancode-tk*",
+                            rm -r %s/%s",
                             TMP_DIR, id, TMP_DIR, id, TMP_DIR, id, csv_file, TMP_DIR, id);
 
     FILE *sc_file = popen(command, "r");
