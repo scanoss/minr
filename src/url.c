@@ -110,13 +110,13 @@ void url_add(struct minr_job *job)
 /**
  * @brief Removes temporary files and directories
  * 
- * @param job pointer to miner job
+ * @param path string path to be deleted
  */
-void rm_tmpdir(struct minr_job *job)
+void rm_tmpdir(char * path)
 {
 	/* Assemble command */
 	char command[MAX_PATH_LEN] = "\0";
-	sprintf(command, "rm -rf %s", job->tmp_dir);
+	sprintf(command, "rm -rf %s", path);
 
 	/* Execute command */
 	FILE *fp = popen(command, "r");
@@ -131,6 +131,7 @@ void rm_tmpdir(struct minr_job *job)
 void url_download(struct minr_job *job)
 {
 	bool downloaded = false;
+	char * aux_root_dir = NULL;
 	job->src = calloc(MAX_FILE_SIZE + 1, 1);
 	job->zsrc = calloc((MAX_FILE_SIZE + 1) * 2, 1);
 	job->zsrc_extra = calloc((MAX_FILE_SIZE + 1) * 2, 1);
@@ -167,13 +168,13 @@ void url_download(struct minr_job *job)
 
 		downloaded = true;
 	}
-
 	/* Create temporary component directory */
 	else
 	{
 		sprintf(job->tmp_dir,"%s/minr-%d", tmp_path, getpid());
 		mkdir(job->tmp_dir, 0755);
-
+		/*keep a copy of this root dir to erase later*/
+		aux_root_dir = strdup(job->tmp_dir);
 		/* urlid will contain the hex md5 of the entire component */
 		downloaded = download(job);
 	}
@@ -189,12 +190,13 @@ void url_download(struct minr_job *job)
 
 		recurse(job, job->tmp_dir);
 
-		if (!is_dir(job->url)) rm_tmpdir(job);
+		if (!is_dir(job->url)) rm_tmpdir(aux_root_dir);
+		free(aux_root_dir);
 	}
 
 	else
 	{
-		printf("Capture failed\n");
+		printf("Capture failed: %s\n",job->tmp_dir);
 	}
 
 	/* Close files */

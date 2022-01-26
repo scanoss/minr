@@ -49,6 +49,7 @@ bool scancode_prepare_tmp_dir(char * id)
     free(command);
     return true;
 }
+
 /** 
  * @brief Copy a file to the tmp dir
  * 
@@ -75,13 +76,15 @@ bool scancode_copy_to_tmp(char *path, char *id)
 bool scancode_run(char * id, char *csv_file)
 {
     char *command;
+    /* execute scancode, process the json output, and erase tmp */
     if (csv_file)
         asprintf(&command, "scancode -cl --quiet -n 6 --timeout 2 --json %s/%s/scancode.json %s/%s  2> scancode_error.txt &&\
-	 	    				jq -r '.files[] | \"\\(.path),5,\\(.licenses[].spdx_license_key)\"' %s/%s/scancode.json | sort -u | sed 's/\\/[^:/:,]*,/,/g' 1>> %s",
-                 TMP_DIR, id, TMP_DIR, id, TMP_DIR, id,csv_file);
+	 	    				jq -r '.files[] | \"\\(.path),5,\\(.licenses[].spdx_license_key)\"' %s/%s/scancode.json | sort -u | sed 's/\\/[^:/:,]*,/,/g' 1>> %s &&\
+                             rm -r %s/%s && rm -r /tmp/scancode-tk*",
+                            TMP_DIR, id, TMP_DIR, id, TMP_DIR, id, csv_file, TMP_DIR, id);
 
     FILE *sc_file = popen(command, "r");
-
+    fprintf(stderr,"\nrm -r %s/%s\n", TMP_DIR, id);
     fclose(sc_file);
     free(command);
     return true;

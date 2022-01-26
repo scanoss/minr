@@ -106,7 +106,8 @@ char *decompress(char *url)
 		{"whl", "unzip -Psecret -n"},
 		{"xz", "xz -d"},
 		{"zip", "unzip -Psecret -n"},
-		{"gz", "gunzip"}};
+		{"gz", "gunzip"},
+		{"nupkg", "unzip -Psecret -n"}};
 
 	int commands = sizeof(c) / sizeof(c[0]);
 	char *out = calloc(MAX_PATH_LEN, 1);
@@ -260,7 +261,9 @@ bool download(struct minr_job *job)
 	char *ext = strrchr(tmp_file, '.');
 	if (ext)
 		ext[0] = '\0';
-	strcpy(job->tmp_dir, tmp_file);
+	/* check if it is a valid dir and replace the tmp*/
+	if (is_dir(tmp_file))
+		strcpy(job->tmp_dir, tmp_file);
 	free(tmp_file);
 	return true;
 }
@@ -504,7 +507,7 @@ void mine(struct minr_job *job, char *path)
 	}
 	else
 	{
-		fprintf(out_file[*job->md5], "%s,%s,%s\n", job->fileid + 2, job->urlid, path + strlen(job->tmp_dir) + 1);
+		fprintf(out_file[*job->md5], "%s,%s,%s\n", job->fileid + 2, job->urlid, path + strlen(job->tmp_dir) + 1);		
 	}
 }
 
