@@ -29,7 +29,7 @@
 #include <string.h>
 
 /* Definitions */
-#define MINR_VERSION "2.3.0"
+#define MINR_VERSION "2.3.1"
 #define FILE_FILES 256
 #define MAX_ARG_LEN 1024
 #define MIN_FILE_REC_LEN 70
@@ -87,6 +87,7 @@ struct minr_job
 	char metadata[MAX_ARG_LEN];
 	char license[MAX_ARG_LEN];    // Declared url license
 	char mined_path[MAX_ARG_LEN]; // Location of output mined/ directory
+	char mined_extra_path[MAX_ARG_LEN]; // Location of output mined/extra directory
 	char tmp_dir[MAX_ARG_LEN];    // Temporary directory for decompressing files
 	bool all_extensions;
 	bool exclude_mz;
@@ -102,7 +103,7 @@ struct minr_job
 	bool skip_sort; // Do not sort before importing
 	bool skip_csv_check; // Do not check number of CSV fields
 	bool skip_delete; // Do not delete, -k(eep) files after importing
-
+	bool mine_all;
 
 	// minr -f -t
 	char join_from[MAX_PATH_LEN];
@@ -114,15 +115,18 @@ struct minr_job
 	// Memory allocation
 	char *src; // for uncompressed source
 	uint8_t *zsrc; // for compressed source
+	uint8_t *zsrc_extra; // for compressed source
 	uint64_t src_ln;
 	uint64_t zsrc_ln;
 	struct mz_cache_item *mz_cache; // for mz cache
-
+	struct mz_cache_item * mz_cache_extra;
 	normalized_license *licenses; // Array of known license identifiers
 	int license_count;            // Number of known license identifiers
 };
 
 typedef enum { none, license, copyright, quality } metadata;
+
+
 
 /* Pointers */
 uint8_t *buffer;
@@ -131,6 +135,7 @@ uint32_t *hashes, *lines;
 /* File descriptor arrays */
 FILE *out_component;
 FILE **out_file;
+FILE **out_file_extra;
 int *out_snippet;
 
 extern char tmp_path[MAX_ARG_LEN];
@@ -153,6 +158,6 @@ void mine_local_directory(struct minr_job *job, char* root);
 void mine_local_file(struct minr_job *job, char *path);
 void extract_csv(char *out, char *in, int n, long limit);
 int count_chr(char chr, char *str);
-bool load_file(struct minr_job *job, char *path);
+int load_file(struct minr_job *job, char *path);
 void print_md5(uint8_t *md5);
 #endif

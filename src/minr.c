@@ -21,10 +21,10 @@
  */
 
 /**
-  * @file minr.c
-  * @date 28 Oct 2021 
-  * @brief Contains the main minr functionalities
-  */
+ * @file minr.c
+ * @date 28 Oct 2021
+ * @brief Contains the main minr functionalities
+ */
 
 #include "minr.h"
 #include <dirent.h>
@@ -41,32 +41,31 @@
 #include "crypto.h"
 
 /* Paths */
-char mined_path[MAX_ARG_LEN] = ".";
 char tmp_path[MAX_ARG_LEN] = "/dev/shm";
 int min_file_size = MIN_FILE_SIZE;
 uint8_t *grams;
 uint32_t *windows;
 
-
 /**
  * @brief Return true if data is binary
- * 
+ *
  * @param data data buffer
  * @param len data size
  * @return true if it is binary
  */
 bool is_binary(char *data, long len)
 {
-		/* Is it a zip? */
-		if (*data == 'P' && data[1] == 'K' && data[2] < 9) return true;
+	/* Is it a zip? */
+	if (*data == 'P' && data[1] == 'K' && data[2] < 9)
+		return true;
 
-		/* Does it contain a chr(0)? */
-		return (len != strlen(data));
+	/* Does it contain a chr(0)? */
+	return (len != strlen(data));
 }
 
 /**
  * @brief Execute the command specified by the string command. It shall create a pipe between the calling program
- * 
+ *
  * @param command command string
  * @return uint32_t error code
  */
@@ -82,10 +81,9 @@ uint32_t execute_command(char *command)
 	return pclose(fp);
 }
 
-
 /**
  * @brief Returns the command needed to decompress the "url"
- * 
+ *
  * @param url url string
  * @return char* command to decompress
  */
@@ -108,8 +106,8 @@ char *decompress(char *url)
 		{"whl", "unzip -Psecret -n"},
 		{"xz", "xz -d"},
 		{"zip", "unzip -Psecret -n"},
-		{"gz", "gunzip"}
-	};
+		{"gz", "gunzip"},
+		{"nupkg", "unzip -Psecret -n"}};
 
 	int commands = sizeof(c) / sizeof(c[0]);
 	char *out = calloc(MAX_PATH_LEN, 1);
@@ -132,7 +130,7 @@ char *decompress(char *url)
 
 /**
  * @brief Returns path to the downloadad tmp file
- * 
+ *
  * @param tmp_dir temp dir string
  * @return char* path to file
  */
@@ -144,35 +142,32 @@ char *downloaded_file(char *tmp_dir)
 
 	if ((dp = opendir(tmp_dir)) != NULL)
 	{
-		bool found=false;
+		bool found = false;
 
 		while ((ent = readdir(dp)) != NULL)
 		{
-			sprintf(out,"%s", ent->d_name);
+			sprintf(out, "%s", ent->d_name);
 			if (not_a_dot(out))
 			{
-				sprintf(out,"%s/%s", tmp_dir, ent->d_name);
-				found=true;
+				sprintf(out, "%s/%s", tmp_dir, ent->d_name);
+				found = true;
 				break;
 			}
 		}
 
 		if (!found)
 			printf("Download directory is empty\n");
-
 	}
 	else
 		printf("Cannot access %s\n", tmp_dir);
 
 	closedir(dp);
 	return out;
-
 }
-
 
 /**
  * @brief Calculate the MD5 of tmp_file and load it into job->urlid
- * 
+ *
  * @param job pointer to minr job
  * @param tmp_file path to temp file
  */
@@ -187,7 +182,7 @@ void load_urlid(struct minr_job *job, char *tmp_file)
 
 /**
  * @brief Launch command to either download (url) or copy (file) target
- * 
+ *
  * @param job pointer to minr job
  * @return uint32_t error code
  */
@@ -202,14 +197,15 @@ uint32_t download_file(struct minr_job *job)
 
 	bool outcome = execute_command(command);
 
-	if (outcome) printf("[CURL_ERROR] %s\n", command);
+	if (outcome)
+		printf("[CURL_ERROR] %s\n", command);
 
 	return outcome;
 }
 
 /**
  * @brief Download and process URL
- * 
+ *
  * @param job pointer to minr job
  * @return true if succed
  */
@@ -217,7 +213,8 @@ bool download(struct minr_job *job)
 {
 	/* Download file */
 	uint32_t response = download_file(job);
-	if (response) return false;
+	if (response)
+		return false;
 
 	/* Get the name of the downloaded file inside tmp_dir */
 	char *tmp_file = downloaded_file(job->tmp_dir);
@@ -244,11 +241,11 @@ bool download(struct minr_job *job)
 	if (*unzipcommand)
 	{
 		char command[MAX_PATH_LEN] = "\0";
-		
+
 		/* cd into tmp */
 		sprintf(command, "cd %s", job->tmp_dir);
 
-		/* add the unzip command */		
+		/* add the unzip command */
 		sprintf(command + strlen(command), " ; %s ", unzipcommand);
 
 		/* add the downloaded file name */
@@ -258,62 +255,106 @@ bool download(struct minr_job *job)
 		remove(tmp_file);
 	}
 
-	if (unzipcommand) free(unzipcommand);
+	if (unzipcommand)
+		free(unzipcommand);
 	/* Add de unziped folder to tmp path */
-	char * ext = strrchr(tmp_file,'.');
+	char *ext = strrchr(tmp_file, '.');
 	if (ext)
 		ext[0] = '\0';
-	strcpy(job->tmp_dir,tmp_file);
+	/* check if it is a valid dir and replace the tmp*/
+	if (is_dir(tmp_file))
+		strcpy(job->tmp_dir, tmp_file);
 	free(tmp_file);
 	return true;
 }
 
+enum
+{
+	FILE_IGNORED = 0,
+	FILE_ACCEPTED,
+	FILE_ACCEPTED_EXTRA_TABLES
+};
+
 /**
  * @brief Open a file and fullyfil the minr job structure
- * 
+ *
  * @param job pointer to minr job
  * @param path path to file
- * @return true if succed
+ * @return FILE_IGNORED 
+ * @return FILE_ACCEPTED 
+ * @return FILE_ACCEPTED_EXTRA_TABLES
  */
-bool load_file(struct minr_job *job, char *path)
+int load_file(struct minr_job *job, char *path)
 {
+	int result = FILE_ACCEPTED;
 	/* Open file and obtain file length */
 	FILE *fp;
-	if(!is_file(path)) return false;
-	 if ((fp = fopen(path,"rb")) == NULL){
-	       printf("Error! Cannot load the definitions file");
-	       exit(1);
+
+	if (!is_file(path))
+		return FILE_IGNORED;
+
+	if ((fp = fopen(path, "rb")) == NULL)
+	{
+		printf("Error! Cannot load the definitions file");
+		exit(1);
 	}
 
 	fseeko64(fp, 0, SEEK_END);
 	job->src_ln = ftello64(fp);
 
 	/* File discrimination check #3: Is it under/over the threshold */
-	if (job->src_ln < min_file_size || job->src_ln >= MAX_FILE_SIZE)
+	if ((job->src_ln < min_file_size  || job->src_ln >= MAX_FILE_SIZE) && !job->mine_all)
 	{
-		if (fp) fclose (fp);
-		return false;
+		
+		fprintf(stderr,"File size out of bound: %s\n", path);
+		if (fp)
+			fclose(fp);
+		return FILE_IGNORED;
 	}
 
+	if (job->src_ln < min_file_size)
+		result = FILE_ACCEPTED_EXTRA_TABLES;
+
+ 	if (job->src_ln >= MAX_FILE_SIZE)
+	{
+		result = FILE_ACCEPTED_EXTRA_TABLES;
+		job->src_ln = MAX_FILE_SIZE;
+		fprintf(stderr, "Warning - truncated file %s to %u of %lu bytes\n", path, MAX_FILE_SIZE, job->src_ln);
+	}
 	/* Read file contents into src and close it */
 	fseeko64(fp, 0, SEEK_SET);
 
-	if (!fread(job->src, 1, job->src_ln, fp)) printf("Error reading %s\n", path);
+	if (!fread(job->src, 1, job->src_ln, fp))
+	{
+		fprintf(stderr,"Error reading %s\n", path);
+		fclose(fp);
+		return FILE_IGNORED;
+	}
+	
+	/* Calculate file MD5 */
+	//calc_md5(job->src, job->src_ln, job->md5);
+	uint8_t * md5 = file_md5(path);
+	memcpy(job->md5, md5, sizeof(job->md5));
+	free(md5);
+	ldb_bin_to_hex(job->md5, MD5_LEN, job->fileid);
+
 	job->src[job->src_ln] = 0;
 	fclose(fp);
 
-	/* Calculate file MD5 */
-	calc_md5(job->src, job->src_ln, job->md5);
-	ldb_bin_to_hex(job->md5, MD5_LEN, job->fileid);
-
-	if (ignored_file(job->fileid)) return false;
-
-	return true;
+	if (ignored_file(job->fileid))
+	{
+		if (job->mine_all)
+			return FILE_ACCEPTED_EXTRA_TABLES;
+		else
+			return FILE_IGNORED;
+	}
+		
+	return result;
 }
 
 /**
- * @brief Extracts the "n"th value from the comma separated "in" string 
- * 
+ * @brief Extracts the "n"th value from the comma separated "in" string
+ *
  * @param out[out] pointer to the wanted field
  * @param in data buffer
  * @param n filed number
@@ -322,11 +363,14 @@ bool load_file(struct minr_job *job, char *path)
 void extract_csv(char *out, char *in, int n, long limit)
 {
 	*out = 0;
-	if (!in) return;
-	if (!*in) return;
+	if (!in)
+		return;
+	if (!*in)
+		return;
 
 	int strln = strlen(in);
-	if (strln < limit) limit = strln;
+	if (strln < limit)
+		limit = strln;
 
 	limit--; // need an extra byte for chr(0)
 
@@ -345,34 +389,64 @@ void extract_csv(char *out, char *in, int n, long limit)
 	out[out_ptr] = 0;
 }
 
-
 /**
- * @brief  Mine the given path 
- * 
+ * @brief  Mine the given path
+ *
  * @param job ponter to minr job
  * @param path path to be mined
  */
 void mine(struct minr_job *job, char *path)
 {
+	bool extra_table = false;
 	/* Mine attribution notice */
 	job->is_attribution_notice = is_attribution_notice(path);
 	if (job->is_attribution_notice)
 	{
 		mine_attribution_notice(job, path);
-		return;
+		extra_table = true;
+	}
+	/* File discrimination check #2: Is the extension ignored or path not wanted? */
+	if (!job->all_extensions)
+		if (ignored_extension(path))
+		{
+			if (job->mine_all)
+				extra_table = true;
+			else
+				return;
+		}
+
+	if (unwanted_path(path))
+	{
+		if (job->mine_all)
+			extra_table = true;
+		else
+			return;
 	}
 
-	/* File discrimination check #2: Is the extension ignored or path not wanted? */
-	if (!job->all_extensions) if (ignored_extension(path)) return;
-
-	if (unwanted_path(path)) return;
-
 	/* Load file contents and calculate md5 */
-	if (!load_file(job,path)) return;
+	int result = load_file(job, path);
+	if (!result)
+		return;
+	else if (result > 1)
+		extra_table = true;
+	
+	/*File discrimination check #3: Is it under*/
+	if (job->src_ln < min_file_size)
+	{
+		if (job->mine_all)
+			extra_table = true;
+		else
+			return;
+	}
 
 	/* File discrimination check: Unwanted header? */
-	if (unwanted_header(job->src)) return;
-
+	if (unwanted_header(job->src))
+	{
+		if (job->mine_all)
+			extra_table = true;
+		else
+			return;
+	}
 	/* Add to .mz */
 	if (!job->exclude_mz)
 	{
@@ -384,12 +458,34 @@ void mine(struct minr_job *job, char *path)
 			bool skip = false;
 
 			/* Is the file extension supposed to be skipped for snippet hashing? */
-			if (skip_mz_extension(path)) skip = true;
-
+			if (skip_mz_extension(path))
+			{
+				if (job->mine_all)
+					extra_table = true;
+				else
+					skip = true;
+			}
+				
 			/* Is the content too square? */
-			if (too_much_squareness(job->src)) skip = true;
-
-			if (!skip) mz_add(job->mined_path, job->md5, job->src, job->src_ln, true, job->zsrc, job->mz_cache);
+			if (too_much_squareness(job->src))
+			{
+				if (job->mine_all)
+					extra_table = true;
+				else
+					skip = true;
+			}
+			
+			if (!skip)
+			{
+				if (extra_table)
+				{
+					mz_add(job->mined_extra_path, job->md5, job->src, job->src_ln, true, job->zsrc_extra, job->mz_cache_extra);
+				}
+				else
+				{
+					mz_add(job->mined_path, job->md5, job->src, job->src_ln, true, job->zsrc, job->mz_cache);
+				}
+			}
 		}
 	}
 
@@ -403,13 +499,20 @@ void mine(struct minr_job *job, char *path)
 	}
 
 	/* Output file information */
-	fprintf(out_file[*job->md5], "%s,%s,%s\n", job->fileid + 2, job->urlid, path + strlen(job->tmp_dir) + 1);
-}
 
+	if (extra_table)
+	{
+		fprintf(out_file_extra[*job->md5], "%s,%s,%s\n", job->fileid + 2, job->urlid, path + strlen(job->tmp_dir) + 1);
+	}
+	else
+	{
+		fprintf(out_file[*job->md5], "%s,%s,%s\n", job->fileid + 2, job->urlid, path + strlen(job->tmp_dir) + 1);		
+	}
+}
 
 /**
  * @brief Mine a local file
- * 
+ *
  * @param job pointer to minr job
  * @param path string path
  */
@@ -419,39 +522,44 @@ void mine_local_file(struct minr_job *job, char *path)
 	bool skip = false;
 
 	/* Load file contents and calculate md5 */
-	if (!load_file(job,path)) skip = true;
+	if (!load_file(job, path))
+		skip = true;
 
 	/* File discrimination check: Unwanted header? */
-	if (!skip) if (unwanted_header(job->src)) skip = true;
+	if (!skip)
+		if (unwanted_header(job->src))
+			skip = true;
 
 	/* Is it binary */
-	if (!skip) if (is_binary(job->src, job->src_ln)) skip = true;
+	if (!skip)
+		if (is_binary(job->src, job->src_ln))
+			skip = true;
 
 	if (!skip)
 	{
-		switch(job->local_mining)
+		switch (job->local_mining)
 		{
-			case 1:
-				mine_crypto(NULL,path, job->src, job->src_ln);
-				break;
+		case 1:
+			mine_crypto(NULL, path, job->src, job->src_ln);
+			break;
 
-			case 2:
-				mine_license(job, path, false);
-				break;
+		case 2:
+			mine_license(job, path, false);
+			break;
 
-			case 3:
-				mine_quality(NULL,
-						path,
-						job->src,
-						job->src_ln);
-				break;
+		case 3:
+			mine_quality(NULL,
+						 path,
+						 job->src,
+						 job->src_ln);
+			break;
 
-			case 4:
-				mine_copyright(NULL,
-						path,
-						job->src,
-						job->src_ln, false);
-				break;
+		case 4:
+			mine_copyright(NULL,
+						   path,
+						   job->src,
+						   job->src_ln, false);
+			break;
 		}
 	}
 	free(job->src);
@@ -461,11 +569,12 @@ void mine_local_file(struct minr_job *job, char *path)
  * @brief Local mining.
  * Mines for Licenses, Crypto definitions and Copyrigths from a local directory. Results are presented via stdout.
  * @since 2.1.2
- * 
+ *
  * @param job pointer to minr job
  * @param root path to the root
  */
-void mine_local_directory(struct minr_job *job, char* root){
+void mine_local_directory(struct minr_job *job, char *root)
+{
 
 	DIR *dir;
 	struct dirent *entry;
@@ -473,27 +582,29 @@ void mine_local_directory(struct minr_job *job, char* root){
 	if (!(dir = opendir(root)))
 		return;
 
-	while ((entry = readdir(dir)) != NULL) {
+	while ((entry = readdir(dir)) != NULL)
+	{
 		char path[1024];
-		if (entry->d_type == DT_DIR) {
+		if (entry->d_type == DT_DIR)
+		{
 
 			if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
 				continue;
 			snprintf(path, sizeof(path), "%s/%s", root, entry->d_name);
-			mine_local_directory(job,path);
-		} else {
-			sprintf(path,"%s/%s",root,entry->d_name);
-			mine_local_file(job,path);
+			mine_local_directory(job, path);
+		}
+		else
+		{
+			sprintf(path, "%s/%s", root, entry->d_name);
+			mine_local_file(job, path);
 		}
 	}
 	closedir(dir);
-
 }
-
 
 /**
  * @brief Recursive directory reading
- * 
+ *
  * @param job pointer to minr job
  * @param path root path
  */
@@ -502,7 +613,8 @@ void recurse(struct minr_job *job, char *path)
 	DIR *dp;
 	struct dirent *entry;
 
-	if (!(dp = opendir(path))) return;
+	if (!(dp = opendir(path)))
+		return;
 
 	while ((entry = readdir(dp)))
 	{
@@ -522,33 +634,33 @@ void recurse(struct minr_job *job, char *path)
 		}
 	}
 
-	if (dp) closedir(dp);
+	if (dp)
+		closedir(dp);
 }
 
 /**
  * @brief Verify that required binaries are installed
- * 
+ *
  * @return true if succed
  */
 bool check_dependencies()
-{	
+{
 	load_crypto_definitions();
 
 	struct stat sb;
 	char *dependencies[] =
-	{
-		"/bin/gunzip",
-		"/bin/tar",
-		"/usr/bin/7z",
-		"/usr/bin/curl",
-		"/usr/bin/sort",
-		"/usr/bin/unrar",
-		"/usr/bin/unzip",
-		"/usr/bin/xz",
-		"/usr/bin/gem"
-	};
+		{
+			"/bin/gunzip",
+			"/bin/tar",
+			"/usr/bin/7z",
+			"/usr/bin/curl",
+			"/usr/bin/sort",
+			"/usr/bin/unrar",
+			"/usr/bin/unzip",
+			"/usr/bin/xz",
+			"/usr/bin/gem"};
 
-	for (int i = 0; i < (sizeof(dependencies)/sizeof(dependencies[0])); i++)
+	for (int i = 0; i < (sizeof(dependencies) / sizeof(dependencies[0])); i++)
 	{
 		if (!(stat(dependencies[i], &sb) == 0 && sb.st_mode & S_IXUSR))
 		{
@@ -561,7 +673,7 @@ bool check_dependencies()
 
 /**
  * @brief Returns true if file ends with LF or if it is empty
- * 
+ *
  * @param path string path
  * @return true if succed
  */
@@ -586,7 +698,7 @@ bool ends_with_chr10(char *path)
 		return true;
 	}
 
-	/* Read last byte */	
+	/* Read last byte */
 	uint8_t last_byte[1] = "\0";
 	fseeko64(file, size - 1, SEEK_SET);
 	fread(last_byte, 1, 1, file);
@@ -605,11 +717,11 @@ bool ends_with_chr10(char *path)
 
 /**
  * @brief Validate source and destination files for join and sort
- * 
+ *
  * @param file path string
  * @param destination path string
- * @return true 
- * @return false 
+ * @return true
+ * @return false
  */
 bool valid_source_destination(char *file, char *destination)
 {
@@ -632,11 +744,13 @@ bool valid_source_destination(char *file, char *destination)
 		/* Check destination file */
 		if (destination)
 		{
-			if (is_file(destination)) if (file_size(destination)) if (!mz_check(destination))
-			{
-				printf("Destination %s is corrupted\n", file);
-				return false;
-			}
+			if (is_file(destination))
+				if (file_size(destination))
+					if (!mz_check(destination))
+					{
+						printf("Destination %s is corrupted\n", file);
+						return false;
+					}
 		}
 	}
 
@@ -660,26 +774,28 @@ bool valid_source_destination(char *file, char *destination)
 	{
 		/* Check source file */
 		uint64_t size = file_size(file);
-		if (size) if (size % 21)
-		{
-			printf("Source file %s seems not to contain 21-byte records\n", file);
-			return false;
-		}
+		if (size)
+			if (size % 21)
+			{
+				printf("Source file %s seems not to contain 21-byte records\n", file);
+				return false;
+			}
 
 		/* Check destination */
 		if (destination)
 		{
 			uint64_t size_d = file_size(destination);
-			if (size_d) if (size_d % 21)
-			{
-				printf("Destination file %s seems not to contain 21-byte records\n", destination);
-				return false;
-			}
+			if (size_d)
+				if (size_d % 21)
+				{
+					printf("Destination file %s seems not to contain 21-byte records\n", destination);
+					return false;
+				}
 		}
 	}
 
-	if (!check_disk_free(file, file_size(file))) return false;
+	if (!check_disk_free(file, file_size(file)))
+		return false;
 
 	return true;
 }
-

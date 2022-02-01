@@ -110,13 +110,13 @@ void url_add(struct minr_job *job)
 /**
  * @brief Removes temporary files and directories
  * 
- * @param job pointer to miner job
+ * @param path string path to be deleted
  */
-void rm_tmpdir(struct minr_job *job)
+void rm_tmpdir(char * path)
 {
 	/* Assemble command */
 	char command[MAX_PATH_LEN] = "\0";
-	sprintf(command, "rm -rf %s", job->tmp_dir);
+	sprintf(command, "rm -rf %s", path);
 
 	/* Execute command */
 	FILE *fp = popen(command, "r");
@@ -131,9 +131,10 @@ void rm_tmpdir(struct minr_job *job)
 void url_download(struct minr_job *job)
 {
 	bool downloaded = false;
+	char * aux_root_dir = NULL;
 	job->src = calloc(MAX_FILE_SIZE + 1, 1);
 	job->zsrc = calloc((MAX_FILE_SIZE + 1) * 2, 1);
-
+	job->zsrc_extra = calloc((MAX_FILE_SIZE + 1) * 2, 1);
 	/* Reserve memory for snippet fingerprinting */
 	if (!job->exclude_mz)
 	{
@@ -143,12 +144,17 @@ void url_download(struct minr_job *job)
 
 		/* Reserve memory for mz_cache for mined/sources (65536 files) */
 		job->mz_cache = malloc(MZ_FILES * sizeof(struct mz_cache_item));
-		for (int i = 0; i < MZ_FILES; i++) job->mz_cache[i].length = 0;
+		job->mz_cache_extra = malloc(MZ_FILES * sizeof(struct mz_cache_item));
+		for (int i = 0; i < MZ_FILES; i++)
+		{
+			job->mz_cache[i].length = 0;
+			job->mz_cache_extra[i].length = 0;
+		}
 	}
 
 	/* Open all file handlers in mined/files (256 files) */
 	out_file = open_file(job->mined_path);
-
+	out_file_extra = open_file(job->mined_extra_path);
 	/* Mine a local folder instead of a URL */
 	if (is_dir(job->url))
 	{
@@ -162,13 +168,13 @@ void url_download(struct minr_job *job)
 
 		downloaded = true;
 	}
-
 	/* Create temporary component directory */
 	else
 	{
 		sprintf(job->tmp_dir,"%s/minr-%d", tmp_path, getpid());
 		mkdir(job->tmp_dir, 0755);
-
+		/*keep a copy of this root dir to erase later*/
+		aux_root_dir = strdup(job->tmp_dir);
 		/* urlid will contain the hex md5 of the entire component */
 		downloaded = download(job);
 	}
@@ -184,29 +190,38 @@ void url_download(struct minr_job *job)
 
 		recurse(job, job->tmp_dir);
 
-		if (!is_dir(job->url)) rm_tmpdir(job);
+		if (!is_dir(job->url)) rm_tmpdir(aux_root_dir);
+		free(aux_root_dir);
 	}
 
 	else
 	{
-		printf("Capture failed\n");
+		printf("Capture failed: %s\n",job->tmp_dir);
 	}
 
 	/* Close files */
-	for (int i=0; i < 256; i++) fclose(out_file[i]);
+	for (int i=0; i < 256; i++)
+	{
+		fclose(out_file[i]);
+		fclose(out_file_extra[i]);
+	}
 
 	if (!job->exclude_mz)
 	{
 		/* Flush mz cache */
 		mz_flush(job->mined_path, job->mz_cache);
+		mz_flush(job->mined_extra_path, job->mz_cache_extra);
 
 		free(job->mz_cache);
+		free(job->mz_cache_extra);
 		free(buffer);
 		free(hashes);
 		free(lines);
 	}
 
 	free(out_file);
+	free(out_file_extra);
 	free(job->src);
 	free(job->zsrc);
+	free(job->zsrc_extra);
 }

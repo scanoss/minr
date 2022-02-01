@@ -49,9 +49,17 @@
  */
 bool is_file(char *path)
 {
-
     struct stat pstat;
-    if (!stat(path, &pstat)) if (S_ISREG(pstat.st_mode)) return true;
+	
+    if (!stat(path, &pstat)) 
+		if (S_ISREG(pstat.st_mode)) 
+		{
+			/*discard hidden files */
+			char * file_name = strrchr(path, '/');
+			if (file_name && file_name[1] == '.')
+				return false;
+			return true;
+		}
     return false;
 
 }

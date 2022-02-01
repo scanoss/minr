@@ -131,7 +131,18 @@ $
 A `mined/snippets` directory is created with the snippet wfp fingerprints extracted from the `.mz` files located in `mined/sources`
 
 ## Data importation into the LDB
+To be able to import data into the LDB the version.json file must be present inside the mined directory. This file provide the last update date and will be imported join to the mined tables.
+The "version.json file must have the following format:
 
+```
+{"monthly":"YY.MM", "daily":"YY.MM.DD"}
+```
+
+This file can be generated with this command in bash:
+```
+echo '{"monthly":"22.01", "daily":"22.01.24"}' > mined/version.json
+```
+Then the importation can be performed:
 ```
 $ minr -i mined/
 $

@@ -76,7 +76,7 @@ int main(int argc, char *argv[])
 	job.exclude_mz = false;
 	job.exclude_detection = false;
 	job.is_attribution_notice = false;
-
+	job.mine_all = false;
 	// Import job
 	job.skip_sort = false;
 	job.skip_csv_check = false;
@@ -92,6 +92,7 @@ int main(int argc, char *argv[])
 	// Snippet mine job
 	*job.mz=0;
 	job.mz_cache = NULL;
+	job.mz_cache_extra = NULL;
 
 	// Tmp data
 	job.src_ln = 0;
@@ -106,7 +107,7 @@ int main(int argc, char *argv[])
 	int option;
 	bool invalid_argument = false;
 
-	while ((option = getopt(argc, argv, ":c:C:L:Q:Y:o:m:g:w:t:f:T:i:I:l:z:u:U:d:D:SxXsnkeahvO")) != -1)
+	while ((option = getopt(argc, argv, ":c:C:L:Q:Y:o:m:g:w:t:f:T:i:I:l:z:u:U:d:D:SxXsnkeahvOA")) != -1)
 	{
 
 		/* Check valid alpha is entered */
@@ -244,6 +245,10 @@ int main(int argc, char *argv[])
 			case 'a':
 				job.all_extensions = true;
 				break;
+			
+			case 'A':
+				job.mine_all = true;
+				break;
 
 			case 'h':
 				show_help();
@@ -281,7 +286,7 @@ int main(int argc, char *argv[])
 	}
 
 	strcat(job.mined_path, "/mined");
-
+	sprintf(job.mined_extra_path, "%s/extra", job.mined_path);
 	/* Import mined/ into the LDB */
 	if (*job.import_path)
 	{
@@ -378,6 +383,13 @@ int main(int argc, char *argv[])
 			printf("Cannot create output structure in %s\n", job.mined_path);
 			exit(EXIT_FAILURE);
 		}
+
+		if (!create_dir(job.mined_extra_path))
+		{
+			printf("Cannot create output structure in %s\n", job.mined_path);
+			exit(EXIT_FAILURE);
+		}
+
 
 		/* Load licenses */
 		job.licenses = load_licenses(&job.license_count);

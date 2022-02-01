@@ -384,5 +384,30 @@ void minr_join(struct minr_job *job)
 	sprintf(dst_path, "%s/cryptography.csv", destination);
 	csv_join(src_path, dst_path, job->skip_delete);
 
+	/* Join Extra tables */
+	sprintf(src_path, "%s/extra", source);
+	sprintf(dst_path, "%s/extra", destination);
+
+	if (is_dir(src_path) && is_dir(destination))
+	{
+		/* Join files */
+		for (int i = 0; i < 256; i++)
+		{
+			sprintf(src_path, "%s/extra/files/%02x.csv", source, i);
+			sprintf(dst_path, "%s/extra/files/%02x.csv", destination, i);
+			csv_join(src_path, dst_path, job->skip_delete);
+		}
+
+		/* Join Extra sources */
+		for (int i = 0; i < 65536; i++)
+		{
+			sprintf(src_path, "%s/extra/sources/%04x.mz", source, i);
+			sprintf(dst_path, "%s/extra/sources/%04x.mz", destination, i);
+			bin_join(src_path, dst_path, false, job->skip_delete);
+		}
+		sprintf(src_path, "%s/sources", source);
+		if (!job->skip_delete) rmdir(src_path);
+	}
+
 	if (!job->skip_delete) rmdir(source);
 }
