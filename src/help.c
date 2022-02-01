@@ -49,6 +49,7 @@ void show_help ()
 	printf("-u URL       Url to be mined (it also accepts a local folder)\n");
 	printf("-U URL       Optional URL to be recorded instead of the mined one (-u)\n");
 	printf("-S For SCANCODE license mining\n");
+	printf("-A For extra-tables mode (mine everything). The ignored files will be mined inside the mined/extra directory\n");
 	printf("\n");
 
 	printf("Mining configuration:\n");
