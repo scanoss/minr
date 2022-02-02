@@ -163,7 +163,7 @@ bool ldb_import_snippets(char *db_name, char *filename, bool skip_delete)
 		return false;
 
 	/* Lock DB */
-	ldb_lock();
+	ldb_lock(db_name);
 
 	uint64_t wfp_counter = 0;
 	uint64_t ignore_counter = 0;
@@ -269,7 +269,7 @@ bool ldb_import_snippets(char *db_name, char *filename, bool skip_delete)
 	free(bl);
 
 	/* Lock DB */
-	ldb_unlock();
+	ldb_unlock(db_name);
 
 	return true;
 }
@@ -460,7 +460,7 @@ bool ldb_import_csv(struct minr_job *job, char *filename, char *table, int nfiel
 	printf("%s\n", filename);
 
 	/* Lock DB */
-	ldb_lock();
+	ldb_lock(table);
 
 	while ((lineln = getline(&line, &len, fp)) != -1)
 	{
@@ -622,7 +622,7 @@ bool ldb_import_csv(struct minr_job *job, char *filename, char *table, int nfiel
 	free(field2);
 
 	/* Lock DB */
-	ldb_unlock();
+	ldb_unlock(table);
 
 	return true;
 }
@@ -891,7 +891,6 @@ bool version_import(struct minr_job *job)
 
 	if (!is_file(path))
 		return false;
-	
 	char * vf_import = version_file_open(path);
 	free(path);
 
@@ -932,7 +931,7 @@ bool version_import(struct minr_job *job)
 	}
 
 
-	FILE *f = fopen(path, "w");
+	FILE *f = fopen(path, "w+");
 	
 	if (!f)
 		return false;
@@ -988,16 +987,16 @@ void import_mz(struct minr_job *job)
  */
 void mined_import(struct minr_job *job)
 {
+	/* Create database */
+	if (!ldb_database_exists(job->dbname))
+		ldb_create_database(job->dbname);
+
 	/* Import version.json file */
 	if (!version_import(job))
 	{
 		fprintf(stderr, "Failed to import version.json file. This file must be present and must has a valid format to continue\n");
 		return;
 	}
-	
-	/* Create database */
-	if (!ldb_database_exists(job->dbname))
-		ldb_create_database(job->dbname);
 
 	/* Import MZ archives */
 	if (this_table("sources", job))
