@@ -122,27 +122,20 @@ struct minr_job
 	struct mz_cache_item * mz_cache_extra;
 	normalized_license *licenses; // Array of known license identifiers
 	int license_count;            // Number of known license identifiers
+
+	FILE **out_file;
+	FILE **out_file_extra;
 };
 
 typedef enum { none, license, copyright, quality } metadata;
 
 
-
-/* Pointers */
-uint8_t *buffer;
-uint32_t *hashes, *lines;
-
 /* File descriptor arrays */
-FILE *out_component;
-FILE **out_file;
-FILE **out_file_extra;
-int *out_snippet;
-
 extern char tmp_path[MAX_ARG_LEN];
 extern int min_file_size;
 extern char *ATTRIBUTION_NOTICES[];
-extern uint8_t *grams;
-extern uint32_t *windows;
+//extern uint8_t *grams;
+//extern uint32_t *windows;
 
 bool check_dependencies(void);
 bool download(struct minr_job *job);

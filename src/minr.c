@@ -43,8 +43,6 @@
 /* Paths */
 char tmp_path[MAX_ARG_LEN] = "/dev/shm";
 int min_file_size = MIN_FILE_SIZE;
-uint8_t *grams;
-uint32_t *windows;
 
 /**
  * @brief Return true if data is binary
@@ -502,11 +500,11 @@ void mine(struct minr_job *job, char *path)
 
 	if (extra_table)
 	{
-		fprintf(out_file_extra[*job->md5], "%s,%s,%s\n", job->fileid + 2, job->urlid, path + strlen(job->tmp_dir) + 1);
+		fprintf(job->out_file_extra[*job->md5], "%s,%s,%s\n", job->fileid + 2, job->urlid, path + strlen(job->tmp_dir) + 1);
 	}
 	else
 	{
-		fprintf(out_file[*job->md5], "%s,%s,%s\n", job->fileid + 2, job->urlid, path + strlen(job->tmp_dir) + 1);		
+		fprintf(job->out_file[*job->md5], "%s,%s,%s\n", job->fileid + 2, job->urlid, path + strlen(job->tmp_dir) + 1);		
 	}
 }
 
