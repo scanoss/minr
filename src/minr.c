@@ -316,8 +316,8 @@ int load_file(struct minr_job *job, char *path)
  	if (job->src_ln >= MAX_FILE_SIZE)
 	{
 		result = FILE_ACCEPTED_EXTRA_TABLES;
-		job->src_ln = MAX_FILE_SIZE;
-		fprintf(stderr, "Warning - truncated file %s to %u of %lu bytes\n", path, MAX_FILE_SIZE, job->src_ln);
+		fprintf(stderr, "Warning - truncated file %s to %u of %lu bytes\n", path, MAX_FILE_SIZE - 1, job->src_ln);
+		job->src_ln = MAX_FILE_SIZE - 1;
 	}
 	/* Read file contents into src and close it */
 	fseeko64(fp, 0, SEEK_SET);
@@ -330,7 +330,6 @@ int load_file(struct minr_job *job, char *path)
 	}
 	
 	/* Calculate file MD5 */
-	//calc_md5(job->src, job->src_ln, job->md5);
 	uint8_t * md5 = file_md5(path);
 	memcpy(job->md5, md5, sizeof(job->md5));
 	free(md5);
@@ -415,6 +414,10 @@ void mine(struct minr_job *job, char *path)
 
 	if (unwanted_path(path))
 	{
+		//Ignore path with ',' inside
+		if (strchr(path, ',') == NULL)
+			return;
+
 		if (job->mine_all)
 			extra_table = true;
 		else

@@ -62,15 +62,16 @@ void wfp_free(void)
 {
 	free (grams);
 	free (windows);
-	free(buffer);
-	free(hashes);
-	free(lines);
+	free (buffer);
+	free (hashes);
+	free (lines);
 
-
-	/* Close files */
-	for (int i=0; i < 256; i++) 
-		close(out_snippet[i]);
-		
+	if (out_snippet)
+	{
+		/* Close files */
+		for (int i=0; i < 256; i++) 
+			close(out_snippet[i]);
+	}	
 	free(out_snippet);
 }
 

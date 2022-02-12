@@ -29,7 +29,7 @@
 #include <string.h>
 
 /* Definitions */
-#define MINR_VERSION "2.3.1"
+#define MINR_VERSION "2.3.2"
 #define FILE_FILES 256
 #define MAX_ARG_LEN 1024
 #define MIN_FILE_REC_LEN 70
@@ -134,8 +134,6 @@ typedef enum { none, license, copyright, quality } metadata;
 extern char tmp_path[MAX_ARG_LEN];
 extern int min_file_size;
 extern char *ATTRIBUTION_NOTICES[];
-//extern uint8_t *grams;
-//extern uint32_t *windows;
 
 bool check_dependencies(void);
 bool download(struct minr_job *job);
