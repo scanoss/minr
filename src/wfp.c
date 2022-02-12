@@ -38,6 +38,42 @@
 #include "winnowing.h"
 #include "hex.h"
 #include "wfp.h"
+#include "file.h"
+
+uint8_t *grams;
+uint32_t *windows;
+uint8_t *buffer;
+uint32_t *hashes, *lines;
+int *out_snippet;
+
+
+void wfp_init(char * base_path)
+{
+	buffer = malloc(BUFFER_SIZE * 256);
+	hashes = malloc(MAX_FILE_SIZE);
+	lines  = malloc(MAX_FILE_SIZE);
+	grams = calloc(MAX_FILE_SIZE,1);
+	windows = calloc (MAX_FILE_SIZE*4,1);
+	if (base_path)
+		out_snippet = open_snippet(base_path);
+}
+
+void wfp_free(void)
+{
+	free (grams);
+	free (windows);
+	free (buffer);
+	free (hashes);
+	free (lines);
+
+	if (out_snippet)
+	{
+		/* Close files */
+		for (int i=0; i < 256; i++) 
+			close(out_snippet[i]);
+	}	
+	free(out_snippet);
+}
 
 /**
  * @brief Extrac wfp from a surce

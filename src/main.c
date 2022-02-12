@@ -321,18 +321,13 @@ int main(int argc, char *argv[])
 			exit(EXIT_FAILURE);
 		}
 
-		buffer = malloc(BUFFER_SIZE * 256);
-		hashes = malloc(MAX_FILE_SIZE);
-		lines  = malloc(MAX_FILE_SIZE);
-		grams = calloc(MAX_FILE_SIZE,1);
-		windows = calloc (MAX_FILE_SIZE*4,1);
 		char *file_path = calloc(MAX_PATH_LEN + 1, 1);
 
 		/* Open all file handlers in mined/snippets (256 files) */
 		if (is_dir(job.mz))
-			out_snippet = open_snippet(job.mz);
+			wfp_init(job.mz);
 		else
-			out_snippet = open_snippet(job.mined_path);
+			wfp_init(job.mined_path);
 
 		/* Import snippets from the entire sources/ directory */
 		if (is_dir(job.mz))
@@ -353,17 +348,10 @@ int main(int argc, char *argv[])
 		{
 			mz_wfp_extract(job.mz);
 		}
-
-		free (grams);
-		free (windows);
+		
 		free(file_path);
-		free(buffer);
-		free(hashes);
-		free(lines);
+		wfp_free();
 
-		/* Close files */
-		for (int i=0; i < 256; i++) close(out_snippet[i]);
-		free(out_snippet);
 	}
 
 	/* Mine URL */

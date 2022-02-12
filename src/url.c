@@ -36,6 +36,7 @@
 #include "file.h"
 #include "minr.h"
 #include "ldb.h"
+#include "wfp.h"
 
 /**
  * @brief Calculate purl md5
@@ -138,10 +139,7 @@ void url_download(struct minr_job *job)
 	/* Reserve memory for snippet fingerprinting */
 	if (!job->exclude_mz)
 	{
-		buffer = malloc(BUFFER_SIZE * 256);
-		hashes = malloc(MAX_FILE_SIZE);
-		lines  = malloc(MAX_FILE_SIZE);
-
+		wfp_init(NULL);
 		/* Reserve memory for mz_cache for mined/sources (65536 files) */
 		job->mz_cache = malloc(MZ_FILES * sizeof(struct mz_cache_item));
 		job->mz_cache_extra = malloc(MZ_FILES * sizeof(struct mz_cache_item));
@@ -153,8 +151,8 @@ void url_download(struct minr_job *job)
 	}
 
 	/* Open all file handlers in mined/files (256 files) */
-	out_file = open_file(job->mined_path);
-	out_file_extra = open_file(job->mined_extra_path);
+	job->out_file = open_file(job->mined_path);
+	job->out_file_extra = open_file(job->mined_extra_path);
 	/* Mine a local folder instead of a URL */
 	if (is_dir(job->url))
 	{
@@ -202,8 +200,8 @@ void url_download(struct minr_job *job)
 	/* Close files */
 	for (int i=0; i < 256; i++)
 	{
-		fclose(out_file[i]);
-		fclose(out_file_extra[i]);
+		fclose(job->out_file[i]);
+		fclose(job->out_file_extra[i]);
 	}
 
 	if (!job->exclude_mz)
@@ -214,13 +212,11 @@ void url_download(struct minr_job *job)
 
 		free(job->mz_cache);
 		free(job->mz_cache_extra);
-		free(buffer);
-		free(hashes);
-		free(lines);
+		wfp_free();
 	}
 
-	free(out_file);
-	free(out_file_extra);
+	free(job->out_file);
+	free(job->out_file_extra);
 	free(job->src);
 	free(job->zsrc);
 	free(job->zsrc_extra);
