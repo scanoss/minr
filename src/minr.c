@@ -412,12 +412,12 @@ void mine(struct minr_job *job, char *path)
 				return;
 		}
 
+	//Ignore path with ',' inside
+	if (strchr(path, ','))
+		return;
+
 	if (unwanted_path(path))
 	{
-		//Ignore path with ',' inside
-		if (strchr(path, ',') == NULL)
-			return;
-
 		if (job->mine_all)
 			extra_table = true;
 		else

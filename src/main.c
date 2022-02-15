@@ -371,14 +371,16 @@ int main(int argc, char *argv[])
 			printf("Cannot create output structure in %s\n", job.mined_path);
 			exit(EXIT_FAILURE);
 		}
-
-		if (!create_dir(job.mined_extra_path))
+		
+		if (job.mine_all)
 		{
-			printf("Cannot create output structure in %s\n", job.mined_path);
-			exit(EXIT_FAILURE);
+			if (!create_dir(job.mined_extra_path))
+			{
+				printf("Cannot create output structure in %s\n", job.mined_path);
+				exit(EXIT_FAILURE);
+			}
 		}
-
-
+		
 		/* Load licenses */
 		job.licenses = load_licenses(&job.license_count);
 
