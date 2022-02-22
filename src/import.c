@@ -40,6 +40,8 @@
 #include "ignorelist.h"
 #include "join.h"
 
+#include <scanoss_encoder.h>
+
 double progress_timer = 0;
 
 /**
@@ -389,8 +391,13 @@ bool valid_hex(char *str, int bytes)
 bool ldb_import_csv(struct minr_job *job, char *filename, char *table, int nfields)
 {
 	bool is_file_table = false;
+	bool bin_mode = false;
+
 	if (!strcmp(table, "file"))
 		is_file_table = true;
+	
+	if (strstr(filename, ".enc"))
+		bin_mode = true;
 
 	bool skip_delete = job->skip_delete;
 	int expected_fields = (job->skip_csv_check ? 0 : nfields);
@@ -504,13 +511,23 @@ bool ldb_import_csv(struct minr_job *job, char *filename, char *table, int nfiel
 			if (!data)
 			{
 				skip = true;
-			}
+			}/*
 			else if (ignored_extension(data))
 			{
 				skip = true;
-			}
+			}*/
 		}
-
+		/* Calculate record size */
+		uint16_t r_size = 0;
+		unsigned char data_bin[MAX_CSV_LINE_LEN];
+		if (bin_mode)
+		{	
+			r_size = scanoss_decode(ENCODE,NULL, NULL, data, strlen(data), data_bin);
+		}
+		else
+		{
+			 r_size = strlen(data);
+		}
 		/* Check if number of fields matches the expectation */
 		if (expected_fields)
 			if (csv_fields(line) != expected_fields)
@@ -524,7 +541,7 @@ bool ldb_import_csv(struct minr_job *job, char *filename, char *table, int nfiel
 		if (data && !skip)
 		{
 			/* Calculate record size */
-			uint16_t r_size = strlen(data);
+			//uint16_t r_size = strlen(data);
 
 			/* Convert id to binary (and 2nd field too if needed (files table)) */
 			file_id_to_bin(line, first_byte, got_1st_byte, itemid, field2, is_file_table);
@@ -588,7 +605,10 @@ bool ldb_import_csv(struct minr_job *job, char *filename, char *table, int nfiel
 			item_ptr += field2_ln;
 
 			/* Add record to buffer */
-			memcpy(item_buf + item_ptr, data, r_size);
+			if (!bin_mode)
+				memcpy(item_buf + item_ptr, data, r_size);
+			else
+				memcpy(item_buf + item_ptr, data_bin, r_size);
 			item_ptr += r_size;
 			item_rg_size += (field2_ln + REC_SIZE_LEN + r_size);
 
@@ -724,7 +744,11 @@ void import_files(struct minr_job *job)
 	{
 		for (int i = 0; i < 256; i++)
 		{
-			sprintf(path, "%s/files/%02x.csv", job->import_path, i);
+			if (!job->bin_import)
+				sprintf(path, "%s/files/%02x.csv", job->import_path, i);
+			else
+				sprintf(path, "%s/files/%02x.csv.enc", job->import_path, i);
+
 			if (csv_sort(path, job->skip_sort))
 			{
 				/* 3 fields expected (file id, url id, URL) */

@@ -84,7 +84,7 @@ int main(int argc, char *argv[])
 	*job.import_path=0;
 	*job.import_table=0;
 	job.import_overwrite=false;
-
+	job.bin_import = false;
 	// Join job
 	*job.join_from=0;
 	*job.join_to=0;
@@ -107,7 +107,7 @@ int main(int argc, char *argv[])
 	int option;
 	bool invalid_argument = false;
 
-	while ((option = getopt(argc, argv, ":c:C:L:Q:Y:o:m:g:w:t:f:T:i:I:l:z:u:U:d:D:SxXsnkeahvOA")) != -1)
+	while ((option = getopt(argc, argv, ":c:C:L:Q:Y:o:m:g:w:t:f:T:i:I:l:z:u:U:d:D:SxXsnkeahvOAb")) != -1)
 	{
 
 		/* Check valid alpha is entered */
@@ -162,7 +162,9 @@ int main(int argc, char *argv[])
 			case 'I':
 				strcpy(job.import_table, optarg);
 				break;
-
+			case 'b':
+				job.bin_import = true;
+				break;
 			case 'O':
 				job.import_overwrite = true;
 				break;
