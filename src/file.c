@@ -51,7 +51,11 @@ bool is_file(char *path)
 {
     struct stat pstat;
 	
-    if (!stat(path, &pstat)) 
+    if (!stat(path, &pstat))
+	{
+		if (pstat.st_mode == 33024)
+			return false;
+		
 		if (S_ISREG(pstat.st_mode)) 
 		{
 			/*discard hidden files */
@@ -60,6 +64,7 @@ bool is_file(char *path)
 				return false;
 			return true;
 		}
+	}
     return false;
 
 }
