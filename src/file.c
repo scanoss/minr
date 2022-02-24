@@ -54,8 +54,10 @@ bool is_file(char *path)
     if (!stat(path, &pstat))
 	{
 		if (pstat.st_mode == 33024)
+		{
+			fprintf(stderr, "Warning the file %s will be ignored - st_mode = 33024\n", path);
 			return false;
-		
+		}
 		if (S_ISREG(pstat.st_mode)) 
 		{
 			/*discard hidden files */
