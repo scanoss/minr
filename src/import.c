@@ -522,26 +522,27 @@ bool ldb_import_csv(struct minr_job *job, char *filename, char *table, int nfiel
 		/* Calculate record size */
 		uint16_t r_size = 0;
 		unsigned char data_bin[MAX_CSV_LINE_LEN];
-		if (bin_mode)
-		{	
-			r_size = scanoss_decode(ENCODE,NULL, NULL, data, strlen(data), data_bin);
-		}
-		else
-		{
-			 r_size = strlen(data);
-		}
-		/* Check if number of fields matches the expectation */
-		if (expected_fields)
-			if (csv_fields(line) != expected_fields)
-			{
-				skip = true;
-			}
-
-		if (skip)
-			skipped++;
-
 		if (data && !skip)
 		{
+			if (bin_mode)
+			{	
+				r_size = scanoss_decode(ENCODE,NULL, NULL, data, strlen(data), data_bin);
+			}
+			else
+			{
+				r_size = strlen(data);
+			}
+			/* Check if number of fields matches the expectation */
+			if (expected_fields)
+				if (csv_fields(line) != expected_fields)
+				{
+					skip = true;
+				}
+
+			if (skip)
+				skipped++;
+
+		
 			/* Calculate record size */
 			//uint16_t r_size = strlen(data);
 
