@@ -152,7 +152,10 @@ void url_download(struct minr_job *job)
 
 	/* Open all file handlers in mined/files (256 files) */
 	job->out_file = open_file(job->mined_path);
-	job->out_file_extra = open_file(job->mined_extra_path);
+	
+	if (job->mine_all)
+		job->out_file_extra = open_file(job->mined_extra_path);
+		
 	/* Mine a local folder instead of a URL */
 	if (is_dir(job->url))
 	{
