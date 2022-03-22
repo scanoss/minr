@@ -324,7 +324,7 @@ int load_file(struct minr_job *job, char *path)
 
 	if (!fread(job->src, 1, job->src_ln, fp))
 	{
-		fprintf(stderr,"Warning empty file %s\n", path);
+		fprintf(stderr,"Warning: empty file %s\n", path);
 		fclose(fp);
 		return FILE_IGNORED;
 	}

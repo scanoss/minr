@@ -193,7 +193,7 @@ int main(int argc, char *argv[])
 					job.bin_import = true;
 				else
 				{
-					fprintf(stderr, "libscanoss-encoder.so must be present to run this option\n");
+					fprintf(stderr, "libscanoss-encoder.so must be present to run -b option\n");
 					exit(EXIT_FAILURE);
 				}
 				break;
@@ -258,7 +258,7 @@ int main(int argc, char *argv[])
 				if (scancode_check())
 					job.scancode_mode = true;
 				else
-					fprintf(stderr, "Error, scancode and jq must be present in the system");
+					fprintf(stderr, "scancode and jq must be present in the system to run -S option\n");
 				break;
 			case 'n':
 				job.skip_csv_check = true;
