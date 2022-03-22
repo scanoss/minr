@@ -52,6 +52,32 @@
 #include "crypto.h"
 #include "url.h"
 #include "scancode.h"
+
+#include <dlfcn.h>
+
+
+void * lib_handle = NULL;
+bool lib_load()
+{
+	/*set decode funtion pointer to NULL*/
+	decode = NULL;
+	lib_handle = dlopen("libscanoss_encoder.so", RTLD_NOW);
+	char * err;
+    if (lib_handle) 
+	{
+		fprintf(stderr, "Lib scanoss-enocder present\n");
+		decode = dlsym(lib_handle, "scanoss_decode");
+		if ((err = dlerror())) 
+		{
+			printf("%s\n", err);
+			exit(EXIT_FAILURE);
+		}
+		return true;
+     }
+	 
+	 return false;
+}
+
 int main(int argc, char *argv[])
 {
 	if (!check_dependencies()) exit(1);
@@ -163,7 +189,13 @@ int main(int argc, char *argv[])
 				strcpy(job.import_table, optarg);
 				break;
 			case 'b':
-				job.bin_import = true;
+				if (lib_load())
+					job.bin_import = true;
+				else
+				{
+					fprintf(stderr, "libscanoss-encoder.so must be present to run this option\n");
+					exit(EXIT_FAILURE);
+				}
 				break;
 			case 'O':
 				job.import_overwrite = true;

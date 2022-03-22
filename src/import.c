@@ -460,7 +460,7 @@ bool ldb_import_csv(struct minr_job *job, char *filename, char *table, int nfiel
 	fp = fopen(filename, "r");
 	if (fp == NULL)
 	{
-		printf("File doesnt exist %s\n", filename);
+		fprintf(stderr, "File doesnt exist %s\n", filename);
 	
 		if (!skip_delete)
 			unlink(filename);
@@ -473,6 +473,9 @@ bool ldb_import_csv(struct minr_job *job, char *filename, char *table, int nfiel
 
 	while ((lineln = getline(&line, &len, fp)) != -1)
 	{
+		
+		bytecounter += lineln;
+		
 		/* Skip records with sizes out of range */
 		if (lineln > MAX_CSV_LINE_LEN || lineln < min_line_size)
 		{
@@ -512,24 +515,22 @@ bool ldb_import_csv(struct minr_job *job, char *filename, char *table, int nfiel
 			data = field_n(3, line);
 			if (!data)
 			{
-				skip = true;
-			}/*
-			else if (ignored_extension(data))
-			{
-				skip = true;
-			}*/
+				fprintf(stderr, "Error in line %s -- Skipped\n", line);
+				skipped++;
+			}
 		}
 		/* Calculate record size */
 		uint16_t r_size = 0;
 		unsigned char data_bin[MAX_CSV_LINE_LEN];
-		if (data && !skip)
+		if (data)
 		{
 			if (bin_mode)
 			{	
-				r_size = scanoss_decode(ENCODE,NULL, NULL, data, strlen(data), data_bin);
+				r_size = decode(DECODE_BASE64,NULL, NULL, data, strlen(data), data_bin);
 			}
 			else
 			{
+				/* Calculate record size */
 				r_size = strlen(data);
 			}
 			/* Check if number of fields matches the expectation */
@@ -538,14 +539,16 @@ bool ldb_import_csv(struct minr_job *job, char *filename, char *table, int nfiel
 				{
 					skip = true;
 				}
+			
+			if (is_file_table && ignored_extension(data))
+				skip = true;
 
 			if (skip)
+			{
 				skipped++;
-
+				continue;
+			}
 		
-			/* Calculate record size */
-			//uint16_t r_size = strlen(data);
-
 			/* Convert id to binary (and 2nd field too if needed (files table)) */
 			file_id_to_bin(line, first_byte, got_1st_byte, itemid, field2, is_file_table);
 
@@ -617,8 +620,6 @@ bool ldb_import_csv(struct minr_job *job, char *filename, char *table, int nfiel
 
 			imported++;
 		}
-		bytecounter += lineln;
-
 		progress("Importing: ", bytecounter, totalbytes, true);
 	}
 	progress("Importing: ", 100, 100, true);
@@ -1024,8 +1025,8 @@ void mined_import(struct minr_job *job)
 	/* Import version.json file */
 	if (!version_import(job))
 	{
-		fprintf(stderr, "Failed to import version.json file. This file must be present and must has a valid format to continue\n");
-		return;
+		fprintf(stderr, "Failed to import version.json file. This file must be present and must has a valid format to continue. Check at README.md for more details.\n");
+		exit(EXIT_FAILURE);
 	}
 
 	/* Import MZ archives */
