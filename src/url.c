@@ -155,7 +155,7 @@ void url_download(struct minr_job *job)
 	
 	if (job->mine_all)
 		job->out_file_extra = open_file(job->mined_extra_path);
-		
+
 	/* Mine a local folder instead of a URL */
 	if (is_dir(job->url))
 	{
@@ -204,7 +204,8 @@ void url_download(struct minr_job *job)
 	for (int i=0; i < 256; i++)
 	{
 		fclose(job->out_file[i]);
-		fclose(job->out_file_extra[i]);
+		if (job->mine_all)
+			fclose(job->out_file_extra[i]);
 	}
 
 	if (!job->exclude_mz)
@@ -219,7 +220,10 @@ void url_download(struct minr_job *job)
 	}
 
 	free(job->out_file);
-	free(job->out_file_extra);
+	
+	if (job->mine_all)
+		free(job->out_file_extra);
+
 	free(job->src);
 	free(job->zsrc);
 	free(job->zsrc_extra);
