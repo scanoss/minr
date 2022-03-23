@@ -85,6 +85,7 @@ void show_help ()
 	  A JSON file called \"version.json\" must be present into the mined directory with the following format:\n\
 	  {\"monthly\":\"YY.MM\", \"daily\":\"YY.MM.DD\"}. NOTE 1: It is mandatory  at lest one of these keys in version.json\n");
 	printf("          Note 2: data in DIR is wiped after imported)\n");
+	printf("-b        Import in binary mode: take a base64 encoded csv and insert in the KB as binary. libscanoss-encoder must be present in the system\n");
 	printf("-D        Set the OSS DB name (default: oss)\n");
 	printf("-I TABLE  Restrict importation to a specific table\n");
 	printf("-O        Overwrite destination data rather than appending (MAY LEAD TO DATA LOSS)\n");

@@ -460,7 +460,7 @@ bool ldb_import_csv(struct minr_job *job, char *filename, char *table, int nfiel
 	fp = fopen(filename, "r");
 	if (fp == NULL)
 	{
-		fprintf(stderr, "File doesnt exist %s\n", filename);
+		fprintf(stderr, "File does not exist %s\n", filename);
 	
 		if (!skip_delete)
 			unlink(filename);
@@ -635,6 +635,7 @@ bool ldb_import_csv(struct minr_job *job, char *filename, char *table, int nfiel
 	printf("%u records imported, %u skipped\n", imported, skipped);
 
 	fclose(fp);
+	
 	if (!skip_delete)
 		unlink(filename);
 
@@ -743,9 +744,6 @@ void import_files(struct minr_job *job)
 
 	char path[2 * MAX_PATH_LEN] = "\0";
 	sprintf(path, "%s/files", job->import_path);
-
-	if (job->bin_import)
-		printf("bin import");
 
 	if (is_dir(path))
 	{
