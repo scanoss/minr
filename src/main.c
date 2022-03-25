@@ -190,7 +190,10 @@ int main(int argc, char *argv[])
 				break;
 			case 'b':
 				if (lib_load())
+				{
 					job.bin_import = true;
+					job.skip_csv_check = true;
+				}
 				else
 				{
 					fprintf(stderr, "libscanoss-encoder.so must be present to run -b option\n");

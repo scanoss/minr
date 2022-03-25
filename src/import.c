@@ -827,6 +827,10 @@ void single_file_import(struct minr_job *job, char *filename, char *tablename, i
 
 	char path[2 * MAX_PATH_LEN] = "\0";
 	sprintf(path, "%s/%s", job->import_path, filename);
+	
+	if (job->bin_import)
+		strcat(path,".enc");
+
 	if (is_file(path))
 	{
 		if (csv_sort(path, job->skip_sort))
