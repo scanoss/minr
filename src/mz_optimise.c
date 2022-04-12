@@ -30,10 +30,10 @@
 #include <libgen.h>
 
 #include "minr.h"
-#include "ldb.h"
+#include <ldb.h>
 #include "hex.h"
 #include "ignorelist.h"
-#include "ldb.h"
+#include "mz.h"
 
 /**
  * @brief Check if job->id is found in job->xkeys (see -X)
@@ -174,12 +174,39 @@ bool mz_optimise_handler(struct mz_job *job)
 	return true;
 }
 
+bool mz_optimise_dup_handler(struct mz_job *job)
+{
+	/* Uncompress */
+
+	uint8_t md5[16];
+	MD5((uint8_t *)job->data, job->data_ln, md5);
+
+	/* Skip if corrupted file */
+	if (!mz_md5_match(job->id, md5 + 2))
+	{
+		job->igl_c++;
+	}
+	/* Check if file is not duplicated */
+	else if (mz_id_exists(job->ptr, job->ptr_ln, job->id))
+	{
+		job->dup_c++;
+	}
+	else
+	{
+		memcpy(job->ptr + job->ptr_ln, job->id, job->ln);
+		job->ptr_ln += job->ln;
+	}
+
+	return true;
+}
+
+
 /**
  * @brief Optimise an mz file removing duplicated data
  * 
  * @param job pointer to mz job
  */
-void mz_optimise(struct mz_job *job)
+void mz_optimise(struct mz_job *job, mz_optimise_mode_t mode)
 {
 	/* Extract first two MD5 bytes from the file name */
 	memcpy(job->md5, basename(job->path), 4);
@@ -192,8 +219,19 @@ void mz_optimise(struct mz_job *job)
 	job->ptr = calloc(job->mz_ln, 1);
 
 	/* Launch optimisation */
-	mz_parse(job, mz_optimise_handler);
-
+	switch (mode)
+	{
+	case MZ_OPTIMISE_ALL:
+		mz_parse(job, mz_optimise_handler);
+		break;
+	case MZ_OPTIMISE_DUP:
+		mz_parse(job, mz_optimise_dup_handler);
+		break;
+	
+	default:
+		break;
+	}
+	
 	/* Write updated mz file */
 	file_write(job->path, job->ptr, job->ptr_ln);
 
@@ -206,3 +244,5 @@ void mz_optimise(struct mz_job *job)
 	free(job->mz);
 	free(job->ptr);
 }
+
+
