@@ -61,6 +61,7 @@ void help()
 	printf("-c MZ   check MZ file integrity\n");
 	printf("-o MZ   optimise MZ (eliminate duplicates and unwanted content)\n");
 	printf("-O MZ   optimise MZ, eliminating also orphan files (not found in local KB)\n");
+	printf("-D MZ   optimise MZ (eliminate only duplicates)\n");
 	printf("-K MZ   extract a list of unique file keys to STDOUT (binary)\n");
 	printf("-X KEYS exclude list of KEYS (see -K) when running optimize (-O and -o)\n");
 	printf("\n");
