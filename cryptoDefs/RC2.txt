@@ -7,3 +7,10 @@ rc2_LTX__mcrypt_get_size
 rc2_LTX__mcrypt_get_block_size
 rc2_LTX__is_block_algorithm
 rc2_LTX__mcrypt_get_key_size
+RC2_encrypt
+RC2_decrypt
+RC2_ecb_encrypt
+RC2_set_key
+RC2_cfb64_encrypt
+RC2_ofb64_encrypt
+RC2_cbc_encrypt

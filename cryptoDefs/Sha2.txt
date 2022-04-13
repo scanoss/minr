@@ -14,3 +14,14 @@ jsSHA256
 jsSHA512
 jsSHA3
 sha.ts
+SHA512_Update
+SHA512_Init
+sha512_block_data_order
+SHA512_Transform
+sha512_block_p8
+SHA512_Final
+SHA256_Init
+SHA224_Update
+SHA224_Final
+sha512_256_init
+sha512_block_ppc

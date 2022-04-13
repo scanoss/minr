@@ -4,3 +4,7 @@ RIPEMD160_CTX
 ripemd160_Init
 ripemd160_process
 ripemd160_Update
+RIPEMD160_Init
+ripemd160_block_data_order
+ripemd160_block_x86
+ripemd160_block

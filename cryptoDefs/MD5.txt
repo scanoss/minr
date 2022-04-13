@@ -5,3 +5,9 @@ md5
 md5crypt
 aprcrypt
 md5_encrypt
+md5_block_data_order
+ossl_md5_sha1_init
+ossl_md5_sha1_ctrl
+MD5_Init
+ossl_md5_sha1_update
+ossl_md5_sha1_final

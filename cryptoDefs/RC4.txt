@@ -4,3 +4,5 @@ RC4_H
 RC4_KEY_S
 RC4_key
 RC4
+RC4_set_key
+

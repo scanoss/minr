@@ -4,3 +4,6 @@ aria.cpp
 aria.h
 r.re.nsri.aria
 ARIAEngine
+ossl_aria_set_encrypt_key
+ossl_aria_set_decrypt_key
+ossl_aria_encrypt
