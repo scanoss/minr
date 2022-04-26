@@ -1,2 +1,9 @@
 name=CAST
-coding=320
+coding=320CAST_cfb64_encrypt
+CAST_ecb_encrypt
+CAST_encrypt
+CAST_decrypt
+CAST_cbc_encrypt
+CAST_ofb64_encrypt
+CAST_set_key
+

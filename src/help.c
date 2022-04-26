@@ -99,6 +99,7 @@ void show_help ()
 	printf("\n");
 
 	printf("-l DIR  Auto-generates license_ids.c (used by unmz for license detection) from DIR\n");
+	printf("-c DIR  Auto-generates crypto_loads.h (used by crypto.c for cryptographic detection) from DIR\n");
 	printf("-o      Set location for the mined/ output directory (defaults to current directory)\n");
 	printf("-s      Skip sorting of .csv and .bin files before importing (-i)\n");
 	printf("-T      Set absolute temporary directory (defaults to /dev/shm)\n");

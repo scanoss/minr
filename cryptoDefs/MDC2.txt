@@ -3,3 +3,8 @@ coding=128
 MDC2.h
 mdc2
 mdc2_with_aes.py
+MDC2_Init
+MDC2_Update
+MDC2_Final
+mdc2_body
+

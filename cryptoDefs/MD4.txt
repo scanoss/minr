@@ -8,3 +8,5 @@ MD4_DIGEST_SIZE
 md4_update
 md4_init
 md4_final
+MD4_Init
+md4_block_data_order
