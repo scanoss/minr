@@ -52,6 +52,32 @@
 #include "crypto.h"
 #include "url.h"
 #include "scancode.h"
+
+#include <dlfcn.h>
+
+
+void * lib_handle = NULL;
+bool lib_load()
+{
+	/*set decode funtion pointer to NULL*/
+	decode = NULL;
+	lib_handle = dlopen("libscanoss_encoder.so", RTLD_NOW);
+	char * err;
+    if (lib_handle) 
+	{
+		fprintf(stderr, "Lib scanoss-enocder present\n");
+		decode = dlsym(lib_handle, "scanoss_decode");
+		if ((err = dlerror())) 
+		{
+			printf("%s\n", err);
+			exit(EXIT_FAILURE);
+		}
+		return true;
+     }
+	 
+	 return false;
+}
+
 int main(int argc, char *argv[])
 {
 	if (!check_dependencies()) exit(1);
@@ -84,7 +110,7 @@ int main(int argc, char *argv[])
 	*job.import_path=0;
 	*job.import_table=0;
 	job.import_overwrite=false;
-
+	job.bin_import = false;
 	// Join job
 	*job.join_from=0;
 	*job.join_to=0;
@@ -107,7 +133,7 @@ int main(int argc, char *argv[])
 	int option;
 	bool invalid_argument = false;
 
-	while ((option = getopt(argc, argv, ":c:C:L:Q:Y:o:m:g:w:t:f:T:i:I:l:z:u:U:d:D:SxXsnkeahvOA")) != -1)
+	while ((option = getopt(argc, argv, ":c:C:L:Q:Y:o:m:g:w:t:f:T:i:I:l:z:u:U:d:D:SxXsnkeahvOAb")) != -1)
 	{
 
 		/* Check valid alpha is entered */
@@ -162,7 +188,18 @@ int main(int argc, char *argv[])
 			case 'I':
 				strcpy(job.import_table, optarg);
 				break;
-
+			case 'b':
+				if (lib_load())
+				{
+					job.bin_import = true;
+					job.skip_csv_check = true;
+				}
+				else
+				{
+					fprintf(stderr, "libscanoss-encoder.so must be present to run -b option\n");
+					exit(EXIT_FAILURE);
+				}
+				break;
 			case 'O':
 				job.import_overwrite = true;
 				break;
@@ -224,7 +261,7 @@ int main(int argc, char *argv[])
 				if (scancode_check())
 					job.scancode_mode = true;
 				else
-					fprintf(stderr, "Error, scancode and jq must be present in the system");
+					fprintf(stderr, "scancode and jq must be present in the system to run -S option\n");
 				break;
 			case 'n':
 				job.skip_csv_check = true;

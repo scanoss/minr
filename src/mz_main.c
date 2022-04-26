@@ -40,11 +40,12 @@
 #include <sys/statvfs.h>
 #include <zlib.h>
 #include "minr.h"
-#include "ldb.h"
+#include <ldb.h>
 #include "ignorelist.h"
 #include "quality.h"
 #include "mz_mine.h"
 #include "crypto.h"
+#include "mz.h"
 
 void help()
 {
@@ -60,6 +61,7 @@ void help()
 	printf("-c MZ   check MZ file integrity\n");
 	printf("-o MZ   optimise MZ (eliminate duplicates and unwanted content)\n");
 	printf("-O MZ   optimise MZ, eliminating also orphan files (not found in local KB)\n");
+	printf("-D MZ   optimise MZ (eliminate only duplicates)\n");
 	printf("-K MZ   extract a list of unique file keys to STDOUT (binary)\n");
 	printf("-X KEYS exclude list of KEYS (see -K) when running optimize (-O and -o)\n");
 	printf("\n");
@@ -169,7 +171,7 @@ int main(int argc, char *argv[])
 	job.licenses = NULL;
 	job.license_count = 0;
 	
-	while ((option = getopt(argc, argv, ":p:k:c:x:K:l:C:Q:L:o:O:Y:X:hv")) != -1)
+	while ((option = getopt(argc, argv, ":p:k:c:x:K:l:C:Q:L:o:D:O:Y:X:hv")) != -1)
 	{
 		/* Check valid alpha is entered */
 		if (optarg)
@@ -246,6 +248,10 @@ int main(int argc, char *argv[])
 				job.orphan_rm = true;
 				argcpy(job.path, optarg);
 				break;
+			case 'D':
+				argcpy(job.path, optarg);
+				mz_optimise(&job, MZ_OPTIMISE_DUP);
+				break;
 
 			case 'L':
 				job.licenses = load_licenses(&job.license_count);
@@ -286,7 +292,6 @@ int main(int argc, char *argv[])
 
 		if (invalid_argument)
 		{
-			
 			exit_status = EXIT_FAILURE;
 			break;
 		}
@@ -299,7 +304,7 @@ int main(int argc, char *argv[])
 	}
 
 	/* Process -O and -o requests */
-	if (run_optimise) mz_optimise(&job);
+	if (run_optimise) mz_optimise(&job, MZ_OPTIMISE_ALL);
 
 	/* Process -k request */
 	else if (key_provided) mz_cat(&job, key);

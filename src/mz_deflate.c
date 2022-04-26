@@ -28,7 +28,8 @@
 
 #include <libgen.h>
 
-#include "ldb.h"
+#include <ldb.h>
+#include "mz.h"
 #include "minr.h"
 #include "md5.h"
 #include "hex.h"

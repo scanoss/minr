@@ -40,6 +40,8 @@
 #include "ignorelist.h"
 #include "join.h"
 
+#include <scanoss_encoder.h>
+
 double progress_timer = 0;
 
 /**
@@ -389,8 +391,13 @@ bool valid_hex(char *str, int bytes)
 bool ldb_import_csv(struct minr_job *job, char *filename, char *table, int nfields)
 {
 	bool is_file_table = false;
+	bool bin_mode = false;
+
 	if (!strcmp(table, "file"))
 		is_file_table = true;
+	
+	if (job->bin_import || strstr(filename, ".enc"))
+		bin_mode = true;
 
 	bool skip_delete = job->skip_delete;
 	int expected_fields = (job->skip_csv_check ? 0 : nfields);
@@ -453,6 +460,8 @@ bool ldb_import_csv(struct minr_job *job, char *filename, char *table, int nfiel
 	fp = fopen(filename, "r");
 	if (fp == NULL)
 	{
+		fprintf(stderr, "File does not exist %s\n", filename);
+	
 		if (!skip_delete)
 			unlink(filename);
 		return false;
@@ -464,6 +473,9 @@ bool ldb_import_csv(struct minr_job *job, char *filename, char *table, int nfiel
 
 	while ((lineln = getline(&line, &len, fp)) != -1)
 	{
+		
+		bytecounter += lineln;
+		
 		/* Skip records with sizes out of range */
 		if (lineln > MAX_CSV_LINE_LEN || lineln < min_line_size)
 		{
@@ -503,29 +515,40 @@ bool ldb_import_csv(struct minr_job *job, char *filename, char *table, int nfiel
 			data = field_n(3, line);
 			if (!data)
 			{
-				skip = true;
-			}
-			else if (ignored_extension(data))
-			{
-				skip = true;
+				fprintf(stderr, "Error in line %s -- Skipped\n", line);
+				skipped++;
 			}
 		}
-
-		/* Check if number of fields matches the expectation */
-		if (expected_fields)
-			if (csv_fields(line) != expected_fields)
-			{
-				skip = true;
-			}
-
-		if (skip)
-			skipped++;
-
-		if (data && !skip)
+		/* Calculate record size */
+		uint16_t r_size = 0;
+		unsigned char data_bin[MAX_CSV_LINE_LEN];
+		if (data)
 		{
-			/* Calculate record size */
-			uint16_t r_size = strlen(data);
+			if (bin_mode)
+			{	
+				r_size = decode(DECODE_BASE64,NULL, NULL, data, strlen(data), data_bin);
+			}
+			else
+			{
+				/* Calculate record size */
+				r_size = strlen(data);
+			}
+			/* Check if number of fields matches the expectation */
+			if (expected_fields)
+				if (csv_fields(line) != expected_fields)
+				{
+					skip = true;
+				}
+			
+			if (is_file_table && ignored_extension(data))
+				skip = true;
 
+			if (skip)
+			{
+				skipped++;
+				continue;
+			}
+		
 			/* Convert id to binary (and 2nd field too if needed (files table)) */
 			file_id_to_bin(line, first_byte, got_1st_byte, itemid, field2, is_file_table);
 
@@ -588,14 +611,15 @@ bool ldb_import_csv(struct minr_job *job, char *filename, char *table, int nfiel
 			item_ptr += field2_ln;
 
 			/* Add record to buffer */
-			memcpy(item_buf + item_ptr, data, r_size);
+			if (!bin_mode)
+				memcpy(item_buf + item_ptr, data, r_size);
+			else
+				memcpy(item_buf + item_ptr, data_bin, r_size);
 			item_ptr += r_size;
 			item_rg_size += (field2_ln + REC_SIZE_LEN + r_size);
 
 			imported++;
 		}
-		bytecounter += lineln;
-
 		progress("Importing: ", bytecounter, totalbytes, true);
 	}
 	progress("Importing: ", 100, 100, true);
@@ -611,6 +635,7 @@ bool ldb_import_csv(struct minr_job *job, char *filename, char *table, int nfiel
 	printf("%u records imported, %u skipped\n", imported, skipped);
 
 	fclose(fp);
+	
 	if (!skip_delete)
 		unlink(filename);
 
@@ -724,7 +749,11 @@ void import_files(struct minr_job *job)
 	{
 		for (int i = 0; i < 256; i++)
 		{
-			sprintf(path, "%s/files/%02x.csv", job->import_path, i);
+			if (!job->bin_import)
+				sprintf(path, "%s/files/%02x.csv", job->import_path, i);
+			else
+				sprintf(path, "%s/files/%02x.csv.enc", job->import_path, i);
+
 			if (csv_sort(path, job->skip_sort))
 			{
 				/* 3 fields expected (file id, url id, URL) */
@@ -798,6 +827,10 @@ void single_file_import(struct minr_job *job, char *filename, char *tablename, i
 
 	char path[2 * MAX_PATH_LEN] = "\0";
 	sprintf(path, "%s/%s", job->import_path, filename);
+	
+	if (job->bin_import)
+		strcat(path,".enc");
+
 	if (is_file(path))
 	{
 		if (csv_sort(path, job->skip_sort))
@@ -994,8 +1027,8 @@ void mined_import(struct minr_job *job)
 	/* Import version.json file */
 	if (!version_import(job))
 	{
-		fprintf(stderr, "Failed to import version.json file. This file must be present and must has a valid format to continue\n");
-		return;
+		fprintf(stderr, "Failed to import version.json file. This file must be present and must has a valid format to continue. Check at README.md for more details.\n");
+		exit(EXIT_FAILURE);
 	}
 
 	/* Import MZ archives */

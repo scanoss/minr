@@ -292,7 +292,7 @@ void minr_join_snippets(char *source, char *destination, bool skip_delete)
 	{
 		sprintf(src_path, "%s/snippets/%02x.bin", source, i);
 		sprintf(dst_path, "%s/snippets/%02x.bin", destination, i);
-		bin_join(src_path, dst_path, true, false);
+		bin_join(src_path, dst_path, true, skip_delete);
 	}
 	sprintf(src_path, "%s/snippets", source);
 	if (!skip_delete) rmdir(src_path);

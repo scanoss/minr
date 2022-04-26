@@ -29,7 +29,7 @@
 #include <string.h>
 
 /* Definitions */
-#define MINR_VERSION "2.3.2"
+#define MINR_VERSION "2.4.0"
 #define FILE_FILES 256
 #define MAX_ARG_LEN 1024
 #define MIN_FILE_REC_LEN 70
@@ -104,6 +104,7 @@ struct minr_job
 	bool skip_csv_check; // Do not check number of CSV fields
 	bool skip_delete; // Do not delete, -k(eep) files after importing
 	bool mine_all;
+	bool bin_import;
 
 	// minr -f -t
 	char join_from[MAX_PATH_LEN];
