@@ -40,8 +40,6 @@
 #include "ignorelist.h"
 #include "join.h"
 
-#include <scanoss_encoder.h>
-
 double progress_timer = 0;
 
 /**
