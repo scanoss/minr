@@ -40,6 +40,9 @@
 #include "ignorelist.h"
 #include "join.h"
 
+int (*decode) (int op, unsigned char *key, unsigned char *nonce,
+		        const char *buffer_in, int buffer_in_len, unsigned char *buffer_out);
+
 double progress_timer = 0;
 
 /**
