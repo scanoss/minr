@@ -352,11 +352,11 @@ bool file_id_to_bin(char *line, uint8_t first_byte, bool got_1st_byte, uint8_t *
 	else
 	{
 		/* Convert item id */
-		ldb_hex_to_bin(line, 32, itemid);
+		ldb_hex_to_bin(line, MD5_LEN_HEX, itemid);
 
 		/* Convert url id if needed (file table) */
 		if (is_file_table)
-			ldb_hex_to_bin(field_n(2, line), 32, field2);
+			ldb_hex_to_bin(field_n(2, line), MD5_LEN_HEX, field2);
 	}
 
 	return true;
@@ -423,7 +423,7 @@ bool ldb_import_csv(struct minr_job *job, char *filename, char *table, int nfiel
 	FILE *item_sector = NULL;
 	uint16_t item_rg_start = 0; // record group size
 	uint16_t item_rg_size = 0;	// record group size
-	char last_id[MD5_LEN * 2 + 1];
+	char last_id[MD5_LEN * 2 + 1 -2]; //save last 30th chars from the last md5.
 	memset(last_id, 0, MD5_LEN * 2 + 1);
 
 	/* Counters */
@@ -491,9 +491,10 @@ bool ldb_import_csv(struct minr_job *job, char *filename, char *table, int nfiel
 
 		/* Check if this ID is the same as last */
 		bool dup_id = false;
-		if (!memcmp(last_id, line, MD5_LEN * 2))
+		if (!memcmp(last_id, line, MD5_LEN * 2 - 2)) //compare 30 chars of the md5
 			dup_id = true;
-		memcpy(last_id, line, MD5_LEN * 2);
+		else
+			memcpy(last_id, line, MD5_LEN * 2 - 2); //copy 30 chars of the md5
 
 		/* First CSV field is the data key. Data starts with the second CSV field */
 		char *data = field_n(2, line);
@@ -541,7 +542,7 @@ bool ldb_import_csv(struct minr_job *job, char *filename, char *table, int nfiel
 					skip = true;
 				}
 			
-			if (is_file_table && ignored_extension(data))
+			if (is_file_table && ignored_extension(data) && !bin_mode) //we dont know the file extension in bin_mode
 				skip = true;
 
 			if (skip)
