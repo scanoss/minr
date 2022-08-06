@@ -39,6 +39,8 @@
 #include "ignored_files.h"
 #include "ldb.h"
 #include "crypto.h"
+#include "libbinhash.h"
+
 
 /* Paths */
 char tmp_path[MAX_ARG_LEN] = "/dev/shm";
@@ -324,7 +326,7 @@ int load_file(struct minr_job *job, char *path)
 
 	if (!fread(job->src, 1, job->src_ln, fp))
 	{
-		fprintf(stderr,"Warning: empty file %s\n", path);
+		fprintf(stderr,"Error reading %s\n", path);
 		fclose(fp);
 		return FILE_IGNORED;
 	}
@@ -395,7 +397,6 @@ void extract_csv(char *out, char *in, int n, long limit)
 void mine(struct minr_job *job, char *path)
 {
 	bool extra_table = false;
-	bool exclude_detection = job->exclude_detection;
 	/* Mine attribution notice */
 	job->is_attribution_notice = is_attribution_notice(path);
 	if (job->is_attribution_notice)
@@ -454,7 +455,7 @@ void mine(struct minr_job *job, char *path)
 	{
 		/* File discrimination check: Binary? */
 		if (is_binary(job->src, job->src_ln))
-			exclude_detection = true;
+			job->exclude_detection = true;
 		else
 		{
 			bool skip = false;
@@ -489,12 +490,14 @@ void mine(struct minr_job *job, char *path)
 	}
 
 	/* Mine more */
-	if (!exclude_detection)
+	if (!job->exclude_detection)
 	{
 		mine_crypto(job->mined_path, job->fileid, job->src, job->src_ln);
 		mine_license(job, job->fileid, false);
 		mine_quality(job->mined_path, job->fileid, job->src, job->src_ln);
+		mine_functions_hashes(path,job->mined_path, job->fileid, job->src, job->src_ln);
 		mine_copyright(job->mined_path, job->fileid, job->src, job->src_ln, false);
+			
 	}
 
 	/* Output file information */

@@ -768,6 +768,44 @@ void import_files(struct minr_job *job)
 	}
 }
 
+
+/**
+ * @brief Import functions hash
+ *
+ * @param job pointer to minr job
+ */
+void import_fhashes(struct minr_job *job)
+{
+	/* Wipe existing data if overwrite is requested */
+	wipe_table("fhashes", job);
+
+	char path[2 * MAX_PATH_LEN] = "\0";
+	sprintf(path, "%s/functions", job->import_path);
+
+	if (is_dir(path))
+	{
+		for (int i = 0; i < 256; i++)
+		{
+			if (!job->bin_import)
+				sprintf(path, "%s/functions/%02x.csv", job->import_path, i);
+			else
+				sprintf(path, "%s/functions/%02x.csv.enc", job->import_path, i);
+
+			if (csv_sort(path, job->skip_sort))
+			{
+				/* 3 fields expected (MD5 Function hash, MD5 File hash, function string) */
+				ldb_import_csv(job, path, "fhashes", 3);
+			}
+		}
+		sprintf(path, "%s/functions", job->import_path);
+		if (!job->skip_delete)
+			rmdir(path);
+	}
+}
+
+
+
+
 /* Import snippets */
 void import_snippets(struct minr_job *job)
 {
@@ -1070,6 +1108,11 @@ void mined_import(struct minr_job *job)
 	/* Import files */
 	if (this_table("file", job))
 		import_files(job);
+	
+	/* Import function hasgeshashes */
+	if (this_table("fhashes", job))
+		import_fhashes(job);
+
 
 	/* Import .bin files */
 	if (this_table("wfp", job))

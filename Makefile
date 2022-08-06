@@ -3,7 +3,7 @@ CC=gcc
 # Enable all compiler warnings. 
 CCFLAGS=-g -Wall -std=gnu99 -I./inc -I./external/inc -D_LARGEFILE64_SOURCE -D_GNU_SOURCE
 # Linker flags
-LDFLAGS= -lz -lldb -lpthread -lcrypto -ldl
+LDFLAGS= -lz -lldb -lpthread -lcrypto -ldl -lbinhash
 
 BUILD_DIR =build
 SOURCES=$(wildcard src/*.c) $(wildcard src/**/*.c)  $(wildcard external/*.c) $(wildcard external/**/*.c)
