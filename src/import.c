@@ -394,7 +394,7 @@ bool ldb_import_csv(struct minr_job *job, char *filename, char *table, int nfiel
 	bool is_file_table = false;
 	bool bin_mode = false;
 
-	if (!strcmp(table, "file"))
+	if (!strcmp(table, "file") || !strcmp(table, "fhashes"))
 		is_file_table = true;
 	
 	if (job->bin_import || strstr(filename, ".enc"))
