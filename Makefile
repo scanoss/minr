@@ -18,7 +18,7 @@ TARGET_MINR=minr
 TARGET_MZ=mz
 
 
-all: clean $(TARGET_MINR) $(TARGET_MZ) clean_build
+all: clean $(TARGET_MINR) $(TARGET_MZ)
 
 $(TARGET_MINR): $(OBJECTS_MIRN)
 	$(CC) -o $@ $^ $(LDFLAGS)
@@ -31,12 +31,8 @@ $(TARGET_MZ): $(OBJECTS_MZ)
 %.o: %.c
 	$(CC) $(CCFLAGS) -o $@ -c $<
 
-clean_build:
-	rm -f src/*.o src/**/*.o external/src/*.o 
-
 clean:
-	 rm -f src/*.o src/**/*.o  $(TARGET_MINR)
-	 rm -f src/*.o src/**/*.o  $(TARGET_MZ)
+	rm -f src/*.o src/**/*.o external/src/*.o 
 
 install:
 	cp $(TARGET_MINR) /usr/bin
