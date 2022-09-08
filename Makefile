@@ -1,9 +1,9 @@
 CWD=$(shell pwd)
-CC=gcc
+CC=gcc-11
 # Enable all compiler warnings. 
-CCFLAGS=-g -Wall -std=gnu99 -I./inc -I./external/inc -D_LARGEFILE64_SOURCE -D_GNU_SOURCE
+CCFLAGS?=-g -Wall -I./inc -I./external/inc -D_LARGEFILE64_SOURCE -D_GNU_SOURCE
 # Linker flags
-LDFLAGS= -lz -lldb -lpthread -lcrypto -ldl
+LDFLAGS=-lz -lldb -lpthread -lcrypto -ldl
 
 BUILD_DIR =build
 SOURCES=$(wildcard src/*.c) $(wildcard src/**/*.c)  $(wildcard external/*.c) $(wildcard external/**/*.c)
@@ -21,10 +21,10 @@ TARGET_MZ=mz
 all: clean $(TARGET_MINR) $(TARGET_MZ) clean_build
 
 $(TARGET_MINR): $(OBJECTS_MIRN)
-	$(CC) -g -o $@ $^ $(LDFLAGS)
+	$(CC) -o $@ $^ $(LDFLAGS)
 
 $(TARGET_MZ): $(OBJECTS_MZ)
-	$(CC) -g -o $@ $^ $(LDFLAGS)
+	$(CC) -o $@ $^ $(LDFLAGS)
 
 .PHONY: minr
 
@@ -32,7 +32,7 @@ $(TARGET_MZ): $(OBJECTS_MZ)
 	$(CC) $(CCFLAGS) -o $@ -c $<
 
 clean_build:
-	rm -f src/*.o src/**/*.o 
+	rm -f src/*.o src/**/*.o external/src/*.o 
 
 clean:
 	 rm -f src/*.o src/**/*.o  $(TARGET_MINR)
