@@ -177,10 +177,18 @@ bool mz_optimise_handler(struct mz_job *job)
 bool mz_optimise_dup_handler(struct mz_job *job)
 {
 	/* Uncompress */
+	uint64_t src_ln = MAX_FILE_SIZE;
+	if (Z_OK != uncompress((uint8_t *)job->data, &src_ln, job->zdata, job->zdata_ln))
+	{
+		printf("[DECOMPRESS FAILED] ");
+		ldb_hexprint(job->id, 14, 14);
+		return true;
+	}
+	job->data_ln = src_ln - 1;
+	job->data[job->data_ln] = 0;
 
 	uint8_t md5[16];
 	MD5((uint8_t *)job->data, job->data_ln, md5);
-
 	/* Skip if corrupted file */
 	if (!mz_md5_match(job->id, md5 + 2))
 	{

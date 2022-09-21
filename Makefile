@@ -1,5 +1,5 @@
 CWD=$(shell pwd)
-CC=gcc-11
+CC=gcc
 # Enable all compiler warnings. 
 CCFLAGS?=-g -Wall -I./inc -I./external/inc -D_LARGEFILE64_SOURCE -D_GNU_SOURCE
 # Linker flags
