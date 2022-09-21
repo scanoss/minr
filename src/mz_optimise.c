@@ -189,13 +189,9 @@ bool mz_optimise_dup_handler(struct mz_job *job)
 
 	uint8_t md5[16];
 	MD5((uint8_t *)job->data, job->data_ln, md5);
-	/* Skip if corrupted file */
-	if (!mz_md5_match(job->id, md5 + 2))
-	{
-		job->igl_c++;
-	}
+
 	/* Check if file is not duplicated */
-	else if (mz_id_exists(job->ptr, job->ptr_ln, job->id))
+	if (mz_id_exists(job->ptr, job->ptr_ln, job->id))
 	{
 		job->dup_c++;
 	}
