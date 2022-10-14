@@ -985,37 +985,6 @@ bool version_import(struct minr_job *job)
 }
 
 /**
- * @brief Import MZ archives
- *
- * @param job pointer to minr job
- */
-void import_mz(struct minr_job *job)
-{
-	char path[2 * MAX_PATH_LEN] = "\0";
-
-	char db_path[MAX_PATH_LEN * 2];
-	sprintf(db_path, "%s/%s", LDB_ROOT, job->dbname);
-
-	sprintf(path, "%s/sources", job->import_path);
-	if (is_dir(path))
-	{
-		/* Wipe existing data if overwrite is requested */
-		wipe_table("sources", job);
-
-		minr_join_mz(job->import_path, db_path, job->skip_delete);
-	}
-
-	sprintf(path, "%s/notices", job->import_path);
-	if (is_dir(path))
-	{
-		/* Wipe existing data if overwrite is requested */
-		wipe_table("notices", job);
-
-		minr_join_mz(job->import_path, db_path, job->skip_delete);
-	}
-}
-
-/**
  * @brief Import CSV files and load into database
  *
  * @param job pointer to mnir job
@@ -1033,9 +1002,23 @@ void mined_import(struct minr_job *job)
 		exit(EXIT_FAILURE);
 	}
 
+	char db_path[MAX_PATH_LEN * 2];
+	sprintf(db_path, "%s/%s", LDB_ROOT, job->dbname);
+
 	/* Import MZ archives */
 	if (this_table("sources", job))
-		import_mz(job);
+	{
+		/* Wipe existing data if overwrite is requested */
+		wipe_table("sources", job);
+		minr_join_mz("sources", job->import_path, db_path, job->skip_delete);
+	}
+
+	if (this_table("notices", job))
+	{
+		/* Wipe existing data if overwrite is requested */
+		wipe_table("notices", job);
+		minr_join_mz("notices", job->import_path, db_path, job->skip_delete);
+	}
 
 	/* Attribution expects 2 fields: id, notice ID */
 	single_file_import(job, "attribution.csv", "attribution", 2);

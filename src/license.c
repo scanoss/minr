@@ -64,7 +64,7 @@ char *spdx_license_identifier(char *src)
 {
 	int tag_len = 24; // length of "SPDX-License-Identifier:"
 	char *s = src + tag_len;
-
+	char license[MAX_ARG_LEN];
 	/* Skip until SPDX License starts */
 	while (*s)
 	{
@@ -74,30 +74,53 @@ char *spdx_license_identifier(char *src)
 			return NULL;
 		s++;
 	}
+	char * line_end = strchr(s,'\n');
+	if (!line_end)
+		return NULL;
+	
+	char * line = strndup(s, line_end - s);
 
-	char *out = s;
-
+	char * and = NULL;
+	char * or = NULL;
+	s = line;
 	/* End string at end of tag */
-	while (*s)
+	do
 	{
-		if (*s == ' ' || *s == '\t' || *s == '\n' || *s == '\\')
+		char *out = s;
+
+		and = strstr(s, " AND ");
+		or = strstr(s, " OR ");
+		if (and && or)
 		{
-			*s = 0;
-			break;
+			if (and < or)
+			{
+				s = and + 5;
+				strncat(license, out, and - out);
+			}
+			else
+			{
+				s = or + 4;
+				strncat(license, out, or - out);
+			}
 		}
-		s++;
-	}
-
-	/* Eliminate trailing punctuation */
-	while (s > out)
-	{
-		if (!isalnum(*(--s)))
-			*s = 0;
+		else if (and)
+		{
+			s = and + 5;
+			strncat(license, out, and - out);
+		}
+		else if (or)
+		{
+			s = or + 4;
+			strncat(license, out, or - out);
+		}
 		else
-			break;
-	}
-
-	return out;
+			strcat(license, s);
+		
+		strcat(license, "#");
+	} while ( and || or);
+	
+	free(line);
+	return strdup(license);
 }
 
 /**
@@ -124,6 +147,7 @@ char *mine_spdx_license_identifier(char *src, uint64_t src_ln)
 		else if (is_spdx_license_identifier(s))
 		{
 			char *license = spdx_license_identifier(s);
+
 			return license;
 		}
 		if (((s++) - src) > max_bytes || line > max_lines)
@@ -336,16 +360,36 @@ void mine_license(struct minr_job *job, char *id, bool license_file)
 
 	/* SPDX license tag detection */
 	char *license = mine_spdx_license_identifier(job->src, job->src_ln);
+	
 	if (license)
 	{
-		if (!job->local_mining)
-		{
-			fp = fopen(csv_path, "a");
-			fprintf(fp, "%s,%d,%s\n", id, license_file ? 3 : 1, license);
-			fclose(fp);
+		char * lic = strtok(license,"#");
+		while (lic)
+		{		
+			char * l = lic + strlen(lic)-1;
+			/* Eliminate trailing punctuation */
+			while (l > lic)
+			{
+				if (!isalnum(*(l--)))
+				{
+					putc(*l,stderr);
+					*l = 0;
+				}
+				else
+					break;
+			}
+
+			if (!job->local_mining)
+			{
+				fp = fopen(csv_path, "a");
+				fprintf(fp, "%s,%d,%s\n", id, license_file ? 3 : 1, lic);
+				fclose(fp);
+			}
+			else
+				printf("%s,%s\n", id, lic);
+			lic = strtok(NULL,"#");
 		}
-		else
-			printf("%s,%s\n", id, license);
+		free(license);
 	}
 
 	/* License header detection */

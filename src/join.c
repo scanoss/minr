@@ -20,12 +20,11 @@
  * @param file Origin of the data to be appended.
  * @param destination path to out file
  */
+
 void file_append(char *file, char *destination)
 {
-	FILE *f;
-	uint64_t size = file_size(file);
-	if (!size) return;
-
+	FILE *f, *fd;
+	char ch = 0;
 	/* Read source into memory */
 	f = fopen(file, "r");
 	if (!f)
@@ -33,27 +32,19 @@ void file_append(char *file, char *destination)
 		printf("Cannot open source file %s\n", file);
 		exit(EXIT_FAILURE);
 	}
-	char *buffer = malloc(size);
-	uint64_t bytes = fread(buffer, 1, size, f);
-	fclose(f);
-	if (bytes != size)
-	{
-		free(buffer);
-		printf("Failure reading source file %s\n", file);
-		exit(EXIT_FAILURE);
-	}
-
+	
 	/* Append data to destination */
-	f = fopen(destination, "a");
-	if (!f)
+	fd = fopen(destination, "a");
+	if (!fd)
 	{
-		free(buffer);
-		printf("Cannot write to destination file %s\n", destination);
+		printf("Cannot open destination file %s\n", destination);
 		exit(EXIT_FAILURE);
 	}
-	bytes = fwrite(buffer, 1, size, f);
+	while((ch = fgetc(f)) != EOF)
+    	fputc(ch,fd);
+	
 	fclose(f);
-	free(buffer);	
+	fclose(fd);
 }
 
 /**
@@ -252,27 +243,18 @@ void csv_join(char *source, char *destination, bool skip_delete)
  * @param destination  path to destination
  * @param skip_delete true to skip deletion
  */
-void minr_join_mz(char *source, char *destination, bool skip_delete)
+void minr_join_mz(char * table, char *source, char *destination, bool skip_delete)
 {
 	char src_path[MAX_PATH_LEN] = "\0";
 	char dst_path[MAX_PATH_LEN] = "\0";
 
 	for (int i = 0; i < 65536; i++)
 	{
-		sprintf(src_path, "%s/sources/%04x.mz", source, i);
-		sprintf(dst_path, "%s/sources/%04x.mz", destination, i);
+		sprintf(src_path, "%s/%s/%04x.mz", table, source, i);
+		sprintf(dst_path, "%s/%s/%04x.mz", table, destination, i);
 		bin_join(src_path, dst_path, false, skip_delete);
 	}
-	sprintf(src_path, "%s/sources", source);
-	if (!skip_delete) rmdir(src_path);
-
-	for (int i = 0; i < 65536; i++)
-	{
-		sprintf(src_path, "%s/notices/%04x.mz", source, i);
-		sprintf(dst_path, "%s/notices/%04x.mz", destination, i);
-		bin_join(src_path, dst_path, false, skip_delete);
-	}
-	sprintf(src_path, "%s/notices", source);
+	sprintf(src_path, "%s/%s", table, source);
 	if (!skip_delete) rmdir(src_path);
 }
 
@@ -342,7 +324,8 @@ void minr_join(struct minr_job *job)
 	minr_join_snippets(source, destination, job->skip_delete);
 
 	/* Join MZ (sources/ and notices/) */
-	minr_join_mz(source, destination, job->skip_delete);
+	minr_join_mz("sources", source, destination, job->skip_delete);
+	minr_join_mz("notices", source, destination, job->skip_delete);
 
 	/* Join licenses */
 	sprintf(src_path, "%s/licenses.csv", source);
