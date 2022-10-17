@@ -39,6 +39,7 @@
 #include "hex.h"
 #include "ignorelist.h"
 #include "join.h"
+#include "minr_log.h"
 
 int (*decode) (int op, unsigned char *key, unsigned char *nonce,
 		        const char *buffer_in, int buffer_in_len, unsigned char *buffer_out);
@@ -461,7 +462,7 @@ bool ldb_import_csv(struct minr_job *job, char *filename, char *table, int nfiel
 	fp = fopen(filename, "r");
 	if (fp == NULL)
 	{
-		fprintf(stderr, "File does not exist %s\n", filename);
+		minr_log( "File does not exist %s\n", filename);
 	
 		if (!skip_delete)
 			unlink(filename);
@@ -480,7 +481,7 @@ bool ldb_import_csv(struct minr_job *job, char *filename, char *table, int nfiel
 		/* Skip records with sizes out of range */
 		if (lineln > MAX_CSV_LINE_LEN || lineln < min_line_size)
 		{
-			fprintf(stderr, "Line %s -- Skipped, %ld exceed MAX line size %d.\n", line, lineln, MAX_CSV_LINE_LEN);
+			minr_log( "Line %s -- Skipped, %ld exceed MAX line size %d.\n", line, lineln, MAX_CSV_LINE_LEN);
 			skipped++;
 			continue;
 		}
@@ -507,22 +508,22 @@ bool ldb_import_csv(struct minr_job *job, char *filename, char *table, int nfiel
 		if (is_file_table)
 		{
 			/* Skip line if the URL is the same as last, importing unique files per url */
-			if (dup_id)
-				if (*last_url_id && !memcmp(data, last_url_id, MD5_LEN * 2))
-					if (dup_id)
-					{
-						fprintf(stderr, "Line %s -- Skipped, repeated URL ID.\n", line);
-						skip = true;
-					}
-			memcpy(last_url_id, data, MD5_LEN * 2);
+			if (dup_id && *last_url_id && !memcmp(data, last_url_id, MD5_LEN * 2))
+			{
+				minr_log( "Line %s -- Skipped, repeated URL ID.\n", line);
+				skip = true;
+			}
+			else
+				memcpy(last_url_id, data, MD5_LEN * 2);
 
 			data = field_n(3, line);
 			if (!data)
 			{
-				fprintf(stderr, "Error in line %s -- Skipped\n", line);
+				minr_log( "Error in line %s -- Skipped\n", line);
 				skipped++;
 			}
 		}
+
 		/* Calculate record size */
 		uint16_t r_size = 0;
 		unsigned char data_bin[MAX_CSV_LINE_LEN];
@@ -541,7 +542,7 @@ bool ldb_import_csv(struct minr_job *job, char *filename, char *table, int nfiel
 			if (expected_fields)
 				if (csv_fields(line) != expected_fields)
 				{
-					fprintf(stderr, "Line %s -- Skipped, Missing CSV fields. Expected: %d.\n", line, expected_fields);
+					minr_log( "Line %s -- Skipped, Missing CSV fields. Expected: %d.\n", line, expected_fields);
 					skip = true;
 				}
 			
@@ -1001,7 +1002,7 @@ void mined_import(struct minr_job *job)
 	/* Import version.json file */
 	if (!version_import(job))
 	{
-		fprintf(stderr, "Failed to import version.json file. This file must be present and must has a valid format to continue. Check at README.md for more details.\n");
+		printf("Failed to import version.json file. This file must be present and must has a valid format to continue. Check at README.md for more details.\n");
 		exit(EXIT_FAILURE);
 	}
 

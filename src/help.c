@@ -106,6 +106,7 @@ void show_help ()
 	printf("-T      Set absolute temporary directory (defaults to /dev/shm)\n");
 	printf("-n      Skip number of csv fields checking in url and file importation (-i)\n");
 	printf("-k      Keep files after merging or importing\n");
+	printf("-V FILE Print verbose output to file\n");
 	printf("-v      Display version and exit\n");
 	printf("-h      Display this help and exit\n");
 	printf("\n");

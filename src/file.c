@@ -40,7 +40,7 @@
 
 #include "minr.h"
 #include "file.h"
-
+#include "minr_log.h"
 /**
  * @brief Verify if a path is a file and exists.
  * 
@@ -55,7 +55,7 @@ bool is_file(char *path)
 	{
 		if (pstat.st_mode == 33024)
 		{
-			fprintf(stderr, "Warning the file %s will be ignored - st_mode = 33024\n", path);
+			minr_log("Warning the file %s will be ignored - st_mode = 33024\n", path);
 			return false;
 		}
 		if (S_ISREG(pstat.st_mode)) 

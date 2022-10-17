@@ -10,7 +10,7 @@
 #include <unistd.h>
 #include <libgen.h>
 #include <sys/stat.h>
-
+#include "minr_log.h"
 #include "minr.h"
 #include "file.h"
 
@@ -173,7 +173,11 @@ bool move_file(char *src, char *dst, bool skip_delete) {
 void bin_join(char *source, char *destination, bool snippets, bool skip_delete)
 {
 	/* If source does not exist, no need to join */
-	if (!is_file(source)) return;
+	if (!is_file(source)) 
+	{
+		minr_log("Error: File %s does not exist\n", source);
+		return;
+	}
 
 	if (is_file(destination))
 	{
@@ -250,8 +254,8 @@ void minr_join_mz(char * table, char *source, char *destination, bool skip_delet
 
 	for (int i = 0; i < 65536; i++)
 	{
-		sprintf(src_path, "%s/%s/%04x.mz", table, source, i);
-		sprintf(dst_path, "%s/%s/%04x.mz", table, destination, i);
+		sprintf(src_path, "%s/%s/%04x.mz", source, table, i);
+		sprintf(dst_path, "%s/%s/%04x.mz", destination, table, i);
 		bin_join(src_path, dst_path, false, skip_delete);
 	}
 	sprintf(src_path, "%s/%s", table, source);
