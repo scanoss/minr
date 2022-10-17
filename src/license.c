@@ -64,7 +64,7 @@ char *spdx_license_identifier(char *src)
 {
 	int tag_len = 24; // length of "SPDX-License-Identifier:"
 	char *s = src + tag_len;
-	char license[MAX_ARG_LEN];
+	char license[MAX_ARG_LEN] = "\0";
 	/* Skip until SPDX License starts */
 	while (*s)
 	{

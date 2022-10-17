@@ -480,6 +480,7 @@ bool ldb_import_csv(struct minr_job *job, char *filename, char *table, int nfiel
 		/* Skip records with sizes out of range */
 		if (lineln > MAX_CSV_LINE_LEN || lineln < min_line_size)
 		{
+			fprintf(stderr, "Line %s -- Skipped, %ld exceed MAX line size %d.\n", line, lineln, MAX_CSV_LINE_LEN);
 			skipped++;
 			continue;
 		}
@@ -510,6 +511,7 @@ bool ldb_import_csv(struct minr_job *job, char *filename, char *table, int nfiel
 				if (*last_url_id && !memcmp(data, last_url_id, MD5_LEN * 2))
 					if (dup_id)
 					{
+						fprintf(stderr, "Line %s -- Skipped, repeated URL ID.\n", line);
 						skip = true;
 					}
 			memcpy(last_url_id, data, MD5_LEN * 2);
@@ -539,6 +541,7 @@ bool ldb_import_csv(struct minr_job *job, char *filename, char *table, int nfiel
 			if (expected_fields)
 				if (csv_fields(line) != expected_fields)
 				{
+					fprintf(stderr, "Line %s -- Skipped, Missing CSV fields. Expected: %d.\n", line, expected_fields);
 					skip = true;
 				}
 			
