@@ -131,12 +131,12 @@ bool not_a_dot (char *path)
  * @param mined_path 
  * @return FILE** 
  */
-FILE **open_file (char *mined_path)
+FILE **open_file (char *mined_path, char * set_name)
 {
 	char *path = calloc(MAX_PATH_LEN, 1);
 
 	/* Create files directory */
-	sprintf(path, "%s/files", mined_path);
+	sprintf(path, "%s/%s", mined_path, set_name);
 	if (!create_dir(path))
 	{
 		printf("Cannot create file %s\n", path);
@@ -147,7 +147,7 @@ FILE **open_file (char *mined_path)
 	FILE **out = calloc(sizeof(FILE*) * 256, 1);
 	for (int i=0; i < 256; i++)
 	{
-		sprintf(path, "%s/files/%02x.csv", mined_path, i);
+		sprintf(path, "%s/%s/%02x.csv", mined_path, set_name, i);
 		out[i] = fopen(path, "a");
 		if (out[i] == NULL)
 		{

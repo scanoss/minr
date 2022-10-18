@@ -390,13 +390,9 @@ bool valid_hex(char *str, int bytes)
  * @param nfields number of fileds
  * @return true if succed
  */
-bool ldb_import_csv(struct minr_job *job, char *filename, char *table, int nfields)
+bool ldb_import_csv(struct minr_job *job, char *filename, char *table, bool secondary_key, int nfields)
 {
-	bool is_file_table = false;
 	bool bin_mode = false;
-
-	if (!strcmp(table, "file"))
-		is_file_table = true;
 	
 	if (job->bin_import || strstr(filename, ".enc"))
 		bin_mode = true;
@@ -433,7 +429,7 @@ bool ldb_import_csv(struct minr_job *job, char *filename, char *table, int nfiel
 
 	uint64_t totalbytes = file_size(filename);
 	size_t bytecounter = 0;
-	int field2_ln = is_file_table ? 16 : 0;
+	int field2_ln = secondary_key ? 16 : 0;
 
 	/* Get 1st byte of the item ID from csv filename (if available) */
 	uint8_t first_byte = 0;
@@ -505,7 +501,7 @@ bool ldb_import_csv(struct minr_job *job, char *filename, char *table, int nfiel
 		/* File table will have the url id as the second field, which will be
 			 converted to binary. Data then starts on the third field. Also file extensions
 			 are checked and ruled out if ignored */
-		if (is_file_table)
+		if (secondary_key)
 		{
 			/* Skip line if the URL is the same as last, importing unique files per url */
 			if (dup_id && *last_url_id && !memcmp(data, last_url_id, MD5_LEN * 2))
@@ -515,13 +511,18 @@ bool ldb_import_csv(struct minr_job *job, char *filename, char *table, int nfiel
 			}
 			else
 				memcpy(last_url_id, data, MD5_LEN * 2);
-
-			data = field_n(3, line);
-			if (!data)
+			
+			if (nfields > 2)
 			{
-				minr_log( "Error in line %s -- Skipped\n", line);
-				skipped++;
+				data = field_n(3, line);
+				if (!data)
+				{
+					minr_log( "Error in line %s -- Skipped\n", line);
+					skipped++;
+				}
 			}
+			else
+				data = NULL;
 		}
 
 		/* Calculate record size */
@@ -546,7 +547,7 @@ bool ldb_import_csv(struct minr_job *job, char *filename, char *table, int nfiel
 					skip = true;
 				}
 			
-			if (is_file_table && ignored_extension(data) && !bin_mode) //we dont know the file extension in bin_mode
+			if (secondary_key && ignored_extension(data) && !bin_mode) //we dont know the file extension in bin_mode
 				skip = true;
 
 			if (skip)
@@ -554,9 +555,12 @@ bool ldb_import_csv(struct minr_job *job, char *filename, char *table, int nfiel
 				skipped++;
 				continue;
 			}
-		
+		}
+
+		if (data || (secondary_key && nfields < 3))
+		{
 			/* Convert id to binary (and 2nd field too if needed (files table)) */
-			file_id_to_bin(line, first_byte, got_1st_byte, itemid, field2, is_file_table);
+			file_id_to_bin(line, first_byte, got_1st_byte, itemid, field2, secondary_key);
 
 			/* Check if we have a whole new key (first 4 bytes), or just a new subkey (last 12 bytes) */
 			bool new_key = (memcmp(itemid, item_lastid, 4) != 0);
@@ -615,15 +619,17 @@ bool ldb_import_csv(struct minr_job *job, char *filename, char *table, int nfiel
 			/* Add url id to record */
 			memcpy(item_buf + item_ptr, field2, field2_ln);
 			item_ptr += field2_ln;
-
-			/* Add record to buffer */
-			if (!bin_mode)
-				memcpy(item_buf + item_ptr, data, r_size);
-			else
-				memcpy(item_buf + item_ptr, data_bin, r_size);
-			item_ptr += r_size;
-			item_rg_size += (field2_ln + REC_SIZE_LEN + r_size);
-
+			item_rg_size += (field2_ln + REC_SIZE_LEN);
+			if (data)
+			{
+				/* Add record to buffer */
+				if (!bin_mode)
+					memcpy(item_buf + item_ptr, data, r_size);
+				else
+					memcpy(item_buf + item_ptr, data_bin, r_size);
+				item_ptr += r_size;
+				item_rg_size += r_size;
+			}
 			imported++;
 		}
 		progress("Importing: ", bytecounter, totalbytes, true);
@@ -707,6 +713,22 @@ bool bin_sort(char *file_path, bool skip_sort)
 }
 
 /**
+ * @brief
+ *
+ * @param table table path
+ * @param job pointer to minr job
+ * @return true if succed
+ */
+bool this_table(char *table, struct minr_job *job)
+{
+	if (!*job->import_table)
+		return true;
+	if (!strcmp(job->import_table, table))
+		return true;
+	return false;
+}
+
+/**
  * @brief Wipes table before importing (-O)
  *
  * @param table path to table
@@ -743,30 +765,32 @@ void wipe_table(char *table, struct minr_job *job)
  *
  * @param job pointer to minr job
  */
-void import_files(struct minr_job *job)
+void import_multiple_files(struct minr_job *job, char * table, bool secondary_key, int fields)
 {
+	if (!this_table(table, job))
+		return;
 	/* Wipe existing data if overwrite is requested */
-	wipe_table("file", job);
+	wipe_table(table, job);
 
 	char path[2 * MAX_PATH_LEN] = "\0";
-	sprintf(path, "%s/files", job->import_path);
+	sprintf(path, "%s/%s", job->import_path, table);
 
 	if (is_dir(path))
 	{
 		for (int i = 0; i < 256; i++)
 		{
 			if (!job->bin_import)
-				sprintf(path, "%s/files/%02x.csv", job->import_path, i);
+				sprintf(path, "%s/%s/%02x.csv", job->import_path, table,i);
 			else
-				sprintf(path, "%s/files/%02x.csv.enc", job->import_path, i);
+				sprintf(path, "%s/%s/%02x.csv.enc", job->import_path, table, i);
 
 			if (csv_sort(path, job->skip_sort))
 			{
 				/* 3 fields expected (file id, url id, URL) */
-				ldb_import_csv(job, path, "file", 3);
+				ldb_import_csv(job, path, table, true, fields);
 			}
 		}
-		sprintf(path, "%s/files", job->import_path);
+		sprintf(path, "%s/%s", job->import_path, table);
 		if (!job->skip_delete)
 			rmdir(path);
 	}
@@ -797,21 +821,6 @@ void import_snippets(struct minr_job *job)
 		rmdir(path);
 }
 
-/**
- * @brief
- *
- * @param table table path
- * @param job pointer to minr job
- * @return true if succed
- */
-bool this_table(char *table, struct minr_job *job)
-{
-	if (!*job->import_table)
-		return true;
-	if (!strcmp(job->import_table, table))
-		return true;
-	return false;
-}
 
 /**
  * @brief Import a single file
@@ -841,7 +850,7 @@ void single_file_import(struct minr_job *job, char *filename, char *tablename, i
 	{
 		if (csv_sort(path, job->skip_sort))
 		{
-			ldb_import_csv(job, path, tablename, nfields);
+			ldb_import_csv(job, path, tablename,false, nfields);
 		}
 	}
 }
@@ -1055,8 +1064,10 @@ void mined_import(struct minr_job *job)
 	single_file_import(job, "urls.csv", "url", 8);
 
 	/* Import files */
-	if (this_table("file", job))
-		import_files(job);
+	import_multiple_files(job, "file", true, 3);
+
+	/* Import pivot url/files */
+	import_multiple_files(job, "pivot", true, 2);
 
 	/* Import .bin files */
 	if (this_table("wfp", job))

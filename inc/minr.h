@@ -126,6 +126,7 @@ struct minr_job
 
 	FILE **out_file;
 	FILE **out_file_extra;
+	FILE ** out_file_pivot;
 };
 
 typedef enum { none, license, copyright, quality } metadata;

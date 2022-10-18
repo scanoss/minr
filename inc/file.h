@@ -17,5 +17,5 @@ bool not_a_dot (char *path);
 bool create_dir(char *path);
 bool valid_path(char *dir, char *file);
 bool check_disk_free(char *file, uint64_t needed);
-FILE **open_file ();
+FILE **open_file (char *mined_path, char * set_name);
 #endif

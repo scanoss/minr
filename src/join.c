@@ -317,11 +317,21 @@ void minr_join(struct minr_job *job)
 	/* Join files */
 	for (int i = 0; i < 256; i++)
 	{
-		sprintf(src_path, "%s/files/%02x.csv", source, i);
-		sprintf(dst_path, "%s/files/%02x.csv", destination, i);
+		sprintf(src_path, "%s/file/%02x.csv", source, i);
+		sprintf(dst_path, "%s/file/%02x.csv", destination, i);
 		csv_join(src_path, dst_path, job->skip_delete);
 	}
-	sprintf(src_path, "%s/files", source);
+	sprintf(src_path, "%s/file", source);
+	if (!job->skip_delete) rmdir(src_path);
+
+	/* Join pivot */
+	for (int i = 0; i < 256; i++)
+	{
+		sprintf(src_path, "%s/pivot/%02x.csv", source, i);
+		sprintf(dst_path, "%s/pivot/%02x.csv", destination, i);
+		csv_join(src_path, dst_path, job->skip_delete);
+	}
+	sprintf(src_path, "%s/pivot", source);
 	if (!job->skip_delete) rmdir(src_path);
 
 	/* Join snippets */
@@ -380,8 +390,8 @@ void minr_join(struct minr_job *job)
 		/* Join files */
 		for (int i = 0; i < 256; i++)
 		{
-			sprintf(src_path, "%s/extra/files/%02x.csv", source, i);
-			sprintf(dst_path, "%s/extra/files/%02x.csv", destination, i);
+			sprintf(src_path, "%s/extra/file/%02x.csv", source, i);
+			sprintf(dst_path, "%s/extra/file/%02x.csv", destination, i);
 			csv_join(src_path, dst_path, job->skip_delete);
 		}
 

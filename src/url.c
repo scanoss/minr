@@ -151,10 +151,11 @@ void url_download(struct minr_job *job)
 	}
 
 	/* Open all file handlers in mined/files (256 files) */
-	job->out_file = open_file(job->mined_path);
+	job->out_file = open_file(job->mined_path, "file");
+	job->out_file_pivot = open_file(job->mined_path, "pivot");
 	
 	if (job->mine_all)
-		job->out_file_extra = open_file(job->mined_extra_path);
+		job->out_file_extra = open_file(job->mined_extra_path, "file");
 
 	/* Mine a local folder instead of a URL */
 	if (is_dir(job->url))
@@ -204,6 +205,7 @@ void url_download(struct minr_job *job)
 	for (int i=0; i < 256; i++)
 	{
 		fclose(job->out_file[i]);
+		fclose(job->out_file_pivot[i]);
 		if (job->mine_all)
 			fclose(job->out_file_extra[i]);
 	}
