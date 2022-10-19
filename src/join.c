@@ -15,39 +15,6 @@
 #include "file.h"
 
 /**
- * @brief Append the contents of a file to the end of another file.
- * 
- * @param file Origin of the data to be appended.
- * @param destination path to out file
- */
-
-void file_append(char *file, char *destination)
-{
-	FILE *f, *fd;
-	char ch = 0;
-	/* Read source into memory */
-	f = fopen(file, "r");
-	if (!f)
-	{
-		printf("Cannot open source file %s\n", file);
-		exit(EXIT_FAILURE);
-	}
-	
-	/* Append data to destination */
-	fd = fopen(destination, "a");
-	if (!fd)
-	{
-		printf("Cannot open destination file %s\n", destination);
-		exit(EXIT_FAILURE);
-	}
-	while((ch = fgetc(f)) != EOF)
-    	fputc(ch,fd);
-	
-	fclose(f);
-	fclose(fd);
-}
-
-/**
  * @brief  If the CSV file does not end with LF, eliminate the last line
  * 
  * @param path string path
@@ -137,15 +104,26 @@ void mkdir_if_not_exist(char *destination)
  * @param skip_delete if true the src file is not deleted after the copy is done.
  * @return true success. False otherwise.
  */
-bool move_file(char *src, char *dst, bool skip_delete) {
+static bool write_file(char *src, char *dst, char * mode, bool create_dir, bool skip_delete) {
 		
-	mkdir_if_not_exist(dst);
+	if (create_dir)
+	{
+		mkdir_if_not_exist(dst);
+	}
 		
 	FILE *srcf = fopen(src, "rb");
-	if (!srcf) return false;
+	if (!srcf)
+	{	
+		printf("Cannot open source file %s\n", src);
+		exit(EXIT_FAILURE);
+	}
 
-	FILE *dstf = fopen(dst, "wb");
-	if (!dstf) return false;
+	FILE *dstf = fopen(dst, mode);
+	if (!dstf)
+	{	
+		printf("Cannot open destinstion file %s\n", dst);
+		exit(EXIT_FAILURE);
+	}
 
 	/* Copy byte by byte */
 	int byte = 0;
@@ -161,6 +139,24 @@ bool move_file(char *src, char *dst, bool skip_delete) {
 	if (!skip_delete) unlink(src);
 	return true;
 }
+
+bool move_file(char *src, char *dst, bool skip_delete)
+{
+	return write_file(src,dst, "wb", true, skip_delete);
+}
+/**
+ * @brief Append the contents of a file to the end of another file.
+ * 
+ * @param file Origin of the data to be appended.
+ * @param destination path to out file
+ */
+
+bool file_append(char *file, char *destination)
+{
+	return write_file(file,destination, "ab", false, true);
+}
+
+
 
 /**
  * @brief join two binary files
@@ -310,75 +306,75 @@ void minr_join(struct minr_job *job)
 	char dst_path[MAX_PATH_LEN] = "\0";
 
 	/* Join urls */
-	sprintf(src_path, "%s/urls.csv", source);
-	sprintf(dst_path, "%s/urls.csv", destination);
+	sprintf(src_path, "%s/%s.csv", source, TABLE_NAME_URL);
+	sprintf(dst_path, "%s/%s.csv", destination, TABLE_NAME_URL);
 	csv_join(src_path, dst_path, job->skip_delete);
 
 	/* Join files */
 	for (int i = 0; i < 256; i++)
 	{
-		sprintf(src_path, "%s/file/%02x.csv", source, i);
-		sprintf(dst_path, "%s/file/%02x.csv", destination, i);
+		sprintf(src_path, "%s/%s/%02x.csv", source, TABLE_NAME_FILE, i);
+		sprintf(dst_path, "%s/%s/%02x.csv", destination,TABLE_NAME_FILE, i);
 		csv_join(src_path, dst_path, job->skip_delete);
 	}
-	sprintf(src_path, "%s/file", source);
+	sprintf(src_path, "%s/%s", source, TABLE_NAME_FILE);
 	if (!job->skip_delete) rmdir(src_path);
 
 	/* Join pivot */
 	for (int i = 0; i < 256; i++)
 	{
-		sprintf(src_path, "%s/pivot/%02x.csv", source, i);
-		sprintf(dst_path, "%s/pivot/%02x.csv", destination, i);
+		sprintf(src_path, "%s/%s/%02x.csv", source, TABLE_NAME_PIVOT, i);
+		sprintf(dst_path, "%s/%s/%02x.csv", destination, TABLE_NAME_PIVOT, i);
 		csv_join(src_path, dst_path, job->skip_delete);
 	}
-	sprintf(src_path, "%s/pivot", source);
+	sprintf(src_path, "%s/%s", source, TABLE_NAME_PIVOT);
 	if (!job->skip_delete) rmdir(src_path);
 
 	/* Join snippets */
 	minr_join_snippets(source, destination, job->skip_delete);
 
 	/* Join MZ (sources/ and notices/) */
-	minr_join_mz("sources", source, destination, job->skip_delete);
-	minr_join_mz("notices", source, destination, job->skip_delete);
+	minr_join_mz(TABLE_NAME_SOURCES, source, destination, job->skip_delete);
+	minr_join_mz(TABLE_NAME_NOTICES, source, destination, job->skip_delete);
 
 	/* Join licenses */
-	sprintf(src_path, "%s/licenses.csv", source);
-	sprintf(dst_path, "%s/licenses.csv", destination);
+	sprintf(src_path, "%s/%s.csv", source, TABLE_NAME_LICENSE);
+	sprintf(dst_path, "%s/%s.csv", destination, TABLE_NAME_LICENSE);
 	csv_join(src_path, dst_path, job->skip_delete);
 
 	/* Join dependencies */
-	sprintf(src_path, "%s/dependencies.csv", source);
-	sprintf(dst_path, "%s/dependencies.csv", destination);
+	sprintf(src_path, "%s/%s.csv", source, TABLE_NAME_DEPENDENCY);
+	sprintf(dst_path, "%s/%s.csv", destination, TABLE_NAME_DEPENDENCY);
 	csv_join(src_path, dst_path, job->skip_delete);
 
 	/* Join quality */
-	sprintf(src_path, "%s/quality.csv", source);
-	sprintf(dst_path, "%s/quality.csv", destination);
+	sprintf(src_path, "%s/%s.csv", source, TABLE_NAME_QUALITY);
+	sprintf(dst_path, "%s/%s.csv", destination, TABLE_NAME_QUALITY);
 	csv_join(src_path, dst_path, job->skip_delete);
 
 	/* Join copyright */
-	sprintf(src_path, "%s/copyrights.csv", source);
-	sprintf(dst_path, "%s/copyrights.csv", destination);
+	sprintf(src_path, "%s/%s.csv", source, TABLE_NAME_COPYRIGHT);
+	sprintf(dst_path, "%s/%s.csv", destination, TABLE_NAME_COPYRIGHT);
 	csv_join(src_path, dst_path, job->skip_delete);
 
 	/* Join quality */
-	sprintf(src_path, "%s/quality.csv", source);
-	sprintf(dst_path, "%s/quality.csv", destination);
+	sprintf(src_path, "%s/%s.csv", source, TABLE_NAME_QUALITY);
+	sprintf(dst_path, "%s/%s.csv", destination, TABLE_NAME_QUALITY);
 	csv_join(src_path, dst_path, job->skip_delete);
 
 	/* Join vulnerabilities */
-	sprintf(src_path, "%s/vulnerabilities.csv", source);
-	sprintf(dst_path, "%s/vulnerabilities.csv", destination);
+	sprintf(src_path, "%s/%s.csv", source, TABLE_NAME_VULNERABILITY);
+	sprintf(dst_path, "%s/%s.csv", destination, TABLE_NAME_VULNERABILITY);
 	csv_join(src_path, dst_path, job->skip_delete);
 
 	/* Join attribution */
-	sprintf(src_path, "%s/attribution.csv", source);
-	sprintf(dst_path, "%s/attribution.csv", destination);
+	sprintf(src_path, "%s/%s.csv", source, TABLE_NAME_ATTRIBUTION);
+	sprintf(dst_path, "%s/%s.csv", destination, TABLE_NAME_ATTRIBUTION);
 	csv_join(src_path, dst_path, job->skip_delete);
 
 	/* Join cryptography */
-	sprintf(src_path, "%s/cryptography.csv", source);
-	sprintf(dst_path, "%s/cryptography.csv", destination);
+	sprintf(src_path, "%s/%s.csv", source, TABLE_NAME_CRYPTOGRAPHY);
+	sprintf(dst_path, "%s/%s.csv", destination, TABLE_NAME_CRYPTOGRAPHY);
 	csv_join(src_path, dst_path, job->skip_delete);
 
 	/* Join Extra tables */
@@ -390,19 +386,20 @@ void minr_join(struct minr_job *job)
 		/* Join files */
 		for (int i = 0; i < 256; i++)
 		{
-			sprintf(src_path, "%s/extra/file/%02x.csv", source, i);
-			sprintf(dst_path, "%s/extra/file/%02x.csv", destination, i);
+			sprintf(src_path, "%s/extra/%s/%02x.csv", source, TABLE_NAME_FILE, i);
+			sprintf(dst_path, "%s/extra/%s/%02x.csv", destination, TABLE_NAME_FILE, i);
 			csv_join(src_path, dst_path, job->skip_delete);
 		}
 
 		/* Join Extra sources */
 		for (int i = 0; i < 65536; i++)
 		{
-			sprintf(src_path, "%s/extra/sources/%04x.mz", source, i);
-			sprintf(dst_path, "%s/extra/sources/%04x.mz", destination, i);
+			sprintf(src_path, "%s/extra/%s/%04x.mz", source, TABLE_NAME_SOURCES, i);
+			sprintf(dst_path, "%s/extra/%s/%04x.mz", destination, TABLE_NAME_SOURCES, i);
 			bin_join(src_path, dst_path, false, job->skip_delete);
 		}
-		sprintf(src_path, "%s/sources", source);
+		
+		sprintf(src_path, "%s/%s", source, TABLE_NAME_SOURCES);
 		if (!job->skip_delete) rmdir(src_path);
 	}
 

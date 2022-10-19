@@ -803,20 +803,20 @@ void import_snippets(struct minr_job *job)
 	wipe_table("wfp", job);
 
 	char path[2 * MAX_PATH_LEN] = "\0";
-	sprintf(path, "%s/snippets", job->import_path);
+	sprintf(path, "%s/%s", job->import_path, TABLE_NAME_WFP);
 	if (is_dir(path))
 	{
 		printf("WFP IDs in ignorelist: %lu\n", IGNORED_WFP_LN / 4);
 		for (int i = 0; i < 256; i++)
 		{
-			sprintf(path, "%s/snippets/%02x.bin", job->import_path, i);
+			sprintf(path, "%s/%s/%02x.bin", job->import_path, TABLE_NAME_WFP, i);
 			if (bin_sort(path, job->skip_sort))
 			{
 				ldb_import_snippets(job->dbname, path, job->skip_delete);
 			}
 		}
 	}
-	sprintf(path, "%s/snippets", job->import_path);
+	sprintf(path, "%s/%s", job->import_path, TABLE_NAME_WFP);
 	if (!job->skip_delete)
 		rmdir(path);
 }
@@ -1034,40 +1034,40 @@ void mined_import(struct minr_job *job)
 	}
 
 	/* Attribution expects 2 fields: id, notice ID */
-	single_file_import(job, "attribution.csv", "attribution", 2);
+	single_file_import(job, TABLE_NAME_ATTRIBUTION".csv", "attribution", 2);
 
 	/* PURLs expects either:
 	 * 7 fields: id, created, latest, updated, star, watch, fork
 	 * or a single field: related PURL. Therefore, 0 is passed as required fields */
-	single_file_import(job, "purls.csv", "purl", 0);
+	single_file_import(job, TABLE_NAME_PURL".csv", "purl", 0);
 
 	/* Dependencies expect 5 fields: id, source, vendor, component, version */
-	single_file_import(job, "dependencies.csv", "dependency", 5);
+	single_file_import(job, TABLE_NAME_DEPENDENCY".csv", "dependency", 5);
 
 	/* Licenses expects 3 fields: id, source, license */
-	single_file_import(job, "licenses.csv", "license", 3);
+	single_file_import(job, TABLE_NAME_LICENSE".csv", "license", 3);
 
 	/* Copyrights expects 3 fields: id, source, copyright statement */
-	single_file_import(job, "copyrights.csv", "copyright", 3);
+	single_file_import(job, TABLE_NAME_COPYRIGHT".csv", "copyright", 3);
 
 	/* Vulnerability expects 10 fields: id, source, purl, version from,
 	   version patched, CVE, advisory ID (Github/CPE), Severity, Date, Summary */
-	single_file_import(job, "vulnerabilities.csv", "vulnerability", 10);
+	single_file_import(job, TABLE_NAME_VULNERABILITY".csv", "vulnerability", 10);
 
 	/* Quality expects 3 CSV fields: id, source, value */
-	single_file_import(job, "quality.csv", "quality", 3);
+	single_file_import(job, TABLE_NAME_QUALITY".csv", "quality", 3);
 
 	/* Cryptography expects 3 fields: id, algorithm, strength */
-	single_file_import(job, "cryptography.csv", "cryptography", 3);
+	single_file_import(job, TABLE_NAME_CRYPTOGRAPHY".csv", "cryptography", 3);
 
 	/* URLs expects 8 fields: url id, vendor, component, version, release_date, license, purl, download_url */
-	single_file_import(job, "urls.csv", "url", 8);
+	single_file_import(job, TABLE_NAME_URL".csv", "url", 8);
 
 	/* Import files */
-	import_multiple_files(job, "file", true, 3);
+	import_multiple_files(job, TABLE_NAME_FILE, true, 3);
 
 	/* Import pivot url/files */
-	import_multiple_files(job, "pivot", true, 2);
+	import_multiple_files(job, TABLE_NAME_PIVOT, true, 2);
 
 	/* Import .bin files */
 	if (this_table("wfp", job))

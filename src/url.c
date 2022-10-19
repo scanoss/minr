@@ -77,7 +77,7 @@ void get_purl_id(struct minr_job *job)
 void url_add(struct minr_job *job)
 {
 	char path[MAX_PATH_LEN]="\0";
-	sprintf(path, "%s/urls.csv", job->mined_path);
+	sprintf(path, "%s/%s.csv", job->mined_path, TABLE_NAME_URL);
 
 	FILE *fp = fopen(path, "a");
 	if (!fp)
@@ -95,7 +95,7 @@ void url_add(struct minr_job *job)
 	extract_csv(job->license, job->metadata, 5, MAX_ARG_LEN);
 	if (*job->license)
 	{
-		sprintf(path, "%s/licenses.csv", job->mined_path);
+		sprintf(path, "%s/%s.csv", job->mined_path, TABLE_NAME_LICENSE);
 		FILE *fp = fopen(path, "a");
 		if (!fp)
 		{
@@ -151,11 +151,11 @@ void url_download(struct minr_job *job)
 	}
 
 	/* Open all file handlers in mined/files (256 files) */
-	job->out_file = open_file(job->mined_path, "file");
-	job->out_file_pivot = open_file(job->mined_path, "pivot");
+	job->out_file = open_file(job->mined_path, TABLE_NAME_FILE);
+	job->out_file_pivot = open_file(job->mined_path, TABLE_NAME_PIVOT);
 	
 	if (job->mine_all)
-		job->out_file_extra = open_file(job->mined_extra_path, "file");
+		job->out_file_extra = open_file(job->mined_extra_path, TABLE_NAME_FILE);
 
 	/* Mine a local folder instead of a URL */
 	if (is_dir(job->url))

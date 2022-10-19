@@ -83,7 +83,7 @@ bool is_attribution_notice(char *path)
 void attribution_add(struct minr_job *job)
 {
 	char path[MAX_PATH_LEN] = "\0";
-	sprintf(path, "%s/attribution.csv", job->mined_path);
+	sprintf(path, "%s/%s.csv", job->mined_path, TABLE_NAME_ATTRIBUTION);
 
 	char notice_id[MD5_LEN * 2 + 1] = "\0";
 	ldb_bin_to_hex(job->md5, MD5_LEN, notice_id);
@@ -196,7 +196,7 @@ bool mine_license_exec(struct minr_job *job)
 	char *csv_path = NULL;
 	/* Assemble csv path */
 	if (!job->local_mining)
-		asprintf(&csv_path, "%s/licenses.csv", job->mined_path);
+		asprintf(&csv_path, "%s/%s.csv", job->mined_path, TABLE_NAME_LICENSE);
 
 	if (job->scancode_mode)
 		scancode_prepare_tmp_dir(job->versionid);

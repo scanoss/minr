@@ -88,8 +88,8 @@ char *spdx_license_identifier(char *src)
 	{
 		char *out = s;
 
-		and = strstr(s, " AND ");
-		or = strstr(s, " OR ");
+		and = strcasestr(s, " AND ");
+		or = strcasestr(s, " OR ");
 		if (and && or)
 		{
 			if (and < or)
@@ -355,7 +355,7 @@ void mine_license(struct minr_job *job, char *id, bool license_file)
 	if (!job->local_mining)
 	{
 		strcpy(csv_path, job->mined_path);
-		strcat(csv_path, "/licenses.csv");
+		strcat(csv_path,"/"TABLE_NAME_LICENSE".csv");
 	}
 
 	/* SPDX license tag detection */
@@ -366,17 +366,15 @@ void mine_license(struct minr_job *job, char *id, bool license_file)
 		char * lic = strtok(license,"#");
 		while (lic)
 		{		
-			char * l = lic + strlen(lic)-1;
+			char * l = lic + strlen(lic);
 			/* Eliminate trailing punctuation */
 			while (l > lic)
 			{
-				if (!isalnum(*(l--)))
-				{
-					putc(*l,stderr);
+				if (!isalnum(*l))
 					*l = 0;
-				}
 				else
 					break;
+				l--;
 			}
 
 			if (!job->local_mining)

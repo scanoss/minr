@@ -58,6 +58,22 @@
 #define MAX_LICENSE_ID 64
 #define MAX_LICENSE_TEXT 1024
 
+#define TABLE_NAME_FILE "file"
+#define TABLE_NAME_URL "url"
+#define TABLE_NAME_LICENSE "license"
+#define TABLE_NAME_CRYPTOGRAPHY "cryptography"
+#define TABLE_NAME_QUALITY "quality"
+#define TABLE_NAME_DEPENDENCY "dependency"
+#define TABLE_NAME_COPYRIGHT "copyright"
+#define TABLE_NAME_ATTRIBUTION "attribution"
+#define TABLE_NAME_NOTICES	"notices"
+#define TABLE_NAME_VULNERABILITY "vulnerability"
+#define TABLE_NAME_WFP "wfp"
+#define TABLE_NAME_PURL "purl"
+#define TABLE_NAME_SOURCES "sources"
+#define TABLE_NAME_PIVOT "pivot"
+
+
 #define LDB_ROOT "/var/lib/ldb"
 
 /* Structures */
