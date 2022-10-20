@@ -155,7 +155,10 @@ void url_download(struct minr_job *job)
 	job->out_file_pivot = open_file(job->mined_path, TABLE_NAME_PIVOT);
 	
 	if (job->mine_all)
+	{
 		job->out_file_extra = open_file(job->mined_extra_path, TABLE_NAME_FILE);
+		job->out_pivot_extra = open_file(job->mined_extra_path, TABLE_NAME_PIVOT);
+	}
 
 	/* Mine a local folder instead of a URL */
 	if (is_dir(job->url))
@@ -207,7 +210,10 @@ void url_download(struct minr_job *job)
 		fclose(job->out_file[i]);
 		fclose(job->out_file_pivot[i]);
 		if (job->mine_all)
+		{
 			fclose(job->out_file_extra[i]);
+			fclose(job->out_pivot_extra[i]);
+		}
 	}
 
 	if (!job->exclude_mz)

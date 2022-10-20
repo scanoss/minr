@@ -503,6 +503,9 @@ void mine(struct minr_job *job, char *path)
 	if (extra_table)
 	{
 		fprintf(job->out_file_extra[*job->md5], "%s,%s,%s\n", job->fileid + 2, job->urlid, path + strlen(job->tmp_dir) + 1);
+		uint8_t url_md5_byte;
+		ldb_hex_to_bin(job->urlid, 2, &url_md5_byte);
+		fprintf(job->out_pivot_extra[url_md5_byte], "%s,%s\n", job->urlid + 2, job->fileid);	
 	}
 	else
 	{

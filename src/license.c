@@ -370,7 +370,7 @@ void mine_license(struct minr_job *job, char *id, bool license_file)
 			/* Eliminate trailing punctuation */
 			while (l > lic)
 			{
-				if (!isalnum(*l))
+				if (*l != '+' && !isalnum(*l))
 					*l = 0;
 				else
 					break;
