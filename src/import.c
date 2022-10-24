@@ -1023,14 +1023,14 @@ void mined_import(struct minr_job *job)
 	{
 		/* Wipe existing data if overwrite is requested */
 		wipe_table("sources", job);
-		minr_join_mz("sources", job->import_path, db_path, job->skip_delete);
+		minr_join_mz("sources", job->import_path, db_path, job->skip_delete, job->bin_import);
 	}
 
 	if (this_table("notices", job))
 	{
 		/* Wipe existing data if overwrite is requested */
 		wipe_table("notices", job);
-		minr_join_mz("notices", job->import_path, db_path, job->skip_delete);
+		minr_join_mz("notices", job->import_path, db_path, job->skip_delete, job->bin_import);
 	}
 
 	/* Attribution expects 2 fields: id, notice ID */

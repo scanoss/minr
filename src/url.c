@@ -150,16 +150,6 @@ void url_download(struct minr_job *job)
 		}
 	}
 
-	/* Open all file handlers in mined/files (256 files) */
-	job->out_file = open_file(job->mined_path, TABLE_NAME_FILE);
-	job->out_file_pivot = open_file(job->mined_path, TABLE_NAME_PIVOT);
-	
-	if (job->mine_all)
-	{
-		job->out_file_extra = open_file(job->mined_extra_path, TABLE_NAME_FILE);
-		job->out_pivot_extra = open_file(job->mined_extra_path, TABLE_NAME_PIVOT);
-	}
-
 	/* Mine a local folder instead of a URL */
 	if (is_dir(job->url))
 	{
@@ -182,6 +172,27 @@ void url_download(struct minr_job *job)
 		aux_root_dir = strdup(job->tmp_dir);
 		/* urlid will contain the hex md5 of the entire component */
 		downloaded = download(job);
+	}
+
+	/* Open all file handlers in mined/files (256 files) */
+	job->out_file = open_file(job->mined_path, TABLE_NAME_FILE);
+	//job->out_file_pivot = open_file(job->mined_path, TABLE_NAME_PIVOT);
+	char * pivot_path = NULL;
+	asprintf(&pivot_path, "%s/%s/%c%c.csv", job->mined_path, TABLE_NAME_PIVOT, *job->urlid, *(job->urlid+1));
+	job->out_pivot = fopen(pivot_path, "a");
+	if (!job->out_pivot)
+		minr_log("Error opening %s\n", pivot_path);
+	
+	if (job->mine_all)
+	{
+		job->out_file_extra = open_file(job->mined_extra_path, TABLE_NAME_FILE);
+	//	job->out_pivot_extra = open_file(job->mined_extra_path, TABLE_NAME_PIVOT);
+		char * pivot_path = NULL;
+		asprintf(&pivot_path, "%s/%s/%c%c.csv", job->mined_extra_path, TABLE_NAME_PIVOT, *job->urlid, *(job->urlid+1));
+		job->out_pivot_extra = fopen(pivot_path, "a");
+		if (!job->out_pivot_extra)
+			minr_log("Error opening %s\n", pivot_path);
+		free(pivot_path);
 	}
 
 	/* Process downloaded/expanded directory */
@@ -208,13 +219,16 @@ void url_download(struct minr_job *job)
 	for (int i=0; i < 256; i++)
 	{
 		fclose(job->out_file[i]);
-		fclose(job->out_file_pivot[i]);
 		if (job->mine_all)
 		{
 			fclose(job->out_file_extra[i]);
-			fclose(job->out_pivot_extra[i]);
+		//	fclose(job->out_pivot_extra[i]);
 		}
 	}
+	
+	fclose(job->out_pivot);
+	if (job->mine_all)
+		fclose(job->out_pivot_extra);
 
 	if (!job->exclude_mz)
 	{
