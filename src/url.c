@@ -37,6 +37,7 @@
 #include "minr.h"
 #include "ldb.h"
 #include "wfp.h"
+#include "minr_log.h"
 
 /**
  * @brief Calculate purl md5
@@ -154,7 +155,7 @@ void url_download(struct minr_job *job)
 	if (is_dir(job->url))
 	{
 		/* No need for tmp_dir, we'll use the provided directory instead */
-		sprintf(job->tmp_dir, job->url);
+		strcpy(job->tmp_dir, job->url);
 
 		/* URLID will be the hash of the metadata passed */
 		uint8_t urlid[MD5_LEN];
