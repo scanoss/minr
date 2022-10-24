@@ -553,6 +553,10 @@ bool ldb_import_csv(struct minr_job *job, char *filename, char *table, int nfiel
 		
 			/* Convert id to binary (and 2nd field too if needed (files table)) */
 			file_id_to_bin(line, first_byte, got_1st_byte, itemid, field2, is_file_table);
+			uint8_t zero_md5[MD5_LEN];
+			memset(zero_md5, 0, MD5_LEN);
+			if (!memcmp(itemid,zero_md5, MD5_LEN))
+				continue;
 
 			/* Check if we have a whole new key (first 4 bytes), or just a new subkey (last 12 bytes) */
 			bool new_key = (memcmp(itemid, item_lastid, 4) != 0);
@@ -925,7 +929,10 @@ bool version_import(struct minr_job *job)
 	asprintf(&path, "%s/version.json", job->import_path);
 
 	if (!is_file(path))
+	{
+		fprintf(stderr, "Cannot find version file in path %s\n",job->import_path);
 		return false;
+	}
 	char * vf_import = version_file_open(path);
 	free(path);
 
@@ -941,6 +948,7 @@ bool version_import(struct minr_job *job)
 	//exit if cannot find daily or monthly or there are am excess of characteres in the json
 	if ((!daily_date_i && !monthly_date_i) || test_len > 10)
 	{
+		fprintf(stderr, "Failed to process version file: %s\n", vf_import);
 		free(vf_import);
 		free(daily_date_i);
 		free(monthly_date_i);
