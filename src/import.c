@@ -1010,7 +1010,7 @@ void import_mz(struct minr_job *job)
 		/* Wipe existing data if overwrite is requested */
 		wipe_table("sources", job);
 
-		minr_join_mz(job->import_path, db_path, job->skip_delete);
+		minr_join_mz(job->import_path, db_path, job->skip_delete, job->bin_import);
 	}
 
 	sprintf(path, "%s/notices", job->import_path);
@@ -1019,7 +1019,7 @@ void import_mz(struct minr_job *job)
 		/* Wipe existing data if overwrite is requested */
 		wipe_table("notices", job);
 
-		minr_join_mz(job->import_path, db_path, job->skip_delete);
+		minr_join_mz(job->import_path, db_path, job->skip_delete, job->bin_import);
 	}
 }
 

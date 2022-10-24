@@ -140,7 +140,7 @@ bool check_dependencies(void);
 bool download(struct minr_job *job);
 void recurse(struct minr_job *job, char *path);
 void minr_join(struct minr_job *job);
-void minr_join_mz(char *source, char *destination, bool skip_delete);
+void minr_join_mz(char *source, char *destination, bool skip_delete, bool encrypted);
 void mine_license(struct minr_job *job, char *id, bool license_file);
 bool mine_license_exec(struct minr_job *job);
 void mine_copyright(char *mined_path, char *md5, char *src, uint64_t src_ln, bool license_file);

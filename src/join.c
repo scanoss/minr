@@ -252,7 +252,7 @@ void csv_join(char *source, char *destination, bool skip_delete)
  * @param destination  path to destination
  * @param skip_delete true to skip deletion
  */
-void minr_join_mz(char *source, char *destination, bool skip_delete)
+void minr_join_mz(char *source, char *destination, bool skip_delete, bool encrypted)
 {
 	char src_path[MAX_PATH_LEN] = "\0";
 	char dst_path[MAX_PATH_LEN] = "\0";
@@ -261,6 +261,11 @@ void minr_join_mz(char *source, char *destination, bool skip_delete)
 	{
 		sprintf(src_path, "%s/sources/%04x.mz", source, i);
 		sprintf(dst_path, "%s/sources/%04x.mz", destination, i);
+		if (encrypted)
+		{
+			strcat(src_path, ".enc");
+			strcat(dst_path, ".enc");
+		}
 		bin_join(src_path, dst_path, false, skip_delete);
 	}
 	sprintf(src_path, "%s/sources", source);
@@ -342,7 +347,7 @@ void minr_join(struct minr_job *job)
 	minr_join_snippets(source, destination, job->skip_delete);
 
 	/* Join MZ (sources/ and notices/) */
-	minr_join_mz(source, destination, job->skip_delete);
+	minr_join_mz(source, destination, job->skip_delete, job->bin_import);
 
 	/* Join licenses */
 	sprintf(src_path, "%s/licenses.csv", source);
