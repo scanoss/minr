@@ -183,6 +183,7 @@ void url_download(struct minr_job *job)
 	if (create_dir(pivot_path))
 	{
 		strncat(pivot_path, job->urlid, 2);
+		strcat(pivot_path, ".csv");
 		job->out_pivot = fopen(pivot_path, "a");
 		if (!job->out_pivot)
 			minr_log("Error opening %s\n", pivot_path);
@@ -201,6 +202,7 @@ void url_download(struct minr_job *job)
 		if (create_dir(pivot_path))
 		{
 			strncat(pivot_path, job->urlid, 2);
+			strcat(pivot_path, ".csv");
 			job->out_pivot_extra= fopen(pivot_path, "a");
 			if (!job->out_pivot_extra)
 				minr_log("Error opening %s\n", pivot_path);
