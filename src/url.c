@@ -177,23 +177,38 @@ void url_download(struct minr_job *job)
 
 	/* Open all file handlers in mined/files (256 files) */
 	job->out_file = open_file(job->mined_path, TABLE_NAME_FILE);
-	//job->out_file_pivot = open_file(job->mined_path, TABLE_NAME_PIVOT);
-	char * pivot_path = NULL;
-	asprintf(&pivot_path, "%s/%s/%c%c.csv", job->mined_path, TABLE_NAME_PIVOT, *job->urlid, *(job->urlid+1));
-	job->out_pivot = fopen(pivot_path, "a");
-	if (!job->out_pivot)
-		minr_log("Error opening %s\n", pivot_path);
+	/*Pivot table will have only one file*/
+	char pivot_path[MAX_PATH_LEN];
+	sprintf(pivot_path, "%s/%s/", job->mined_path, TABLE_NAME_PIVOT);
+	if (create_dir(pivot_path))
+	{
+		strncat(pivot_path, job->urlid, 2);
+		job->out_pivot = fopen(pivot_path, "a");
+		if (!job->out_pivot)
+			minr_log("Error opening %s\n", pivot_path);
+	}
+	else
+	{
+		minr_log("Error creating %s\n", pivot_path);
+	}
 	
 	if (job->mine_all)
 	{
 		job->out_file_extra = open_file(job->mined_extra_path, TABLE_NAME_FILE);
-	//	job->out_pivot_extra = open_file(job->mined_extra_path, TABLE_NAME_PIVOT);
-		char * pivot_path = NULL;
-		asprintf(&pivot_path, "%s/%s/%c%c.csv", job->mined_extra_path, TABLE_NAME_PIVOT, *job->urlid, *(job->urlid+1));
-		job->out_pivot_extra = fopen(pivot_path, "a");
-		if (!job->out_pivot_extra)
-			minr_log("Error opening %s\n", pivot_path);
-		free(pivot_path);
+		/*Pivot table will have only one file*/
+		char pivot_path[MAX_PATH_LEN];
+		sprintf(pivot_path, "%s/%s/", job->mined_extra_path, TABLE_NAME_PIVOT);
+		if (create_dir(pivot_path))
+		{
+			strncat(pivot_path, job->urlid, 2);
+			job->out_pivot_extra= fopen(pivot_path, "a");
+			if (!job->out_pivot_extra)
+				minr_log("Error opening %s\n", pivot_path);
+		}
+		else
+		{
+			minr_log("Error creating %s\n", pivot_path);
+		}
 	}
 
 	/* Process downloaded/expanded directory */
@@ -227,7 +242,9 @@ void url_download(struct minr_job *job)
 		}
 	}
 	
-	fclose(job->out_pivot);
+	if (job->out_pivot)
+		fclose(job->out_pivot);
+
 	if (job->mine_all)
 		fclose(job->out_pivot_extra);
 
