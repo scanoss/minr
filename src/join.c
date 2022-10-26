@@ -77,14 +77,12 @@ void mkdir_if_not_exist(char *destination)
 {
 	char *dst_dir = strdup(destination);
 	char *dir = dirname(dst_dir);
-
 	if (is_dir(dir))
 	{
 		free(dst_dir);
 		return;
 	}
-
-	mkdir(dir, 0755);
+	create_dir(dir);
 	if (!is_dir(dir))
 	{
 		printf("Cannot create directory %s\n", dst_dir);
@@ -104,9 +102,9 @@ void mkdir_if_not_exist(char *destination)
  * @param skip_delete if true the src file is not deleted after the copy is done.
  * @return true success. False otherwise.
  */
-static bool write_file(char *src, char *dst, char * mode, bool create_dir, bool skip_delete) {
+static bool write_file(char *src, char *dst, char * mode, bool mkdir, bool skip_delete) {
 		
-	if (create_dir)
+	if (mkdir)
 	{
 		mkdir_if_not_exist(dst);
 	}
@@ -395,6 +393,21 @@ void minr_join(struct minr_job *job)
 			sprintf(dst_path, "%s/extra/%s/%02x.csv", destination, TABLE_NAME_FILE, i);
 			csv_join(src_path, dst_path, job->skip_delete);
 		}
+		
+		sprintf(src_path, "%s/%s", source, TABLE_NAME_FILE);
+		if (!job->skip_delete) 
+			rmdir(src_path);
+		/* Join Pivot */
+		for (int i = 0; i < 256; i++)
+		{
+			sprintf(src_path, "%s/extra/%s/%02x.csv", source, TABLE_NAME_PIVOT, i);
+			sprintf(dst_path, "%s/extra/%s/%02x.csv", destination, TABLE_NAME_PIVOT, i);
+			csv_join(src_path, dst_path, job->skip_delete);
+		}
+
+		sprintf(src_path, "%s/%s", source, TABLE_NAME_PIVOT);
+		if (!job->skip_delete) 
+			rmdir(src_path);
 
 		/* Join Extra sources */
 		for (int i = 0; i < 65536; i++)
@@ -405,8 +418,10 @@ void minr_join(struct minr_job *job)
 		}
 		
 		sprintf(src_path, "%s/%s", source, TABLE_NAME_SOURCES);
-		if (!job->skip_delete) rmdir(src_path);
+		if (!job->skip_delete) 
+			rmdir(src_path);
 	}
 
-	if (!job->skip_delete) rmdir(source);
+	if (!job->skip_delete) 
+		rmdir(source);
 }

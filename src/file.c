@@ -93,9 +93,25 @@ bool is_dir(char *path)
  */
 bool create_dir(char *path)
 {
-  if (is_dir(path)) return true;
-  if (mkdir(path, 0755)) return false;
-  return true;
+	bool result = false;
+	char *sep = strrchr(path, '/');
+	if(sep != NULL) {
+    	*sep = 0;
+    	result = create_dir(path);
+    	*sep = '/';
+    }
+  
+	if (is_dir(path)) 
+	{
+  		result = true;
+	}
+	else if (!mkdir(path, 0755)) 
+	{
+  		result = true;
+		minr_log("Created dir: %s\n", path);
+	}
+
+	return result;
 }
 
 /**
