@@ -37,6 +37,7 @@
 #include "minr.h"
 #include "ldb.h"
 #include "wfp.h"
+#include "minr_log.h"
 
 /**
  * @brief Calculate purl md5
@@ -77,7 +78,7 @@ void get_purl_id(struct minr_job *job)
 void url_add(struct minr_job *job)
 {
 	char path[MAX_PATH_LEN]="\0";
-	sprintf(path, "%s/urls.csv", job->mined_path);
+	sprintf(path, "%s/%s.csv", job->mined_path, TABLE_NAME_URL);
 
 	FILE *fp = fopen(path, "a");
 	if (!fp)
@@ -95,7 +96,7 @@ void url_add(struct minr_job *job)
 	extract_csv(job->license, job->metadata, 5, MAX_ARG_LEN);
 	if (*job->license)
 	{
-		sprintf(path, "%s/licenses.csv", job->mined_path);
+		sprintf(path, "%s/%s.csv", job->mined_path, TABLE_NAME_LICENSE);
 		FILE *fp = fopen(path, "a");
 		if (!fp)
 		{
@@ -150,17 +151,11 @@ void url_download(struct minr_job *job)
 		}
 	}
 
-	/* Open all file handlers in mined/files (256 files) */
-	job->out_file = open_file(job->mined_path);
-	
-	if (job->mine_all)
-		job->out_file_extra = open_file(job->mined_extra_path);
-
 	/* Mine a local folder instead of a URL */
 	if (is_dir(job->url))
 	{
 		/* No need for tmp_dir, we'll use the provided directory instead */
-		sprintf(job->tmp_dir, job->url);
+		strcpy(job->tmp_dir, job->url);
 
 		/* URLID will be the hash of the metadata passed */
 		uint8_t urlid[MD5_LEN];
@@ -178,6 +173,44 @@ void url_download(struct minr_job *job)
 		aux_root_dir = strdup(job->tmp_dir);
 		/* urlid will contain the hex md5 of the entire component */
 		downloaded = download(job);
+	}
+
+	/* Open all file handlers in mined/files (256 files) */
+	job->out_file = open_file(job->mined_path, TABLE_NAME_FILE);
+	/*Pivot table will have only one file*/
+	char pivot_path[MAX_PATH_LEN];
+	sprintf(pivot_path, "%s/%s/", job->mined_path, TABLE_NAME_PIVOT);
+	if (create_dir(pivot_path))
+	{
+		strncat(pivot_path, job->urlid, 2);
+		strcat(pivot_path, ".csv");
+		job->out_pivot = fopen(pivot_path, "a");
+		if (!job->out_pivot)
+			minr_log("Error opening %s\n", pivot_path);
+	}
+	else
+	{
+		minr_log("Error creating %s\n", pivot_path);
+	}
+	
+	if (job->mine_all)
+	{
+		job->out_file_extra = open_file(job->mined_extra_path, TABLE_NAME_FILE);
+		/*Pivot table will have only one file*/
+		char pivot_path[MAX_PATH_LEN];
+		sprintf(pivot_path, "%s/%s/", job->mined_extra_path, TABLE_NAME_PIVOT);
+		if (create_dir(pivot_path))
+		{
+			strncat(pivot_path, job->urlid, 2);
+			strcat(pivot_path, ".csv");
+			job->out_pivot_extra= fopen(pivot_path, "a");
+			if (!job->out_pivot_extra)
+				minr_log("Error opening %s\n", pivot_path);
+		}
+		else
+		{
+			minr_log("Error creating %s\n", pivot_path);
+		}
 	}
 
 	/* Process downloaded/expanded directory */
@@ -205,8 +238,17 @@ void url_download(struct minr_job *job)
 	{
 		fclose(job->out_file[i]);
 		if (job->mine_all)
+		{
 			fclose(job->out_file_extra[i]);
+		//	fclose(job->out_pivot_extra[i]);
+		}
 	}
+	
+	if (job->out_pivot)
+		fclose(job->out_pivot);
+
+	if (job->mine_all)
+		fclose(job->out_pivot_extra);
 
 	if (!job->exclude_mz)
 	{

@@ -328,9 +328,9 @@ $
 
 The minr command produces a directory called mined/ containing the mined metadata and original OSS files.  
 
-## Components 
+## Url table csv (mined/url.csv) 
 
-OSS components are saved in a single CSV file called mined/urls.csv which contains the original archive md5 hash, vendor, name, version, release date, license, purl and url as in the following example: 
+OSS components are saved in a single CSV file called `mined/url.csv` which contains the original archive md5 hash, vendor, name, version, release date, license, purl and url as in the following example: 
 
 ```
 611e5c3a58a3c2b78385556368c5230e,scanoss,webhook,1.0,20200320,BSD-3-Clause,pkg:github/scanoss/webhook,https://github.com/scanoss/webhook/archive/1.0.tar.gz 
@@ -338,7 +338,7 @@ OSS components are saved in a single CSV file called mined/urls.csv which contai
 
 Other metadata are saved in `mined/attribution.csv`, `mined/copyrights.csv`, `mined/cryptography.csv`, `mined/licenses.csv` and `mined/quality.csv` files. <!--FIXME: add more details here -->
 
-## Files 
+## File table csv (mined/file)
 
 OSS files are split in 256 files named `00.csv` to `ff.csv` containing the component archive md5, the file md5 and the file name, as follows: 
 
@@ -346,8 +346,14 @@ OSS files are split in 256 files named `00.csv` to `ff.csv` containing the compo
 6c067f97266c817b339f0e989499c8e4,00fc6e8b3ae062fbcfbe8d2e40d36e68,bison-3.5/src/ielr.c
 6c067f97266c817b339f0e989499c8e4,00ac96f26eed6fab33d7451e8f697939,bison-3.5/lib/stat-w32.c 
 ```
+## Pivot table csv (mined/pivot.csv)
 
-## Snippets 
+This table is used to mantain the relation between a file and an url, the md5 of the files are saved in a single CSV file called `mined/pivot.csv` which contains the url hash and the original archive md5 hash as in the following example: 
+
+```
+00fc6e8b3ae062fbcfbe8d2e40d36e68,6c067f97266c817b339f0e989499c8e4
+```
+## Wfp table csv (mined/wfp) 
 
 OSS snippets are 32-bit identifiers calculated with the winnowing algorithm. They are saved in binary format split in 256 files called `00.bin` - `ff.bin` containing sequential records composed of:
 
@@ -357,15 +363,15 @@ OSS snippets are 32-bit identifiers calculated with the winnowing algorithm. The
 
 These `.bin` files can be joined by simple concatenation.
 
-## Sources 
+## Sources table mz file (mined/sources)
 
 The `sources/` directory is where the original downloaded source files are stored. They are kept in 65536 `.mz` archive files. These files can be listed and extracted using the `unmz` command, which is part of minr. Unlike ZIP files, MZ files can be joined by simple concatenation.
 
-## Dependencies
-The `dependencies.csv` file contains mined metadata on declared dependencies.
+## Dependency table csv file (mined/dependency.csv)
+The `dependency.csv` file contains mined metadata on declared dependencies.
 
-## PURL
-The `purls.csv` file contains component-level information as well as relations between purls.
+## PURLs table csv file (mined/purl.csv) 
+The `purl.csv` file contains component-level information as well as relations between purls.
 Component-level information is presented with seven CSV fields:
 
 * Creation date,

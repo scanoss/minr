@@ -40,7 +40,7 @@
 
 #include "minr.h"
 #include "file.h"
-
+#include "minr_log.h"
 /**
  * @brief Verify if a path is a file and exists.
  * 
@@ -55,7 +55,7 @@ bool is_file(char *path)
 	{
 		if (pstat.st_mode == 33024)
 		{
-			fprintf(stderr, "Warning the file %s will be ignored - st_mode = 33024\n", path);
+			minr_log("Warning the file %s will be ignored - st_mode = 33024\n", path);
 			return false;
 		}
 		if (S_ISREG(pstat.st_mode)) 
@@ -93,9 +93,25 @@ bool is_dir(char *path)
  */
 bool create_dir(char *path)
 {
-  if (is_dir(path)) return true;
-  if (mkdir(path, 0755)) return false;
-  return true;
+	bool result = false;
+	char *sep = strrchr(path, '/');
+	if(sep != NULL) {
+    	*sep = 0;
+    	result = create_dir(path);
+    	*sep = '/';
+    }
+  
+	if (is_dir(path)) 
+	{
+  		result = true;
+	}
+	else if (!mkdir(path, 0755)) 
+	{
+  		result = true;
+		minr_log("Created dir: %s\n", path);
+	}
+
+	return result;
 }
 
 /**
@@ -131,12 +147,12 @@ bool not_a_dot (char *path)
  * @param mined_path 
  * @return FILE** 
  */
-FILE **open_file (char *mined_path)
+FILE **open_file (char *mined_path, char * set_name)
 {
 	char *path = calloc(MAX_PATH_LEN, 1);
 
 	/* Create files directory */
-	sprintf(path, "%s/files", mined_path);
+	sprintf(path, "%s/%s", mined_path, set_name);
 	if (!create_dir(path))
 	{
 		printf("Cannot create file %s\n", path);
@@ -147,7 +163,7 @@ FILE **open_file (char *mined_path)
 	FILE **out = calloc(sizeof(FILE*) * 256, 1);
 	for (int i=0; i < 256; i++)
 	{
-		sprintf(path, "%s/files/%02x.csv", mined_path, i);
+		sprintf(path, "%s/%s/%02x.csv", mined_path, set_name, i);
 		out[i] = fopen(path, "a");
 		if (out[i] == NULL)
 		{

@@ -39,6 +39,7 @@
 #include "ignored_files.h"
 #include "ldb.h"
 #include "crypto.h"
+#include "minr_log.h"
 
 /* Paths */
 char tmp_path[MAX_ARG_LEN] = "/dev/shm";
@@ -304,7 +305,7 @@ int load_file(struct minr_job *job, char *path)
 	if ((job->src_ln < min_file_size  || job->src_ln >= MAX_FILE_SIZE) && !job->mine_all)
 	{
 		
-		fprintf(stderr,"File size out of bound: %s\n", path);
+		minr_log("File size out of bound: %s\n", path);
 		if (fp)
 			fclose(fp);
 		return FILE_IGNORED;
@@ -316,7 +317,7 @@ int load_file(struct minr_job *job, char *path)
  	if (job->src_ln >= MAX_FILE_SIZE)
 	{
 		result = FILE_ACCEPTED_EXTRA_TABLES;
-		fprintf(stderr, "Warning - truncated file %s to %u of %lu bytes\n", path, MAX_FILE_SIZE - 1, job->src_ln);
+		minr_log( "Warning - truncated file %s to %u of %lu bytes\n", path, MAX_FILE_SIZE - 1, job->src_ln);
 		job->src_ln = MAX_FILE_SIZE - 1;
 	}
 	/* Read file contents into src and close it */
@@ -324,7 +325,7 @@ int load_file(struct minr_job *job, char *path)
 
 	if (!fread(job->src, 1, job->src_ln, fp))
 	{
-		fprintf(stderr,"Warning: empty file %s\n", path);
+		minr_log("Warning: empty file %s\n", path);
 		fclose(fp);
 		return FILE_IGNORED;
 	}
@@ -502,10 +503,18 @@ void mine(struct minr_job *job, char *path)
 	if (extra_table)
 	{
 		fprintf(job->out_file_extra[*job->md5], "%s,%s,%s\n", job->fileid + 2, job->urlid, path + strlen(job->tmp_dir) + 1);
+	
+		if (job->out_pivot_extra)
+			fprintf(job->out_pivot_extra, "%s,%s\n", job->urlid + 2, job->fileid);
 	}
 	else
 	{
-		fprintf(job->out_file[*job->md5], "%s,%s,%s\n", job->fileid + 2, job->urlid, path + strlen(job->tmp_dir) + 1);		
+		uint8_t url_md5_byte;
+		ldb_hex_to_bin(job->urlid, 2, &url_md5_byte);
+		fprintf(job->out_file[*job->md5], "%s,%s,%s\n", job->fileid + 2, job->urlid, path + strlen(job->tmp_dir) + 1);
+		ldb_hex_to_bin(job->urlid, 2, &url_md5_byte);
+		if (job->out_pivot)
+			fprintf(job->out_pivot, "%s,%s\n", job->urlid + 2, job->fileid);
 	}
 }
 

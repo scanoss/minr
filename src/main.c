@@ -52,7 +52,7 @@
 #include "crypto.h"
 #include "url.h"
 #include "scancode.h"
-
+#include "minr_log.h"
 #include <dlfcn.h>
 
 
@@ -65,7 +65,7 @@ bool lib_load()
 	char * err;
     if (lib_handle) 
 	{
-		fprintf(stderr, "Lib scanoss-enocder present\n");
+		minr_log( "Lib scanoss-enocder present\n");
 		decode = dlsym(lib_handle, "scanoss_decode");
 		if ((err = dlerror())) 
 		{
@@ -133,7 +133,7 @@ int main(int argc, char *argv[])
 	int option;
 	bool invalid_argument = false;
 
-	while ((option = getopt(argc, argv, ":c:C:L:Q:Y:o:m:g:w:t:f:T:i:I:l:z:u:U:d:D:SxXsnkeahvOAb")) != -1)
+	while ((option = getopt(argc, argv, ":c:C:L:Q:Y:o:m:g:w:t:f:T:i:I:l:z:u:U:d:D:V:SxXsnkeahvOAb")) != -1)
 	{
 
 		/* Check valid alpha is entered */
@@ -196,7 +196,7 @@ int main(int argc, char *argv[])
 				}
 				else
 				{
-					fprintf(stderr, "libscanoss-encoder.so must be present to run -b option\n");
+					printf("libscanoss-encoder.so must be present to run -b option\n");
 					exit(EXIT_FAILURE);
 				}
 				break;
@@ -253,7 +253,9 @@ int main(int argc, char *argv[])
 			case 'd':
 				strcpy(job.metadata, optarg);
 				break;
-
+			case 'V':
+				strcpy(log_file, optarg);
+				break;
 			case 's':
 				job.skip_sort = true;
 				break;
@@ -261,7 +263,7 @@ int main(int argc, char *argv[])
 				if (scancode_check())
 					job.scancode_mode = true;
 				else
-					fprintf(stderr, "scancode and jq must be present in the system to run -S option\n");
+					minr_log("scancode and jq must be present in the system to run -S option\n");
 				break;
 			case 'n':
 				job.skip_csv_check = true;
@@ -329,7 +331,7 @@ int main(int argc, char *argv[])
 	{
 		if (!*job.import_table && job.import_overwrite)
 		{
-			fprintf(stderr, "Cannot overwrite all tables. Use of -O requires -I\n");
+			minr_log( "Cannot overwrite all tables. Use of -O requires -I\n");
 		}
 		else
 		{
