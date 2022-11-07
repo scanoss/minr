@@ -29,7 +29,7 @@
 #include <string.h>
 
 /* Definitions */
-#define MINR_VERSION "2.4.0"
+#define MINR_VERSION "2.5.0"
 #define FILE_FILES 256
 #define MAX_ARG_LEN 1024
 #define MIN_FILE_REC_LEN 70
@@ -57,6 +57,22 @@
 
 #define MAX_LICENSE_ID 64
 #define MAX_LICENSE_TEXT 1024
+
+#define TABLE_NAME_FILE "file"
+#define TABLE_NAME_URL "url"
+#define TABLE_NAME_LICENSE "license"
+#define TABLE_NAME_CRYPTOGRAPHY "cryptography"
+#define TABLE_NAME_QUALITY "quality"
+#define TABLE_NAME_DEPENDENCY "dependency"
+#define TABLE_NAME_COPYRIGHT "copyright"
+#define TABLE_NAME_ATTRIBUTION "attribution"
+#define TABLE_NAME_NOTICES	"notices"
+#define TABLE_NAME_VULNERABILITY "vulnerability"
+#define TABLE_NAME_WFP "wfp"
+#define TABLE_NAME_PURL "purl"
+#define TABLE_NAME_SOURCES "sources"
+#define TABLE_NAME_PIVOT "pivot"
+
 
 #define LDB_ROOT "/var/lib/ldb"
 
@@ -126,6 +142,9 @@ struct minr_job
 
 	FILE **out_file;
 	FILE **out_file_extra;
+	FILE * out_pivot;
+	FILE *out_pivot_extra;
+
 };
 
 typedef enum { none, license, copyright, quality } metadata;
@@ -140,7 +159,7 @@ bool check_dependencies(void);
 bool download(struct minr_job *job);
 void recurse(struct minr_job *job, char *path);
 void minr_join(struct minr_job *job);
-void minr_join_mz(char *source, char *destination, bool skip_delete, bool encrypted);
+void minr_join_mz(char * table, char *source, char *destination, bool skip_delete, bool encrypted);
 void mine_license(struct minr_job *job, char *id, bool license_file);
 bool mine_license_exec(struct minr_job *job);
 void mine_copyright(char *mined_path, char *md5, char *src, uint64_t src_ln, bool license_file);

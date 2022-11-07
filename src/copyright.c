@@ -191,7 +191,7 @@ void mine_copyright(char *mined_path, char *md5, char *src, uint64_t src_ln, boo
 	if (mined_path)
 	{
 		strcpy(csv_path, mined_path);
-		strcat(csv_path, "/copyrights.csv");
+		strcat(csv_path, "/"TABLE_NAME_COPYRIGHT".csv");
 	}
 
 	char *s = src;

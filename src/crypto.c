@@ -193,10 +193,7 @@ char *getNextToken(char * text,uint64_t *start,uint64_t *end,uint64_t maxLen){
  */
 void clean_crypto_definitions(void)
 {
-//printf("cleaning\r\n");
-cleanCrypto(root);
-//printf("cleaned\r\n");
-
+	cleanCrypto(root);
 }
 
 
@@ -218,11 +215,11 @@ void mine_crypto(char *mined_path, char *md5, char *src, uint64_t src_ln)
 	/* Assemble csv path */
 	char csv_path[MAX_PATH_LEN] = "\0";
 	char dumpToFile=0;
-	//printf("Procesando %s ",md5);	
+
 	if (mined_path)
 	{	dumpToFile=1;
 		strcpy(csv_path, mined_path);
-		strcat(csv_path, "/cryptography.csv");
+		strcat(csv_path, "/"TABLE_NAME_CRYPTOGRAPHY".csv");
 	}
 	 FILE * fp;
 	 
@@ -266,7 +263,6 @@ void mine_crypto(char *mined_path, char *md5, char *src, uint64_t src_ln)
 					aux->element->coding);
 					 }	
 	aux=aux->nextElement;
-	//free(old);
 	}
 		aux=results;
 		while(aux!=NULL){

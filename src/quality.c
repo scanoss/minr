@@ -118,7 +118,7 @@ void mine_quality(char *mined_path, char *md5, char *src, long size)
 		if (mined_path)
 		{
 			strcpy(csv_path, mined_path);
-			strcat(csv_path, "/quality.csv");
+			strcat(csv_path, "/"TABLE_NAME_QUALITY".csv");
 		}
 
 		/* Output quality score */

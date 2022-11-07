@@ -70,7 +70,7 @@ bool mz_id_exists_in_ldb(struct mz_job *job)
 
 	struct ldb_table oss_file;
 	strcpy(oss_file.db, "oss");
-	strcpy(oss_file.table, "file");
+	strcpy(oss_file.table, TABLE_NAME_FILE);
 	oss_file.key_ln = 16;
 	oss_file.rec_ln = 0;
 	oss_file.ts_ln = 2;

@@ -39,6 +39,7 @@
 #include "hex.h"
 #include "ignorelist.h"
 #include "join.h"
+#include "minr_log.h"
 
 int (*decode) (int op, unsigned char *key, unsigned char *nonce,
 		        const char *buffer_in, int buffer_in_len, unsigned char *buffer_out);
@@ -389,13 +390,9 @@ bool valid_hex(char *str, int bytes)
  * @param nfields number of fileds
  * @return true if succed
  */
-bool ldb_import_csv(struct minr_job *job, char *filename, char *table, int nfields)
+bool ldb_import_csv(struct minr_job *job, char *filename, char *table, bool secondary_key, int nfields)
 {
-	bool is_file_table = false;
 	bool bin_mode = false;
-
-	if (!strcmp(table, "file"))
-		is_file_table = true;
 	
 	if (job->bin_import || strstr(filename, ".enc"))
 		bin_mode = true;
@@ -432,7 +429,7 @@ bool ldb_import_csv(struct minr_job *job, char *filename, char *table, int nfiel
 
 	uint64_t totalbytes = file_size(filename);
 	size_t bytecounter = 0;
-	int field2_ln = is_file_table ? 16 : 0;
+	int field2_ln = secondary_key ? 16 : 0;
 
 	/* Get 1st byte of the item ID from csv filename (if available) */
 	uint8_t first_byte = 0;
@@ -461,7 +458,7 @@ bool ldb_import_csv(struct minr_job *job, char *filename, char *table, int nfiel
 	fp = fopen(filename, "r");
 	if (fp == NULL)
 	{
-		fprintf(stderr, "File does not exist %s\n", filename);
+		minr_log( "File does not exist %s\n", filename);
 	
 		if (!skip_delete)
 			unlink(filename);
@@ -480,6 +477,7 @@ bool ldb_import_csv(struct minr_job *job, char *filename, char *table, int nfiel
 		/* Skip records with sizes out of range */
 		if (lineln > MAX_CSV_LINE_LEN || lineln < min_line_size)
 		{
+			minr_log( "Line %s -- Skipped, %ld exceed MAX line size %d.\n", line, lineln, MAX_CSV_LINE_LEN);
 			skipped++;
 			continue;
 		}
@@ -503,24 +501,30 @@ bool ldb_import_csv(struct minr_job *job, char *filename, char *table, int nfiel
 		/* File table will have the url id as the second field, which will be
 			 converted to binary. Data then starts on the third field. Also file extensions
 			 are checked and ruled out if ignored */
-		if (is_file_table)
+		if (secondary_key)
 		{
 			/* Skip line if the URL is the same as last, importing unique files per url */
-			if (dup_id)
-				if (*last_url_id && !memcmp(data, last_url_id, MD5_LEN * 2))
-					if (dup_id)
-					{
-						skip = true;
-					}
-			memcpy(last_url_id, data, MD5_LEN * 2);
-
-			data = field_n(3, line);
-			if (!data)
+			if (dup_id && *last_url_id && !memcmp(data, last_url_id, MD5_LEN * 2))
 			{
-				fprintf(stderr, "Error in line %s -- Skipped\n", line);
-				skipped++;
+				minr_log( "Line %s -- Skipped, repeated URL ID.\n", line);
+				skip = true;
 			}
+			else
+				memcpy(last_url_id, data, MD5_LEN * 2);
+			
+			if (nfields > 2)
+			{
+				data = field_n(3, line);
+				if (!data)
+				{
+					minr_log( "Error in line %s -- Skipped\n", line);
+					skipped++;
+				}
+			}
+			else
+				data = NULL;
 		}
+
 		/* Calculate record size */
 		uint16_t r_size = 0;
 		unsigned char data_bin[MAX_CSV_LINE_LEN];
@@ -539,10 +543,11 @@ bool ldb_import_csv(struct minr_job *job, char *filename, char *table, int nfiel
 			if (expected_fields)
 				if (csv_fields(line) != expected_fields)
 				{
+					minr_log( "Line %s -- Skipped, Missing CSV fields. Expected: %d.\n", line, expected_fields);
 					skip = true;
 				}
 			
-			if (is_file_table && ignored_extension(data) && !bin_mode) //we dont know the file extension in bin_mode
+			if (secondary_key && ignored_extension(data) && !bin_mode) //we dont know the file extension in bin_mode
 				skip = true;
 
 			if (skip)
@@ -550,9 +555,12 @@ bool ldb_import_csv(struct minr_job *job, char *filename, char *table, int nfiel
 				skipped++;
 				continue;
 			}
-		
+		}
+
+		if (data || (secondary_key && nfields < 3))
+		{
 			/* Convert id to binary (and 2nd field too if needed (files table)) */
-			file_id_to_bin(line, first_byte, got_1st_byte, itemid, field2, is_file_table);
+			file_id_to_bin(line, first_byte, got_1st_byte, itemid, field2, secondary_key);
 			uint8_t zero_md5[MD5_LEN];
 			memset(zero_md5, 0, MD5_LEN);
 			if (!memcmp(itemid,zero_md5, MD5_LEN))
@@ -565,6 +573,14 @@ bool ldb_import_csv(struct minr_job *job, char *filename, char *table, int nfiel
 			/* If we have a new main key, or we exceed node size, we must flush and and initialize buffer */
 			if (new_key || (item_ptr + 5 * NODE_PTR_LEN + MD5_LEN + 2 * REC_SIZE_LEN + r_size) >= node_limit)
 			{
+								/* Open new sector if needed */
+				if (*itemid != item_lastsector)
+				{
+					if (item_sector)
+						fclose(item_sector);
+					item_sector = ldb_open(oss_bulk, itemid, "r+");
+				}
+				
 				/* Write buffer to disk and initialize buffer */
 				if (item_rg_size > 0)
 					uint16_write(item_buf + item_rg_start + 12, item_rg_size);
@@ -574,14 +590,6 @@ bool ldb_import_csv(struct minr_job *job, char *filename, char *table, int nfiel
 				item_rg_start = 0;
 				item_rg_size = 0;
 				new_subkey = true;
-
-				/* Open new sector if needed */
-				if (*itemid != item_lastsector)
-				{
-					if (item_sector)
-						fclose(item_sector);
-					item_sector = ldb_open(oss_bulk, itemid, "r+");
-				}
 			}
 
 			/* New file id, start a new record group */
@@ -615,15 +623,17 @@ bool ldb_import_csv(struct minr_job *job, char *filename, char *table, int nfiel
 			/* Add url id to record */
 			memcpy(item_buf + item_ptr, field2, field2_ln);
 			item_ptr += field2_ln;
-
-			/* Add record to buffer */
-			if (!bin_mode)
-				memcpy(item_buf + item_ptr, data, r_size);
-			else
-				memcpy(item_buf + item_ptr, data_bin, r_size);
-			item_ptr += r_size;
-			item_rg_size += (field2_ln + REC_SIZE_LEN + r_size);
-
+			item_rg_size += (field2_ln + REC_SIZE_LEN);
+			if (data)
+			{
+				/* Add record to buffer */
+				if (!bin_mode)
+					memcpy(item_buf + item_ptr, data, r_size);
+				else
+					memcpy(item_buf + item_ptr, data_bin, r_size);
+				item_ptr += r_size;
+				item_rg_size += r_size;
+			}
 			imported++;
 		}
 		progress("Importing: ", bytecounter, totalbytes, true);
@@ -707,6 +717,22 @@ bool bin_sort(char *file_path, bool skip_sort)
 }
 
 /**
+ * @brief
+ *
+ * @param table table path
+ * @param job pointer to minr job
+ * @return true if succed
+ */
+bool this_table(char *table, struct minr_job *job)
+{
+	if (!*job->import_table)
+		return true;
+	if (!strcmp(job->import_table, table))
+		return true;
+	return false;
+}
+
+/**
  * @brief Wipes table before importing (-O)
  *
  * @param table path to table
@@ -743,30 +769,32 @@ void wipe_table(char *table, struct minr_job *job)
  *
  * @param job pointer to minr job
  */
-void import_files(struct minr_job *job)
+void import_multiple_files(struct minr_job *job, char * table, bool secondary_key, int fields)
 {
+	if (!this_table(table, job))
+		return;
 	/* Wipe existing data if overwrite is requested */
-	wipe_table("file", job);
+	wipe_table(table, job);
 
 	char path[2 * MAX_PATH_LEN] = "\0";
-	sprintf(path, "%s/files", job->import_path);
+	sprintf(path, "%s/%s", job->import_path, table);
 
 	if (is_dir(path))
 	{
 		for (int i = 0; i < 256; i++)
 		{
 			if (!job->bin_import)
-				sprintf(path, "%s/files/%02x.csv", job->import_path, i);
+				sprintf(path, "%s/%s/%02x.csv", job->import_path, table,i);
 			else
-				sprintf(path, "%s/files/%02x.csv.enc", job->import_path, i);
+				sprintf(path, "%s/%s/%02x.csv.enc", job->import_path, table, i);
 
 			if (csv_sort(path, job->skip_sort))
 			{
 				/* 3 fields expected (file id, url id, URL) */
-				ldb_import_csv(job, path, "file", 3);
+				ldb_import_csv(job, path, table, true, fields);
 			}
 		}
-		sprintf(path, "%s/files", job->import_path);
+		sprintf(path, "%s/%s", job->import_path, table);
 		if (!job->skip_delete)
 			rmdir(path);
 	}
@@ -779,39 +807,24 @@ void import_snippets(struct minr_job *job)
 	wipe_table("wfp", job);
 
 	char path[2 * MAX_PATH_LEN] = "\0";
-	sprintf(path, "%s/snippets", job->import_path);
+	sprintf(path, "%s/%s", job->import_path, TABLE_NAME_WFP);
 	if (is_dir(path))
 	{
 		printf("WFP IDs in ignorelist: %lu\n", IGNORED_WFP_LN / 4);
 		for (int i = 0; i < 256; i++)
 		{
-			sprintf(path, "%s/snippets/%02x.bin", job->import_path, i);
+			sprintf(path, "%s/%s/%02x.bin", job->import_path, TABLE_NAME_WFP, i);
 			if (bin_sort(path, job->skip_sort))
 			{
 				ldb_import_snippets(job->dbname, path, job->skip_delete);
 			}
 		}
 	}
-	sprintf(path, "%s/snippets", job->import_path);
+	sprintf(path, "%s/%s", job->import_path, TABLE_NAME_WFP);
 	if (!job->skip_delete)
 		rmdir(path);
 }
 
-/**
- * @brief
- *
- * @param table table path
- * @param job pointer to minr job
- * @return true if succed
- */
-bool this_table(char *table, struct minr_job *job)
-{
-	if (!*job->import_table)
-		return true;
-	if (!strcmp(job->import_table, table))
-		return true;
-	return false;
-}
 
 /**
  * @brief Import a single file
@@ -841,7 +854,7 @@ void single_file_import(struct minr_job *job, char *filename, char *tablename, i
 	{
 		if (csv_sort(path, job->skip_sort))
 		{
-			ldb_import_csv(job, path, tablename, nfields);
+			ldb_import_csv(job, path, tablename,false, nfields);
 		}
 	}
 }
@@ -993,37 +1006,6 @@ bool version_import(struct minr_job *job)
 }
 
 /**
- * @brief Import MZ archives
- *
- * @param job pointer to minr job
- */
-void import_mz(struct minr_job *job)
-{
-	char path[2 * MAX_PATH_LEN] = "\0";
-
-	char db_path[MAX_PATH_LEN * 2];
-	sprintf(db_path, "%s/%s", LDB_ROOT, job->dbname);
-
-	sprintf(path, "%s/sources", job->import_path);
-	if (is_dir(path))
-	{
-		/* Wipe existing data if overwrite is requested */
-		wipe_table("sources", job);
-
-		minr_join_mz(job->import_path, db_path, job->skip_delete, job->bin_import);
-	}
-
-	sprintf(path, "%s/notices", job->import_path);
-	if (is_dir(path))
-	{
-		/* Wipe existing data if overwrite is requested */
-		wipe_table("notices", job);
-
-		minr_join_mz(job->import_path, db_path, job->skip_delete, job->bin_import);
-	}
-}
-
-/**
  * @brief Import CSV files and load into database
  *
  * @param job pointer to mnir job
@@ -1037,47 +1019,63 @@ void mined_import(struct minr_job *job)
 	/* Import version.json file */
 	if (!version_import(job))
 	{
-		fprintf(stderr, "Failed to import version.json file. This file must be present and must has a valid format to continue. Check at README.md for more details.\n");
+		printf("Failed to import version.json file. This file must be present and must has a valid format to continue. Check at README.md for more details.\n");
 		exit(EXIT_FAILURE);
 	}
 
+	char db_path[MAX_PATH_LEN * 2];
+	sprintf(db_path, "%s/%s", LDB_ROOT, job->dbname);
+
 	/* Import MZ archives */
 	if (this_table("sources", job))
-		import_mz(job);
+	{
+		/* Wipe existing data if overwrite is requested */
+		wipe_table("sources", job);
+		minr_join_mz("sources", job->import_path, db_path, job->skip_delete, job->bin_import);
+	}
+
+	if (this_table("notices", job))
+	{
+		/* Wipe existing data if overwrite is requested */
+		wipe_table("notices", job);
+		minr_join_mz("notices", job->import_path, db_path, job->skip_delete, job->bin_import);
+	}
 
 	/* Attribution expects 2 fields: id, notice ID */
-	single_file_import(job, "attribution.csv", "attribution", 2);
+	single_file_import(job, TABLE_NAME_ATTRIBUTION".csv", "attribution", 2);
 
 	/* PURLs expects either:
 	 * 7 fields: id, created, latest, updated, star, watch, fork
 	 * or a single field: related PURL. Therefore, 0 is passed as required fields */
-	single_file_import(job, "purls.csv", "purl", 0);
+	single_file_import(job, TABLE_NAME_PURL".csv", "purl", 0);
 
 	/* Dependencies expect 5 fields: id, source, vendor, component, version */
-	single_file_import(job, "dependencies.csv", "dependency", 5);
+	single_file_import(job, TABLE_NAME_DEPENDENCY".csv", "dependency", 5);
 
 	/* Licenses expects 3 fields: id, source, license */
-	single_file_import(job, "licenses.csv", "license", 3);
+	single_file_import(job, TABLE_NAME_LICENSE".csv", "license", 3);
 
 	/* Copyrights expects 3 fields: id, source, copyright statement */
-	single_file_import(job, "copyrights.csv", "copyright", 3);
+	single_file_import(job, TABLE_NAME_COPYRIGHT".csv", "copyright", 3);
 
 	/* Vulnerability expects 10 fields: id, source, purl, version from,
 	   version patched, CVE, advisory ID (Github/CPE), Severity, Date, Summary */
-	single_file_import(job, "vulnerabilities.csv", "vulnerability", 10);
+	single_file_import(job, TABLE_NAME_VULNERABILITY".csv", "vulnerability", 10);
 
 	/* Quality expects 3 CSV fields: id, source, value */
-	single_file_import(job, "quality.csv", "quality", 3);
+	single_file_import(job, TABLE_NAME_QUALITY".csv", "quality", 3);
 
 	/* Cryptography expects 3 fields: id, algorithm, strength */
-	single_file_import(job, "cryptography.csv", "cryptography", 3);
+	single_file_import(job, TABLE_NAME_CRYPTOGRAPHY".csv", "cryptography", 3);
 
 	/* URLs expects 8 fields: url id, vendor, component, version, release_date, license, purl, download_url */
-	single_file_import(job, "urls.csv", "url", 8);
+	single_file_import(job, TABLE_NAME_URL".csv", "url", 8);
 
 	/* Import files */
-	if (this_table("file", job))
-		import_files(job);
+	import_multiple_files(job, TABLE_NAME_FILE, true, 3);
+
+	/* Import pivot url/files */
+	import_multiple_files(job, TABLE_NAME_PIVOT, true, 2);
 
 	/* Import .bin files */
 	if (this_table("wfp", job))
