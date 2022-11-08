@@ -275,11 +275,11 @@ void minr_join_snippets(char *source, char *destination, bool skip_delete)
 
 	for (int i = 0; i < 256; i++)
 	{
-		sprintf(src_path, "%s/snippets/%02x.bin", source, i);
-		sprintf(dst_path, "%s/snippets/%02x.bin", destination, i);
+		sprintf(src_path, "%s/%s/%02x.bin", source, TABLE_NAME_WFP, i);
+		sprintf(dst_path, "%s/%s/%02x.bin", destination, TABLE_NAME_WFP, i);
 		bin_join(src_path, dst_path, true, skip_delete);
 	}
-	sprintf(src_path, "%s/snippets", source);
+	sprintf(src_path, "%s/%s", source, TABLE_NAME_WFP);
 	if (!skip_delete) rmdir(src_path);
 }
 

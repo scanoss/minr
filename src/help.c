@@ -60,7 +60,7 @@ void show_help ()
 	printf("\n");
 
 	printf("Mining snippet WFP: Minr extracts snippet fingerprint from all code in a .mz arhive (mined/sources/)\n");
-	printf("into mined/snippets/\n");
+	printf("into mined/%s/\n", TABLE_NAME_WFP);
 	printf("-z DIRECTORY   Indicates the location of the mined/ directory\n");
 	printf("\n");
 
