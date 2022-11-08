@@ -29,7 +29,7 @@
 #include <string.h>
 
 /* Definitions */
-#define MINR_VERSION "2.5.0"
+#define MINR_VERSION "2.5.1"
 #define FILE_FILES 256
 #define MAX_ARG_LEN 1024
 #define MIN_FILE_REC_LEN 70

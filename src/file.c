@@ -188,7 +188,7 @@ int *open_snippet (char *base_path)
 	char *path = calloc(MAX_PATH_LEN, 1);
 
 	/* Create files directory */
-	sprintf(path, "%s/snippets", base_path);
+	sprintf(path, "%s/%s", base_path, TABLE_NAME_WFP);
 	if (!create_dir(path))
 	{
 		printf("Cannot create file %s\n", path);
@@ -199,7 +199,7 @@ int *open_snippet (char *base_path)
 	int *out = calloc(sizeof(int*) * 256, 1);
 	for (int i=0; i < 256; i++)
 	{
-		sprintf(path, "%s/snippets/%02x.bin", base_path, i);
+		sprintf(path, "%s/%s/%02x.bin", base_path, TABLE_NAME_WFP, i);
 		out[i] = open(path, O_RDWR | O_APPEND | O_CREAT, 0644);
 		if (out[i] < 0)
 		{
@@ -215,7 +215,7 @@ int *open_snippet (char *base_path)
 /**
  * @brief Gets the size of a file.
  * 
- * @param path Path to the file. 
+ * @param path Path to the file. st
  * @return uint64_t Size of the file in bytes. 
  */
 uint64_t file_size(char *path)
