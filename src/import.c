@@ -360,6 +360,12 @@ bool file_id_to_bin(char *line, uint8_t first_byte, bool got_1st_byte, uint8_t *
 			ldb_hex_to_bin(field_n(2, line), MD5_LEN_HEX, field2);
 	}
 
+	uint8_t zero_md5[MD5_LEN];
+	memset(zero_md5, 0, MD5_LEN);
+
+	if (!memcmp(itemid,zero_md5, MD5_LEN))
+		return false;
+
 	return true;
 }
 
@@ -416,7 +422,6 @@ bool ldb_import_csv(struct minr_job *job, char *filename, char *table, bool seco
 	uint8_t *item_buf = malloc(LDB_MAX_NODE_LN);
 	uint8_t *item_lastid = calloc(MD5_LEN * 2 + 1, 1);
 	uint16_t item_ptr = 0;
-	long item_lastsector = -1;
 	FILE *item_sector = NULL;
 	uint16_t item_rg_start = 0; // record group size
 	uint16_t item_rg_size = 0;	// record group size
@@ -560,10 +565,7 @@ bool ldb_import_csv(struct minr_job *job, char *filename, char *table, bool seco
 		if (data || (secondary_key && nfields < 3))
 		{
 			/* Convert id to binary (and 2nd field too if needed (files table)) */
-			file_id_to_bin(line, first_byte, got_1st_byte, itemid, field2, secondary_key);
-			uint8_t zero_md5[MD5_LEN];
-			memset(zero_md5, 0, MD5_LEN);
-			if (!memcmp(itemid,zero_md5, MD5_LEN))
+			if (!file_id_to_bin(line, first_byte, got_1st_byte, itemid, field2, secondary_key))
 				continue;
 
 			/* Check if we have a whole new key (first 4 bytes), or just a new subkey (last 12 bytes) */
@@ -573,26 +575,27 @@ bool ldb_import_csv(struct minr_job *job, char *filename, char *table, bool seco
 			/* If we have a new main key, or we exceed node size, we must flush and and initialize buffer */
 			if (new_key || (item_ptr + 5 * NODE_PTR_LEN + MD5_LEN + 2 * REC_SIZE_LEN + r_size) >= node_limit)
 			{
-								/* Open new sector if needed */
-				if (*itemid != item_lastsector)
+				/* Write buffer to disk and initialize buffer */
+				if (item_rg_size > 0)
+					uint16_write(item_buf + item_rg_start + 12, item_rg_size);
+				if (item_ptr && item_sector)
+					ldb_node_write(oss_bulk, item_sector, item_lastid, item_buf, item_ptr, 0);
+				/* Open new sector if needed */
+				if (*itemid != *item_lastid)
 				{
 					if (item_sector)
 						fclose(item_sector);
 					item_sector = ldb_open(oss_bulk, itemid, "r+");
 				}
 				
-				/* Write buffer to disk and initialize buffer */
-				if (item_rg_size > 0)
-					uint16_write(item_buf + item_rg_start + 12, item_rg_size);
-				if (item_ptr)
-					ldb_node_write(oss_bulk, item_sector, item_lastid, item_buf, item_ptr, 0);
+
 				item_ptr = 0;
 				item_rg_start = 0;
 				item_rg_size = 0;
 				new_subkey = true;
 			}
 
-			/* New file id, start a new record group */
+						/* New file id, start a new record group */
 			if (new_subkey)
 			{
 				/* Write size of previous record group */
@@ -615,6 +618,7 @@ bool ldb_import_csv(struct minr_job *job, char *filename, char *table, bool seco
 				/* Update variables */
 				item_rg_size = 0;
 			}
+
 
 			/* Add record length to record */
 			uint16_write(item_buf + item_ptr, r_size + field2_ln);
