@@ -580,9 +580,7 @@ bool ldb_import_csv(struct minr_job *job, char *filename, char *table, bool seco
 					uint16_write(item_buf + item_rg_start + 12, item_rg_size);
 				if (item_ptr && item_sector)
 					ldb_node_write(oss_bulk, item_sector, item_lastid, item_buf, item_ptr, 0);
-				else if (!item_sector)
-					fprintf(stderr, "Failed to write to ldb, Sector not open\n");
-												/* Open new sector if needed */
+				/* Open new sector if needed */
 				if (*itemid != *item_lastid)
 				{
 					if (item_sector)
