@@ -566,7 +566,10 @@ bool ldb_import_csv(struct minr_job *job, char *filename, char *table, bool seco
 		{
 			/* Convert id to binary (and 2nd field too if needed (files table)) */
 			if (!file_id_to_bin(line, first_byte, got_1st_byte, itemid, field2, secondary_key))
+			{
+				fprintf(stderr, "failed to parse key: %s\n", line);
 				continue;
+			}
 
 			/* Check if we have a whole new key (first 4 bytes), or just a new subkey (last 12 bytes) */
 			bool new_key = (memcmp(itemid, item_lastid, 4) != 0);
@@ -578,8 +581,14 @@ bool ldb_import_csv(struct minr_job *job, char *filename, char *table, bool seco
 				/* Write buffer to disk and initialize buffer */
 				if (item_rg_size > 0)
 					uint16_write(item_buf + item_rg_start + 12, item_rg_size);
-				if (item_ptr && item_sector)
-					ldb_node_write(oss_bulk, item_sector, item_lastid, item_buf, item_ptr, 0);
+				
+				if (item_ptr)
+				{
+					if (!item_sector)
+						item_sector = ldb_open(oss_bulk, item_lastid, "r+");
+					else
+						ldb_node_write(oss_bulk, item_sector, item_lastid, item_buf, item_ptr, 0);
+				}
 				/* Open new sector if needed */
 				if (*itemid != *item_lastid)
 				{
