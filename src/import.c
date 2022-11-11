@@ -647,8 +647,15 @@ bool ldb_import_csv(struct minr_job *job, char *filename, char *table, bool seco
 	/* Flush buffer */
 	if (item_rg_size > 0)
 		uint16_write(item_buf + item_rg_start + MD5_LEN - LDB_KEY_LN, item_rg_size);
+	
 	if (item_ptr)
+	{
+		if (!item_sector)
+			item_sector = ldb_open(oss_bulk, itemid, "r+");
+		
 		ldb_node_write(oss_bulk, item_sector, item_lastid, item_buf, item_ptr, 0);
+	}
+	
 	if (item_sector)
 		fclose(item_sector);
 
