@@ -368,11 +368,16 @@ bool file_id_to_bin(char *line, uint8_t first_byte, bool got_1st_byte, uint8_t *
 			ldb_hex_to_bin(field_n(2, line), MD5_LEN_HEX, field2);
 	}
 
-	uint8_t zero_md5[MD5_LEN];
-	memset(zero_md5, 0, MD5_LEN);
+	uint8_t zero_md5[MD5_LEN] = {0xd4,0x1d,0x8c,0xd9,0x8f,0x00,0xb2,0x04,0xe9,0x80,0x09,0x98,0xec,0xf8,0x42,0x7e}; //empty string md5
+
+	if (!memcmp(itemid,zero_md5, MD5_LEN)) //the md5 key of an empty string must be skipped.
+		return false;
+	
+	memset(zero_md5, 0, MD5_LEN); // al zeros md5 must be skippets
 
 	if (!memcmp(itemid,zero_md5, MD5_LEN))
 		return false;
+
 
 	return true;
 }
