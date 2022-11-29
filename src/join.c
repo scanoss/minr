@@ -250,11 +250,10 @@ void minr_join_mz(char * table, char *source, char *destination, bool skip_delet
 	{
 		sprintf(src_path, "%s/%s/%04x.mz", source, table, i);
 		sprintf(dst_path, "%s/%s/%04x.mz", destination, table, i);
-		if (encrypted)
-		{
-			strcat(src_path, ".enc");
-			strcat(dst_path, ".enc");
-		}
+
+		check_file_extension(src_path, encrypted);
+		check_file_extension(dst_path, encrypted);
+
 		bin_join(src_path, dst_path, false, skip_delete);
 	}
 	sprintf(src_path, "%s/%s", table, source);

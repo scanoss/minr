@@ -62,6 +62,14 @@ bool reverse_memcmp(uint8_t *a, uint8_t *b, int bytes)
 	return true;
 }
 
+bool check_file_extension(char * path, bool bin_mode)
+{
+	if (bin_mode || (decode && access(path, F_OK) != 0))
+		strcat(path, ".enc");
+	
+	return true;
+}
+
 /**
  * @brief Extract the numeric value of the two nibbles making the file name
  *
@@ -399,12 +407,15 @@ bool valid_hex(char *str, int bytes)
 bool ldb_import_csv(struct minr_job *job, char *filename, char *table, bool secondary_key, int nfields)
 {
 	bool bin_mode = false;
-	
+	bool skip_csv_check = job->skip_csv_check;
 	if (job->bin_import || strstr(filename, ".enc"))
+	{
 		bin_mode = true;
+		skip_csv_check = true;
+	}
 
 	bool skip_delete = job->skip_delete;
-	int expected_fields = (job->skip_csv_check ? 0 : nfields);
+	int expected_fields = (skip_csv_check ? 0 : nfields);
 
 	FILE *fp;
 	char *line = NULL;
@@ -776,7 +787,10 @@ void wipe_table(char *table, struct minr_job *job)
 		for (int i = 0; i < (is_mz ? 65535 : 256); i++)
 		{
 			if (is_mz)
+			{
 				sprintf(path, "%s/%s/%s/%04x.mz", LDB_ROOT, job->dbname, table, i);
+				check_file_extension(path, job->bin_import);
+			}
 			else
 				sprintf(path, "%s/%s/%s/%02x.ldb", LDB_ROOT, job->dbname, table, i);
 			unlink(path);
@@ -803,10 +817,8 @@ void import_multiple_files(struct minr_job *job, char * table, bool secondary_ke
 	{
 		for (int i = 0; i < 256; i++)
 		{
-			if (!job->bin_import)
-				sprintf(path, "%s/%s/%02x.csv", job->import_path, table,i);
-			else
-				sprintf(path, "%s/%s/%02x.csv.enc", job->import_path, table, i);
+			sprintf(path, "%s/%s/%02x.csv", job->import_path, table,i);
+			check_file_extension(path, job->bin_import);
 
 			if (csv_sort(path, job->skip_sort))
 			{
@@ -866,9 +878,7 @@ void single_file_import(struct minr_job *job, char *filename, char *tablename, i
 
 	char path[2 * MAX_PATH_LEN] = "\0";
 	sprintf(path, "%s/%s", job->import_path, filename);
-	
-	if (job->bin_import)
-		strcat(path,".enc");
+	check_file_extension(path, job->bin_import);
 
 	if (is_file(path))
 	{

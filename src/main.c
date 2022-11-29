@@ -133,6 +133,8 @@ int main(int argc, char *argv[])
 	int option;
 	bool invalid_argument = false;
 
+	bool lib_encoder_present = lib_load();
+
 	while ((option = getopt(argc, argv, ":c:C:L:Q:Y:o:m:g:w:t:f:T:i:I:l:z:u:U:d:D:V:SxXsnkeahvOAb")) != -1)
 	{
 
@@ -189,7 +191,7 @@ int main(int argc, char *argv[])
 				strcpy(job.import_table, optarg);
 				break;
 			case 'b':
-				if (lib_load())
+				if (lib_encoder_present)
 				{
 					job.bin_import = true;
 					job.skip_csv_check = true;

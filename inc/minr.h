@@ -29,7 +29,7 @@
 #include <string.h>
 
 /* Definitions */
-#define MINR_VERSION "2.5.4"
+#define MINR_VERSION "2.5.5"
 #define FILE_FILES 256
 #define MAX_ARG_LEN 1024
 #define MIN_FILE_REC_LEN 70
@@ -171,4 +171,5 @@ void extract_csv(char *out, char *in, int n, long limit);
 int count_chr(char chr, char *str);
 int load_file(struct minr_job *job, char *path);
 void print_md5(uint8_t *md5);
+bool check_file_extension(char * path, bool bin_mode);
 #endif
