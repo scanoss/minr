@@ -153,7 +153,6 @@ char *downloaded_file(char *tmp_dir)
 				break;
 			}
 		}
-
 		if (!found)
 			printf("Download directory is empty\n");
 	}

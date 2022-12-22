@@ -38,7 +38,7 @@
 #include "ldb.h"
 #include "wfp.h"
 #include "minr_log.h"
-
+#include <sys/time.h>
 /**
  * @brief Calculate purl md5
  * 
@@ -167,7 +167,9 @@ void url_download(struct minr_job *job)
 	/* Create temporary component directory */
 	else
 	{
-		sprintf(job->tmp_dir,"%s/minr-%d", tmp_path, getpid());
+		struct timeval  tv;
+		gettimeofday(&tv, NULL);
+		sprintf(job->tmp_dir,"%s/minr-%d-%lu", tmp_path, getpid(), tv.tv_sec);
 		mkdir(job->tmp_dir, 0755);
 		/*keep a copy of this root dir to erase later*/
 		aux_root_dir = strdup(job->tmp_dir);
@@ -223,16 +225,15 @@ void url_download(struct minr_job *job)
 		mine_license_exec(job);
 
 		recurse(job, job->tmp_dir);
-
-		if (!is_dir(job->url)) rm_tmpdir(aux_root_dir);
-		free(aux_root_dir);
 	}
 
 	else
 	{
 		printf("Capture failed: %s\n",job->tmp_dir);
 	}
-
+	
+	rm_tmpdir(aux_root_dir);
+	free(aux_root_dir);
 	/* Close files */
 	for (int i=0; i < 256; i++)
 	{
@@ -240,7 +241,6 @@ void url_download(struct minr_job *job)
 		if (job->mine_all)
 		{
 			fclose(job->out_file_extra[i]);
-		//	fclose(job->out_pivot_extra[i]);
 		}
 	}
 	

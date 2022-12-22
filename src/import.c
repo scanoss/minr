@@ -175,7 +175,9 @@ bool ldb_import_snippets(char *db_name, char *filename, bool skip_delete)
 		return false;
 
 	/* Lock DB */
-	ldb_lock(db_name);
+	char lock_file[MAX_PATH_LEN];
+	sprintf(lock_file, "%s.%s",oss_wfp.db,oss_wfp.table);
+	ldb_lock(lock_file);
 
 	uint64_t wfp_counter = 0;
 	uint64_t ignore_counter = 0;
@@ -281,7 +283,7 @@ bool ldb_import_snippets(char *db_name, char *filename, bool skip_delete)
 	free(bl);
 
 	/* Lock DB */
-	ldb_unlock(db_name);
+	ldb_unlock(lock_file);
 
 	return true;
 }
@@ -488,7 +490,9 @@ bool ldb_import_csv(struct minr_job *job, char *filename, char *table, bool seco
 	printf("%s\n", filename);
 
 	/* Lock DB */
-	ldb_lock(table);
+	char lock_file[MAX_PATH_LEN];
+	sprintf(lock_file, "%s.%s",oss_bulk.db,oss_bulk.table);
+	ldb_lock(lock_file);
 
 	while ((lineln = getline(&line, &len, fp)) != -1)
 	{
@@ -699,7 +703,7 @@ bool ldb_import_csv(struct minr_job *job, char *filename, char *table, bool seco
 	free(field2);
 
 	/* Lock DB */
-	ldb_unlock(table);
+	ldb_unlock(lock_file);
 
 	return true;
 }
