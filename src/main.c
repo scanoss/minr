@@ -69,8 +69,8 @@ bool lib_load()
 		decode = dlsym(lib_handle, "scanoss_decode");
 		if ((err = dlerror())) 
 		{
-			printf("%s\n", err);
-			exit(EXIT_FAILURE);
+			minr_log("%s\n", err);
+			return false;
 		}
 		return true;
      }
