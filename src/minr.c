@@ -191,7 +191,7 @@ uint32_t download_file(struct minr_job *job)
 	if (is_file(job->url))
 		sprintf(command, "cp \"%s\" \"%s\"", job->url, job->tmp_dir);
 	else
-		sprintf(command, "cd %s && curl -LsJkO --fail --show-error \"%s\"", job->tmp_dir, job->url);
+		sprintf(command, "cd %s && curl --max-time 1800 -LsJkO --fail --show-error \"%s\"", job->tmp_dir, job->url);
 
 	bool outcome = execute_command(command);
 
