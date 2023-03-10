@@ -34,3 +34,9 @@ SRP_create_verifier
 SRP_Calc_A
 SRP_Calc_client_key_ex
 SRP_user_pwd_free
+SRPClient
+SRPServer
+libsrp
+srp
+_pysrp
+_ctsrp
