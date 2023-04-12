@@ -1,0 +1,54 @@
+name: build
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [ 'main' ]
+  push:
+    branches:        
+      - '*' 
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Install third party dependencies
+        run: sudo apt install build-essential libssl-dev zlib1g-dev libsqlite3-dev libz-dev curl gem ruby unzip p7zip-full unrar-free
+
+      - uses: actions/checkout@v3
+
+      - name: Git Clone LDB
+        uses: actions/checkout@v3
+        with:
+          repository: scanoss/ldb
+          path: ldb
+          fetch-depth: 0
+        
+      - name: Build LDB
+        run: cd ldb && git checkout $(git describe --tags $(git rev-list --tags --max-count=1)) && make && sudo make install
+      
+      - name: LDB cleanup
+        run: rm -rf ldb
+
+      - name: make
+        run: make
+
+      - name: version
+        run: echo "::set-output name=version::$(./minr -version)"
+        id: version
+      
+      - name: Test output
+        run: echo ${{ steps.version.outputs.version }}
+
+      - name: 'Tar files'
+        run: tar czvf minr-${{ steps.version.outputs.version }}-amd64.tar.gz minr mz LICENSE
+
+      - name: Upload a Build Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: minr-${{ steps.version.outputs.version }}-amd64.tar.gz
+          path: |
+            minr-${{ steps.version.outputs.version }}-amd64.tar.gz
+          retention-days: 5
