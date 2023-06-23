@@ -521,6 +521,12 @@ bool ldb_import_csv(struct minr_job *job, char *filename, char *table, bool seco
 
 		/* First CSV field is the data key. Data starts with the second CSV field */
 		char *data = field_n(2, line);
+		if (!data)
+		{
+			minr_log( "Line %s -- Skipped, Invalid line.\n", line);
+			continue;
+		}
+
 		bool skip = false;
 
 		/* File table will have the url id as the second field, which will be
@@ -557,7 +563,13 @@ bool ldb_import_csv(struct minr_job *job, char *filename, char *table, bool seco
 		{
 			if (bin_mode)
 			{	
-				r_size = decode(DECODE_BASE64,NULL, NULL, data, strlen(data), data_bin);
+				if (decode)
+					r_size = decode(DECODE_BASE64,NULL, NULL, data, strlen(data), data_bin);
+				else
+					ldb_error("libscanoss_encoder.so it is not available, \".enc\" files cannot be processed");
+				
+				if (r_size == 0)
+					skip = true;
 			}
 			else
 			{
@@ -617,7 +629,6 @@ bool ldb_import_csv(struct minr_job *job, char *filename, char *table, bool seco
 					item_sector = ldb_open(oss_bulk, itemid, "r+");
 				}
 				
-
 				item_ptr = 0;
 				item_rg_start = 0;
 				item_rg_size = 0;
@@ -1080,7 +1091,7 @@ void mined_import(struct minr_job *job)
 		minr_join_mz("notices", job->import_path, db_path, job->skip_delete, job->bin_import);
 	}
 
-	/* Attribution expects 2 fields: id, notice ID */
+	/* Attribution ts 2 fields: id, notice ID */
 	single_file_import(job, TABLE_NAME_ATTRIBUTION".csv", "attribution", 2);
 
 	/* PURLs expects either:

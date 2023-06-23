@@ -64,30 +64,36 @@ char *spdx_license_identifier(char *src)
 {
 	int tag_len = 24; // length of "SPDX-License-Identifier:"
 	char *s = src + tag_len;
-	char license[MAX_ARG_LEN] = "\0";
+	char license[MAX_LICENSE_TEXT] = "\0";
 	/* Skip until SPDX License starts */
 	while (*s)
 	{
 		if (isalpha(*s))
 			break;
-		if (*s == '\n')
+		if (*s == '\n' || *s == '\r')
 			return NULL;
 		s++;
 	}
 	char * line_end = strchr(s,'\n');
-	if (!line_end)
+	if (!line_end || (line_end - s) > MAX_LICENSE_TEXT -1)
+	{
 		return NULL;
+	}
 	
 	char * line = strndup(s, line_end - s);
 
 	char * and = NULL;
 	char * or = NULL;
+	
+	if (!line)
+		return NULL;
 	s = line;
 	/* End string at end of tag */
 	do
 	{
 		char *out = s;
-
+		if (!s)
+			break;
 		and = strcasestr(s, " AND ");
 		or = strcasestr(s, " OR ");
 		if (and && or)

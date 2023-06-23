@@ -29,7 +29,7 @@
 #include <string.h>
 
 /* Definitions */
-#define MINR_VERSION "2.5.8"
+#define MINR_VERSION "2.5.10"
 #define FILE_FILES 256
 #define MAX_ARG_LEN 1024
 #define MIN_FILE_REC_LEN 70
@@ -56,7 +56,7 @@
 #define BEST_PRACTICES_MAX_LINES_PER_COMMENT (27 * 2)
 
 #define MAX_LICENSE_ID 64
-#define MAX_LICENSE_TEXT 1024
+#define MAX_LICENSE_TEXT 10000
 
 #define TABLE_NAME_FILE "file"
 #define TABLE_NAME_URL "url"
