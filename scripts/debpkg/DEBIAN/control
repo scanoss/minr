@@ -1,0 +1,8 @@
+Package: minr
+Version: MINR_VERSION
+Maintainer: SCANOSS <support@scanoss.com>
+Architecture: amd64
+Depends: libssl1.1 (>= 1.1.0), libc6 (>= 2.4), zlib1g (>= 1:1.1.4)
+Description: SCANOSS Mining tool
+  Minr is a multi-purpose command line tool used for data mining. Minr downloads, indexes and imports source code metadata into the knowledge base. Minr can be also used locally for detecting licences and cryptographic algorithms usage.
+License: GPL-2+

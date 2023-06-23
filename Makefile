@@ -17,6 +17,7 @@ OBJECTS_MZ=$(SOURCES_MZ:.c=.o)
 TARGET_MINR=minr
 TARGET_MZ=mz
 
+VERSION=$(shell ./version.sh)
 
 all: clean $(TARGET_MINR) $(TARGET_MZ)
 
@@ -37,3 +38,11 @@ clean:
 install:
 	cp $(TARGET_MINR) /usr/bin
 	cp $(TARGET_MZ) /usr/bin
+
+prepare_deb_package: all ## Prepares the deb Package 
+	@./package.sh deb $(VERSION)
+	@echo deb package built
+
+prepare_rpm_package: all ## Prepares the rpm Package 
+	@./package.sh rpm $(VERSION)
+	@echo rpm package built
