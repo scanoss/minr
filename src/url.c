@@ -231,8 +231,21 @@ void url_download(struct minr_job *job)
 	{
 		printf("Capture failed: %s\n",job->tmp_dir);
 	}
-	
-	rm_tmpdir(aux_root_dir);
+
+	/* Delete temp directory which store source package via url downloading*/	
+	if (aux_root_dir != NULL && aux_root_dir[0] == '\0')
+	{
+		// aux_root_dir is NULL string
+	}
+	else if (aux_root_dir == NULL)
+	{
+		// aux_root_dir is NULL pointer
+	}
+	else
+	{
+		rm_tmpdir(aux_root_dir);
+	}
+
 	free(aux_root_dir);
 	/* Close files */
 	for (int i=0; i < 256; i++)
