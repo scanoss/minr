@@ -29,12 +29,12 @@
 #include <string.h>
 
 /* Definitions */
-#define MINR_VERSION "2.5.10"
+#define MINR_VERSION "2.5.11"
 #define FILE_FILES 256
 #define MAX_ARG_LEN 1024
 #define MIN_FILE_REC_LEN 70
 #define MAX_PATH_LEN 4096
-#define MAX_FILE_SIZE (4 * 1048576)
+#define MAX_FILE_SIZE (8 * 1048576)
 #define MAX_FILE_HEADER 4096
 #define MAX_HEADER_LINES 30
 #define MAX_CSV_LINE_LEN 1024
@@ -56,7 +56,7 @@
 #define BEST_PRACTICES_MAX_LINES_PER_COMMENT (27 * 2)
 
 #define MAX_LICENSE_ID 64
-#define MAX_LICENSE_TEXT 10000
+#define MAX_LICENSE_TEXT 1024
 
 #define TABLE_NAME_FILE "file"
 #define TABLE_NAME_URL "url"

@@ -270,6 +270,7 @@ enum
 {
 	FILE_IGNORED = 0,
 	FILE_ACCEPTED,
+	FILE_ACCEPTED_NO_SOURCES,
 	FILE_ACCEPTED_EXTRA_TABLES
 };
 
@@ -301,24 +302,19 @@ int load_file(struct minr_job *job, char *path)
 	job->src_ln = ftello64(fp);
 
 	/* File discrimination check #3: Is it under/over the threshold */
-	if ((job->src_ln < min_file_size  || job->src_ln >= MAX_FILE_SIZE) && !job->mine_all)
+	if ((job->src_ln < min_file_size  || job->src_ln >= MAX_FILE_SIZE))
 	{
 		
-		minr_log("File size out of bound: %s\n", path);
-		if (fp)
-			fclose(fp);
-		return FILE_IGNORED;
+		minr_log("File size out of bound: %s, source will not be saved\n", path);
+		result = FILE_ACCEPTED_NO_SOURCES;
+		
+		if (job->src_ln >= MAX_FILE_SIZE)
+		{
+			minr_log( "Warning - truncated file %s to %u of %lu bytes\n", path, MAX_FILE_SIZE - 1, job->src_ln);
+			job->src_ln = MAX_FILE_SIZE - 1;
+		}
 	}
 
-	if (job->src_ln < min_file_size)
-		result = FILE_ACCEPTED_EXTRA_TABLES;
-
- 	if (job->src_ln >= MAX_FILE_SIZE)
-	{
-		result = FILE_ACCEPTED_EXTRA_TABLES;
-		minr_log( "Warning - truncated file %s to %u of %lu bytes\n", path, MAX_FILE_SIZE - 1, job->src_ln);
-		job->src_ln = MAX_FILE_SIZE - 1;
-	}
 	/* Read file contents into src and close it */
 	fseeko64(fp, 0, SEEK_SET);
 
@@ -481,7 +477,8 @@ void mine(struct minr_job *job, char *path)
 			{
 				mz_add(job->mined_extra_path, job->md5, job->src, job->src_ln, true, job->zsrc_extra, job->mz_cache_extra);
 			}
-			else if (!skip)
+			
+			if (!skip)
 			{
 				mz_add(job->mined_path, job->md5, job->src, job->src_ln, true, job->zsrc, job->mz_cache);
 			}
@@ -506,7 +503,8 @@ void mine(struct minr_job *job, char *path)
 		if (job->out_pivot_extra)
 			fprintf(job->out_pivot_extra, "%s,%s\n", job->urlid + 2, job->fileid);
 	}
-	else
+	
+	if ( result < FILE_ACCEPTED_EXTRA_TABLES)
 	{
 		uint8_t url_md5_byte;
 		ldb_hex_to_bin(job->urlid, 2, &url_md5_byte);
