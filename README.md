@@ -1,6 +1,6 @@
 # minr
 
-Minr is a multi-purpose command line tool used for data mining. Minr downloads, indexes and imports source code metadata into the knowledge base. Minr can be also used locally for detecting licences and cryptographic algorithms usage.
+Minr is a multi-purpose command line tool used for data mining. Minr downloads, indexes and imports source code metadata into the knowledge base. Minr can be also used locally for detecting licenses and cryptographic algorithms usage.
 
 # Setup 
 Component mining requires a Knowledge database installed. Scanoss use the SCANOSS LDB (Linked-list database) as a shared library. LDB Source code and installation guide can be found on https://github.com/scanoss/ldb 
@@ -76,7 +76,7 @@ $ minr -L /home/johndoe/os-projects
 
 Mines the **os-projects** directory (and recursively, its subfolders) searching for licenses declaration. The output is presented at the standard output.
 Available options are
-* **-L** Scans for licences
+* **-L** Scans for licenses
 * **-C** Scans for copyrights
 * **-Q** Scans for code quality
 * **-Y** Scans for cryptographic algorithms
