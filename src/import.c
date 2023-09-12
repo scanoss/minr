@@ -622,7 +622,7 @@ bool ldb_import_csv(struct minr_job *job, char *filename, char *table, bool seco
 						ldb_node_write(oss_bulk, item_sector, item_lastid, item_buf, item_ptr, 0);
 				}
 				/* Open new sector if needed */
-				if (*itemid != *item_lastid)
+				if (itemid != item_lastid)
 				{
 					if (item_sector)
 						fclose(item_sector);
