@@ -297,7 +297,7 @@ int main(int argc, char *argv[])
 				break;
 
 			case 'v':
-				printf("scanoss-minr-%s\n", MINR_VERSION);
+				printf("minr-%s\n", MINR_VERSION);
 				exit(EXIT_SUCCESS);
 				break;
 
