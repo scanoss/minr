@@ -478,7 +478,7 @@ void mine(struct minr_job *job, char *path)
 				mz_add(job->mined_extra_path, job->md5, job->src, job->src_ln, true, job->zsrc_extra, job->mz_cache_extra);
 			}
 			
-			if (!skip)
+			else if (!skip)
 			{
 				mz_add(job->mined_path, job->md5, job->src, job->src_ln, true, job->zsrc, job->mz_cache);
 			}
