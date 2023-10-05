@@ -21,12 +21,14 @@
  */
 
 /* Returns the hexadecimal md5 sum for "path" */
+#include "ldb.h"
 
+#ifndef MD5
 /**
   * @file md5.c
   * @date 7 Feb 2021
   * @brief Implement MD5 calculation
-  */
+  */ 
 #include <openssl/md5.h>
 
 #include "minr.h"
@@ -73,3 +75,4 @@ void calc_md5(char *data, int size, uint8_t *out)
 	MD5_Update(&mdContext, data, size);
 	MD5_Final(out, &mdContext);
 }
+#endif

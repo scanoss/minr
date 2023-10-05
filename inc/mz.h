@@ -1,5 +1,5 @@
-#ifndef __MZ_H
-    #define __MZ_H
+#ifndef __MINR_MZ_H
+    #define __MINR_MZ_H
 
 void mz_cat(struct mz_job *job, char *key);
 
@@ -15,5 +15,11 @@ typedef enum
 void mz_optimise(struct mz_job *job, mz_optimise_mode_t mode);
 void mz_extract(struct mz_job *job);
 void mz_list(struct mz_job *job);
+
+#ifndef MZ_DEFLATE
+#define MZ_DEFLATE_LOCAL
+void mz_deflate2(struct mz_job *job);
+#define MZ_DEFLATE(job) mz_deflate2(job)
+#endif
 
 #endif

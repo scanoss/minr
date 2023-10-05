@@ -134,9 +134,7 @@ void url_download(struct minr_job *job)
 {
 	bool downloaded = false;
 	char * aux_root_dir = NULL;
-	job->src = calloc(MAX_FILE_SIZE + 1, 1);
-	job->zsrc = calloc((MAX_FILE_SIZE + 1) * 2, 1);
-	job->zsrc_extra = calloc((MAX_FILE_SIZE + 1) * 2, 1);
+	
 	/* Reserve memory for snippet fingerprinting */
 	if (!job->exclude_mz)
 	{
@@ -279,7 +277,4 @@ void url_download(struct minr_job *job)
 	if (job->mine_all)
 		free(job->out_file_extra);
 
-	free(job->src);
-	free(job->zsrc);
-	free(job->zsrc_extra);
 }
