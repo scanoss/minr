@@ -396,8 +396,6 @@ void mine(struct minr_job *job, char *path)
 {
 	bool extra_table = false;
 	bool exclude_detection = job->exclude_detection;
-	//fprintf(stderr,"%s\n", path);
-	/* Load file contents and calculate md5 */
 
 	/* Mine attribution notice */
 	job->is_attribution_notice = is_attribution_notice(path);
@@ -414,6 +412,7 @@ void mine(struct minr_job *job, char *path)
 	if (!job->all_extensions)
 		if (ignored_extension(path))
 		{
+			minr_log("Ignored due to: ignored_extension\n");
 			if (job->mine_all)
 				extra_table = true;
 			else
@@ -422,42 +421,41 @@ void mine(struct minr_job *job, char *path)
 
 	//Ignore path with ',' inside
 	if (strchr(path, ','))
+	{
+		minr_log("Ignored due to: comma inside path\n");
 		return;
+	}
 
 	if (unwanted_path(path))
 	{
+		minr_log("Ignored due to: unwanted_path\n");
 		if (job->mine_all)
 			extra_table = true;
 		else
 			return;
 	}
-
+	/* Load file contents and calculate md5 */
 	int result = load_file(job, path);
 	if (result == FILE_IGNORED)
 	{
+		minr_log("Ignoring empty file %s\n", path);
 		if (job->src_ln <= 0 || !job->mine_all)
 		{
-			minr_log("Ignoring empty file %s\n", path);
 			return;
 		}
 		else
 			extra_table = true;
 	}
 
-	/* File discrimination check: Unwanted header? */
-	if (unwanted_header(job->src))
-	{
-		if (job->mine_all)
-			extra_table = true;
-		else
-			return;
-	}
 	/* Add to .mz */
 	if (!job->exclude_mz)
 	{
 		/* File discrimination check: Binary? */
 		if (is_binary(job->src, job->src_ln))
+		{
 			exclude_detection = true;
+			minr_log("Binary detected, excluded from sources\n");
+		}
 		else if ((job->zsrc = calloc(compressBound(job->src_ln +1) + MZ_HEAD, 1)) != NULL && job->src_ln > 0 && job->src)
 		{
 			if (extra_table)
@@ -471,21 +469,17 @@ void mine(struct minr_job *job, char *path)
 				/* Is the file extension supposed to be skipped for snippet hashing? */
 				if (skip_mz_extension(path))
 				{
+					minr_log("Ignored due to: skip_mz_extension\n");
 					skip = true;
 				}
 						
-				/* Is the content too square? */
-				if (too_much_squareness(job->src))
-				{
-					skip = true;
-				}
-					
 				if (!skip)
 				{
 					mz_add(job->mined_path, job->md5, job->src, job->src_ln, true, job->zsrc, job->mz_cache);
 				}
 				else if (job->mine_all)
 				{
+					minr_log("Por las dudas %s\n", path);
 					extra_table = true;
 					mz_add(job->mined_extra_path, job->md5, job->src, job->src_ln, true, job->zsrc, job->mz_cache_extra);
 				}
@@ -499,7 +493,7 @@ void mine(struct minr_job *job, char *path)
 	}
 
 	/* Mine more */
-	if (!exclude_detection && !extra_table && job->src)
+	if (!exclude_detection && job->src)
 	{
 		mine_crypto(job->mined_path, job->fileid, job->src, job->src_ln);
 		mine_license(job, job->fileid, false);

@@ -295,17 +295,13 @@ bool mz_extract_handler(struct mz_job *job)
 	job->data[job->data_ln] = 0;
 	/* Compare data checksum to validate */
 	char *actual = bin_to_hex(actual_md5, MD5_LEN);
+	/* Extract data to file */
+	file_write(job->md5, (uint8_t *)job->data, job->data_ln);
+	printf("Extracting %s (%lu bytes)\n", job->md5, job->data_ln);
 
 	if (strcmp(job->md5, actual))
 	{
-		mz_corrupted();
-	}
-	else
-	{
-		printf("Extracting %s (%lu bytes)\n", job->md5, job->data_ln);
-
-		/* Extract data to file */
-		file_write(job->md5, (uint8_t *)job->data, job->data_ln);
+		fprintf(stderr, "Warning uncompressed file MD5 does not match\n");
 	}
 
 	free(actual);
