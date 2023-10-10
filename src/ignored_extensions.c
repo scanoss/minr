@@ -33,7 +33,7 @@ char *IGNORED_EXTENSIONS[] = {
 
 	/* File extensions */
 	".1", ".2", ".3", ".4", ".5", ".6", ".7", ".8", ".9", ".ac", ".adoc", ".am",
-	".asc", ".asciidoc", ".bmp", ".build", ".cfg", ".chm", ".class", ".cmake",
+	".asc", ".asciidoc", ".bmp", ".build", ".cfg", ".chm", ".cmake",
 	".cnf", ".conf", ".config", ".contributors", ".copying", ".crt", ".csproj",
 	".css", ".csv", ".cvsignore", ".dat", ".data", ".db", ".doc", ".ds_store",
 	".dtd", ".dts", ".dtsi", ".dump", ".eot", ".eps", ".geojson", ".gdoc", ".gif",

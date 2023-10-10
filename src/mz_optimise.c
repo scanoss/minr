@@ -35,6 +35,7 @@
 #include "ignorelist.h"
 #include "mz.h"
 
+
 /**
  * @brief Check if job->id is found in job->xkeys (see -X)
  * 
@@ -110,14 +111,15 @@ bool mz_md5_match(uint8_t *mz1, uint8_t *mz2)
 bool mz_optimise_handler(struct mz_job *job)
 {
 	/* Uncompress */
-	uint64_t src_ln = MAX_FILE_SIZE;
+	/*uint64_t src_ln = MAX_FILE_SIZE;
 	if (Z_OK != uncompress((uint8_t *)job->data, &src_ln, job->zdata, job->zdata_ln))
 	{
 		printf("[DECOMPRESS FAILED] ");
 		ldb_hexprint(job->id, 14, 14);
 		return true;
 	}
-	job->data_ln = src_ln - 1;
+	job->data_ln = src_ln - 1;*/
+	MZ_DEFLATE(job);
 	job->data[job->data_ln] = 0;
 
 	uint8_t md5[16];
@@ -170,21 +172,22 @@ bool mz_optimise_handler(struct mz_job *job)
 		memcpy(job->ptr + job->ptr_ln, job->id, job->ln);
 		job->ptr_ln += job->ln;
 	}
-
+	free(job->data);
 	return true;
 }
 
 bool mz_optimise_dup_handler(struct mz_job *job)
 {
 	/* Uncompress */
-	uint64_t src_ln = MAX_FILE_SIZE;
+/*	uint64_t src_ln = MAX_FILE_SIZE;
 	if (Z_OK != uncompress((uint8_t *)job->data, &src_ln, job->zdata, job->zdata_ln))
 	{
 		printf("[DECOMPRESS FAILED] ");
 		ldb_hexprint(job->id, 14, 14);
 		return true;
 	}
-	job->data_ln = src_ln - 1;
+	job->data_ln = src_ln - 1;*/
+	MZ_DEFLATE(job);
 	job->data[job->data_ln] = 0;
 
 	uint8_t md5[16];
@@ -200,6 +203,8 @@ bool mz_optimise_dup_handler(struct mz_job *job)
 		memcpy(job->ptr + job->ptr_ln, job->id, job->ln);
 		job->ptr_ln += job->ln;
 	}
+
+	free(job->data);
 
 	return true;
 }
@@ -246,7 +251,6 @@ void mz_optimise(struct mz_job *job, mz_optimise_mode_t mode)
 	if (job->exc_c) printf("%u keys excluded\n", job->exc_c);
 
 	free(job->mz);
-	free(job->ptr);
 }
 
 

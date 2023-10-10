@@ -39,6 +39,7 @@
 #include "hex.h"
 #include "wfp.h"
 #include "file.h"
+#include "mz.h"
 
 uint8_t *grams;
 uint32_t *windows;
@@ -89,6 +90,9 @@ void extract_wfp(uint8_t *md5, char *src, int length, bool check_mz)
 
 	/* Check if data is too square */
 	if (too_much_squareness(src)) return;
+
+	/* File discrimination check: Unwanted header? */
+	if (unwanted_header(src)) return;
 
 	/* File discrimination check: Binary? */
 	int src_ln = strlen(src);
@@ -149,10 +153,11 @@ bool mz_wfp_extract_handler(struct mz_job *job)
 	memcpy(job->ptr + 2, job->id, MZ_MD5);
 
 	/* Decompress */
-	mz_deflate(job);
-
+	MZ_DEFLATE(job);
 	job->data[job->data_ln] = 0;
+	
 	extract_wfp(job->ptr, job->data, job->data_ln, true);
+	free(job->data);
 
 	return true;
 }
@@ -164,8 +169,6 @@ bool mz_wfp_extract_handler(struct mz_job *job)
  */
 void mz_wfp_extract(char *path)
 {
-	char *src = calloc(MAX_FILE_SIZE + 1, 1);
-	uint8_t *zsrc = calloc((MAX_FILE_SIZE + 1) * 2, 1);
 	uint8_t mzid[MD5_LEN] = "\0";
 	uint8_t mzkey[MD5_LEN] = "\0";
 
@@ -177,9 +180,9 @@ void mz_wfp_extract(char *path)
 	job.mz_ln = 0;
 	job.id = mzid;
 	job.ln = 0;
-	job.data = src;        // Uncompressed data
+	job.data = NULL;        // Uncompressed data
 	job.data_ln = 0;
-	job.zdata = zsrc;      // Compressed data
+	job.zdata = NULL;      // Compressed data
 	job.zdata_ln = 0;
 	job.md5[MD5_LEN * 2 + 1] = 0;
 	job.key = NULL;
@@ -194,8 +197,5 @@ void mz_wfp_extract(char *path)
 
 	/* Launch wfp extraction */
 	mz_parse(&job, mz_wfp_extract_handler);
-
 	free(job.mz);
-	free(src);
-	free(zsrc);
 }

@@ -127,7 +127,10 @@ int main(int argc, char *argv[])
 	// License info
 	job.license_count = 0;
 	job.local_mining = 0;
+	job.scancode_mode = false;
 
+	job.src = NULL;
+	job.zsrc = NULL;
 
 	/* Parse arguments */
 	int option;
@@ -297,7 +300,7 @@ int main(int argc, char *argv[])
 				break;
 
 			case 'v':
-				printf("scanoss-minr-%s\n", MINR_VERSION);
+				printf("minr-%s\n", MINR_VERSION);
 				exit(EXIT_SUCCESS);
 				break;
 
@@ -436,6 +439,11 @@ int main(int argc, char *argv[])
 		exit_code = EXIT_FAILURE;
 		printf("Invalid input. Please try -h\n");
 	}
+
 	clean_crypto_definitions();
+	if (lib_encoder_present)
+	{
+		dlclose(lib_handle);
+	}
 	exit(exit_code);
 }

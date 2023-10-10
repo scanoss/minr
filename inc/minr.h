@@ -29,7 +29,7 @@
 #include <string.h>
 
 /* Definitions */
-#define MINR_VERSION "2.5.11"
+#define MINR_VERSION "2.5.12"
 #define FILE_FILES 256
 #define MAX_ARG_LEN 1024
 #define MIN_FILE_REC_LEN 70
@@ -132,7 +132,6 @@ struct minr_job
 	// Memory allocation
 	char *src; // for uncompressed source
 	uint8_t *zsrc; // for compressed source
-	uint8_t *zsrc_extra; // for compressed source
 	uint64_t src_ln;
 	uint64_t zsrc_ln;
 	struct mz_cache_item *mz_cache; // for mz cache

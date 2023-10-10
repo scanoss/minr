@@ -2,8 +2,17 @@ CWD=$(shell pwd)
 CC=gcc
 # Enable all compiler warnings. 
 CCFLAGS?=-g -Wall -I./inc -I./external/inc -D_LARGEFILE64_SOURCE -D_GNU_SOURCE
+
 # Linker flags
-LDFLAGS=-lz -lldb -lpthread -lcrypto -ldl
+LDFLAGS=-lz -lldb -lpthread -ldl
+
+LDB_CURRENT_VERSION := $(shell ldb -v | sed 's/ldb-//' | head -c 3)
+LDB_TARGET_VERSION := 3.2
+
+VERSION_IS_LESS := $(shell echo $(LDB_CURRENT_VERSION) \< $(LDB_TARGET_VERSION) | bc)
+ifeq ($(VERSION_IS_LESS),1)
+	LDFLAGS += -lcrypto
+endif
 
 BUILD_DIR =build
 SOURCES=$(wildcard src/*.c) $(wildcard src/**/*.c)  $(wildcard external/*.c) $(wildcard external/**/*.c)
@@ -22,6 +31,8 @@ VERSION=$(shell ./version.sh)
 all: clean $(TARGET_MINR) $(TARGET_MZ)
 
 $(TARGET_MINR): $(OBJECTS_MIRN)
+	@echo "Current version: $(LDB_CURRENT_VERSION)"
+	@echo "LDFLAGS: $(LDFLAGS)"
 	$(CC) -o $@ $^ $(LDFLAGS)
 
 $(TARGET_MZ): $(OBJECTS_MZ)

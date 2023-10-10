@@ -270,8 +270,6 @@ enum
 {
 	FILE_IGNORED = 0,
 	FILE_ACCEPTED,
-	FILE_ACCEPTED_NO_SOURCES,
-	FILE_ACCEPTED_EXTRA_TABLES
 };
 
 /**
@@ -281,12 +279,12 @@ enum
  * @param path path to file
  * @return FILE_IGNORED 
  * @return FILE_ACCEPTED 
- * @return FILE_ACCEPTED_EXTRA_TABLES
  */
 int load_file(struct minr_job *job, char *path)
 {
 	int result = FILE_ACCEPTED;
 	/* Open file and obtain file length */
+	job->src_ln = 0;
 	FILE *fp;
 
 	if (!is_file(path))
@@ -294,37 +292,46 @@ int load_file(struct minr_job *job, char *path)
 
 	if ((fp = fopen(path, "rb")) == NULL)
 	{
-		printf("Error! Cannot load the definitions file");
-		exit(1);
+		minr_log("Failed to open the file %s", path);
+		return FILE_IGNORED;
 	}
 
 	fseeko64(fp, 0, SEEK_END);
 	job->src_ln = ftello64(fp);
 
-	/* File discrimination check #3: Is it under/over the threshold */
-	if ((job->src_ln < min_file_size  || job->src_ln >= MAX_FILE_SIZE))
+	if (job->src_ln <= 0)
+		return FILE_IGNORED;
+	
+	job->src = calloc(job->src_ln + 2, 1);
+
+	if (!job->src)
 	{
-		
-		minr_log("File size out of bound: %s, source will not be saved\n", path);
-		result = FILE_ACCEPTED_NO_SOURCES;
-		
-		if (job->src_ln >= MAX_FILE_SIZE)
+		fprintf(stderr,"Not memory available to mine this file %s\n. File trunked to %d", path, MAX_FILE_SIZE);
+		job->src_ln = MAX_FILE_SIZE;
+		job->src = calloc(job->src_ln + 1, 1);
+		if (!job->src)
 		{
-			minr_log( "Warning - truncated file %s to %u of %lu bytes\n", path, MAX_FILE_SIZE - 1, job->src_ln);
-			job->src_ln = MAX_FILE_SIZE - 1;
+			fprintf(stderr, "Not memory available\n");
+			exit(EXIT_FAILURE);
 		}
 	}
 
 	/* Read file contents into src and close it */
 	fseeko64(fp, 0, SEEK_SET);
 
+	/* File discrimination check #3: Is it under/over the threshold */
+	if (job->src_ln < min_file_size)
+	{
+		result = FILE_IGNORED;
+	}
+
+			
 	if (!fread(job->src, 1, job->src_ln, fp))
 	{
-		minr_log("Warning: empty file %s\n", path);
 		fclose(fp);
-		return FILE_IGNORED;
+		return result;
 	}
-	
+
 	/* Calculate file MD5 */
 	uint8_t * md5 = file_md5(path);
 	memcpy(job->md5, md5, sizeof(job->md5));
@@ -336,10 +343,7 @@ int load_file(struct minr_job *job, char *path)
 
 	if (ignored_file(job->fileid))
 	{
-		if (job->mine_all)
-			return FILE_ACCEPTED_EXTRA_TABLES;
-		else
-			return FILE_IGNORED;
+		return FILE_IGNORED;
 	}
 		
 	return result;
@@ -392,17 +396,23 @@ void mine(struct minr_job *job, char *path)
 {
 	bool extra_table = false;
 	bool exclude_detection = job->exclude_detection;
+
 	/* Mine attribution notice */
 	job->is_attribution_notice = is_attribution_notice(path);
 	if (job->is_attribution_notice)
 	{
 		mine_attribution_notice(job, path);
-		extra_table = true;
+		minr_log("file %s processed as attribution notice\n", path);
+		if (job->mine_all)
+				extra_table = true;
+		else
+			return;
 	}
 	/* File discrimination check #2: Is the extension ignored or path not wanted? */
 	if (!job->all_extensions)
 		if (ignored_extension(path))
 		{
+			minr_log("Ignored due to: ignored_extension\n");
 			if (job->mine_all)
 				extra_table = true;
 			else
@@ -411,82 +421,79 @@ void mine(struct minr_job *job, char *path)
 
 	//Ignore path with ',' inside
 	if (strchr(path, ','))
+	{
+		minr_log("Ignored due to: comma inside path\n");
 		return;
+	}
 
 	if (unwanted_path(path))
 	{
+		minr_log("Ignored due to: unwanted_path\n");
 		if (job->mine_all)
 			extra_table = true;
 		else
 			return;
 	}
-
 	/* Load file contents and calculate md5 */
 	int result = load_file(job, path);
-	if (!result)
-		return;
-	else if (result > 1)
-		extra_table = true;
-	
-	/*File discrimination check #3: Is it under*/
-	if (job->src_ln < min_file_size)
+	if (result == FILE_IGNORED)
 	{
-		if (job->mine_all)
-			extra_table = true;
-		else
+		minr_log("Ignoring empty file %s\n", path);
+		if (job->src_ln <= 0 || !job->mine_all)
+		{
 			return;
+		}
+		else
+			extra_table = true;
 	}
 
-	/* File discrimination check: Unwanted header? */
-	if (unwanted_header(job->src))
-	{
-		if (job->mine_all)
-			extra_table = true;
-		else
-			return;
-	}
 	/* Add to .mz */
 	if (!job->exclude_mz)
 	{
 		/* File discrimination check: Binary? */
 		if (is_binary(job->src, job->src_ln))
+		{
 			exclude_detection = true;
+			minr_log("Binary detected, excluded from sources\n");
+		}
+		else if ((job->zsrc = calloc(compressBound(job->src_ln +1) + MZ_HEAD, 1)) != NULL && job->src_ln > 0 && job->src)
+		{
+			if (extra_table)
+			{	
+				mz_add(job->mined_extra_path, job->md5, job->src, job->src_ln, true, job->zsrc, job->mz_cache_extra);
+			}
+			else
+			{
+				bool skip = false;
+			
+				/* Is the file extension supposed to be skipped for snippet hashing? */
+				if (skip_mz_extension(path))
+				{
+					minr_log("Ignored due to: skip_mz_extension\n");
+					skip = true;
+				}
+						
+				if (!skip)
+				{
+					mz_add(job->mined_path, job->md5, job->src, job->src_ln, true, job->zsrc, job->mz_cache);
+				}
+				else if (job->mine_all)
+				{
+					minr_log("Por las dudas %s\n", path);
+					extra_table = true;
+					mz_add(job->mined_extra_path, job->md5, job->src, job->src_ln, true, job->zsrc, job->mz_cache_extra);
+				}
+			}
+			free(job->zsrc);
+		}
 		else
 		{
-			bool skip = false;
-
-			/* Is the file extension supposed to be skipped for snippet hashing? */
-			if (skip_mz_extension(path))
-			{
-				if (job->mine_all)
-					extra_table = true;
-				else
-					skip = true;
-			}
-				
-			/* Is the content too square? */
-			if (too_much_squareness(job->src))
-			{
-				if (job->mine_all)
-					extra_table = true;
-				else
-					skip = true;
-			}
-			
-			if (extra_table)
-			{
-				mz_add(job->mined_extra_path, job->md5, job->src, job->src_ln, true, job->zsrc_extra, job->mz_cache_extra);
-			}
-			
-			if (!skip)
-			{
-				mz_add(job->mined_path, job->md5, job->src, job->src_ln, true, job->zsrc, job->mz_cache);
-			}
+			minr_log("File %s was not added to sources\n", path);
 		}
 	}
 
 	/* Mine more */
-	if (!exclude_detection)
+	if (!exclude_detection && job->src)
 	{
 		mine_crypto(job->mined_path, job->fileid, job->src, job->src_ln);
 		mine_license(job, job->fileid, false);
@@ -498,14 +505,15 @@ void mine(struct minr_job *job, char *path)
 
 	if (extra_table)
 	{
+		minr_log("File %s proceesed as \"Extra\"\n", path);
 		fprintf(job->out_file_extra[*job->md5], "%s,%s,%s\n", job->fileid + 2, job->urlid, path + strlen(job->tmp_dir) + 1);
 	
 		if (job->out_pivot_extra)
 			fprintf(job->out_pivot_extra, "%s,%s\n", job->urlid + 2, job->fileid);
 	}
-	
-	if ( result < FILE_ACCEPTED_EXTRA_TABLES)
+	else
 	{
+		minr_log("File %s accepted\n", path);
 		uint8_t url_md5_byte;
 		ldb_hex_to_bin(job->urlid, 2, &url_md5_byte);
 		fprintf(job->out_file[*job->md5], "%s,%s,%s\n", job->fileid + 2, job->urlid, path + strlen(job->tmp_dir) + 1);
@@ -513,6 +521,8 @@ void mine(struct minr_job *job, char *path)
 		if (job->out_pivot)
 			fprintf(job->out_pivot, "%s,%s\n", job->urlid + 2, job->fileid);
 	}
+
+	free(job->src);
 }
 
 /**
@@ -523,7 +533,7 @@ void mine(struct minr_job *job, char *path)
  */
 void mine_local_file(struct minr_job *job, char *path)
 {
-	job->src = calloc(MAX_FILE_SIZE + 1, 1);
+	//job->src = calloc(MAX_FILE_SIZE + 1, 1);
 	bool skip = false;
 
 	/* Load file contents and calculate md5 */

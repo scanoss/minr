@@ -224,9 +224,6 @@ bool mine_license_exec(struct minr_job *job)
  */
 void mine_attribution_notice(struct minr_job *job, char *path)
 {
-	if (!load_file(job, path))
-		return;
-
 	/* Reload file after license analysis */
 	if (!load_file(job, path))
 		return;
@@ -242,6 +239,7 @@ void mine_attribution_notice(struct minr_job *job, char *path)
 
 	/* Compress data */
 	job->zsrc_ln = compressBound(job->src_ln + 1);
+	job->zsrc =calloc((job->zsrc_ln + 1), 1);
 
 	/* Save the first bytes of zsrc to accomodate the MZ header */
 	compress(job->zsrc + MZ_HEAD, &job->zsrc_ln, (uint8_t *)job->src, job->src_ln + 1);
@@ -270,4 +268,7 @@ void mine_attribution_notice(struct minr_job *job, char *path)
 	}
 
 	mine_copyright(job->mined_path, job->purlid, job->src, job->src_ln, true);
+	free(job->src);
+	free(job->zsrc);
+
 }
