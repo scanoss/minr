@@ -445,7 +445,7 @@ bool ldb_import_csv(struct minr_job *job, char *filename, char *table, bool seco
 	uint16_t item_rg_size = 0;	// record group size
 	char last_id[MD5_LEN * 2 + 1 -2]; //save last 30th chars from the last md5.
 	memset(last_id, 0, MD5_LEN * 2 + 1);
-
+	bool init = true;
 	/* Counters */
 	uint32_t imported = 0;
 	uint32_t skipped = 0;
@@ -604,9 +604,9 @@ bool ldb_import_csv(struct minr_job *job, char *filename, char *table, bool seco
 			}
 
 			/* Check if we have a whole new key (first 4 bytes), or just a new subkey (last 12 bytes) */
-			bool new_key = (memcmp(itemid, item_lastid, 4) != 0);
+			bool new_key = (memcmp(itemid, item_lastid, 4) != 0 || init);
 			bool new_subkey = new_key ? true : (memcmp(itemid, item_lastid, MD5_LEN) != 0);
-
+			
 			/* If we have a new main key, or we exceed node size, we must flush and and initialize buffer */
 			if (new_key || (item_ptr + 5 * NODE_PTR_LEN + MD5_LEN + 2 * REC_SIZE_LEN + r_size) >= node_limit)
 			{
@@ -622,7 +622,7 @@ bool ldb_import_csv(struct minr_job *job, char *filename, char *table, bool seco
 						ldb_node_write(oss_bulk, item_sector, item_lastid, item_buf, item_ptr, 0);
 				}
 				/* Open new sector if needed */
-				if (*itemid != *item_lastid)
+				if (*itemid != *item_lastid || init)
 				{
 					if (item_sector)
 						fclose(item_sector);
@@ -658,7 +658,7 @@ bool ldb_import_csv(struct minr_job *job, char *filename, char *table, bool seco
 				/* Update variables */
 				item_rg_size = 0;
 			}
-
+			init = false;
 
 			/* Add record length to record */
 			uint16_write(item_buf + item_ptr, r_size + field2_ln);
