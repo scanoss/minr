@@ -13,6 +13,7 @@
 #include "minr_log.h"
 #include "minr.h"
 #include "file.h"
+#include <dirent.h>
 
 /**
  * @brief  If the CSV file does not end with LF, eliminate the last line
@@ -154,8 +155,6 @@ bool file_append(char *file, char *destination)
 	return write_file(file,destination, "ab", false, true);
 }
 
-
-
 /**
  * @brief join two binary files
  * 
@@ -234,6 +233,109 @@ void csv_join(char *source, char *destination, bool skip_delete)
 	if (!skip_delete) unlink(source);
 }
 
+char * check_dir_extensions(const char * directory, char ** failed) 
+{
+    DIR *dir;
+    struct dirent *entry;
+    char *prev_extension = NULL;
+    // Open the directory
+    dir = opendir(directory);
+
+    if (dir == NULL) {
+        perror("Error opening directory");
+        return NULL;
+    }
+
+    // Iterate through the files in the directory
+    while ((entry = readdir(dir))) 
+	{
+        if (entry->d_type == DT_REG) 
+		{  // Only if it's a regular file
+            char *extension = strrchr(entry->d_name, '.');
+
+            if (extension != NULL) 
+			{
+                if (!strcmp(extension,".json"))
+					continue;
+
+				if (!prev_extension) 
+				{
+                    prev_extension = strdup(extension);
+                } 
+				else if (strcmp(extension, prev_extension) != 0) 
+				{
+                    // Extensions differ, free memory and return NULL
+                    free(prev_extension);
+                    closedir(dir);
+					asprintf(failed, "%s/%s", directory, entry->d_name);
+                    return NULL;
+                }
+            }
+        }
+    }
+
+    closedir(dir);
+	if (!prev_extension)
+		prev_extension = strdup("\0");
+    return prev_extension;
+}
+
+char * dir_test(char *source, char *destination, char * table)
+{
+	
+	char src_dir_path[MAX_PATH_LEN] = "\0";
+	char dst_dir_path[MAX_PATH_LEN] = "\0";
+	
+	sprintf(src_dir_path, "%s/%s", source, table);	
+	if (!is_dir(src_dir_path))
+	{
+		fprintf(stderr, "Aborted: %s directory could not be open\n", src_dir_path);
+		exit(EXIT_FAILURE);
+	}
+	
+	minr_log("Checking extensions from: %s\n", src_dir_path);
+	char * failed = NULL;
+	char * ext_src = check_dir_extensions(src_dir_path, &failed);
+
+	if (!ext_src)
+	{
+		fprintf(stderr, "Aborted: File extensions inside %s directory do not match. Please check %s before to proceed.\n", source, failed);
+		free(failed);
+		exit(EXIT_FAILURE);
+	}
+
+	if ( !*ext_src)
+	{
+		minr_log("Skipping empty directory: %s.\n", src_dir_path);
+		return ext_src;
+	}
+
+	sprintf(dst_dir_path, "%s/%s", destination, table);char * ext_dst = NULL;
+	if (is_dir(dst_dir_path))
+	{
+		minr_log("Checking extensions from: %s\n", dst_dir_path);
+		ext_dst = check_dir_extensions(dst_dir_path, &failed);
+
+		if (!ext_dst)
+		{
+			fprintf(stderr, "Aborted: File extensions inside destination directory do not match. Please check %s before to proceed.\n", failed);
+			free(failed);
+			exit(EXIT_FAILURE);
+		}
+
+		if (*ext_dst && strcmp(ext_dst, ext_src))
+		{
+			fprintf(stderr, "Aborted: Source and destination extension do not match: <%s - %s>.\n", ext_src, ext_dst);
+			free(ext_src);
+			free(ext_dst);
+			exit(EXIT_FAILURE);	
+		}
+	}
+	
+	free(ext_dst);
+	return ext_src;
+}
+
 /**
  * @brief Join two mz sources
  * 
@@ -243,21 +345,32 @@ void csv_join(char *source, char *destination, bool skip_delete)
  */
 void minr_join_mz(char * table, char *source, char *destination, bool skip_delete, bool encrypted)
 {
-	char src_path[MAX_PATH_LEN] = "\0";
-	char dst_path[MAX_PATH_LEN] = "\0";
+	char src_dir_path[MAX_PATH_LEN] = "\0";
+	
+	sprintf(src_dir_path, "%s/%s", source, table);	
+	if (!is_dir(src_dir_path))
+	{
+		fprintf(stderr, "Aborted: Source %s directory could not be open\n", src_dir_path);
+		exit(EXIT_FAILURE);
+	}
+	
+	minr_log("Checking extensions from: %s\n", src_dir_path);
+
+	char * ext_src = dir_test(source, destination, table);
 
 	for (int i = 0; i < 65536; i++)
 	{
-		sprintf(src_path, "%s/%s/%04x.mz", source, table, i);
-		sprintf(dst_path, "%s/%s/%04x.mz", destination, table, i);
-
-		check_file_extension(src_path, encrypted);
-		check_file_extension(dst_path, encrypted);
-
+		char src_path[MAX_PATH_LEN] = "\0";
+		char dst_path[MAX_PATH_LEN] = "\0";
+		sprintf(src_path, "%s/%s/%04x.%s", source, table, i, strcmp(ext_src, ".enc") == 0 ? "mz.enc" : "mz");
+		sprintf(dst_path, "%s/%s/%04x.%s", destination, table, i, strcmp(ext_src, ".enc") == 0 ? "mz.enc" : "mz");
 		bin_join(src_path, dst_path, false, skip_delete);
 	}
-	sprintf(src_path, "%s/%s", table, source);
-	if (!skip_delete) rmdir(src_path);
+	
+	if (!skip_delete) 
+		rmdir(src_dir_path);
+	
+	free(ext_src);
 }
 
 /**
@@ -282,12 +395,8 @@ void minr_join_snippets(char *source, char *destination, bool skip_delete)
 	if (!skip_delete) rmdir(src_path);
 }
 
-/**
- * @brief minr join function. Join the files specified in the job
- * 
- * @param job pointer to mnir job
- */
-void minr_join(struct minr_job *job)
+
+static bool minr_join_test(struct minr_job *job)
 {
 	char *source = job->join_from;
 	char *destination = job->join_to;
@@ -303,10 +412,28 @@ void minr_join(struct minr_job *job)
 		printf("Source and destination cannot be the same\n");
 		exit(EXIT_FAILURE);
 	}
+	dir_test(source, destination, "\0");
 
+	dir_test(source, destination, TABLE_NAME_FILE);	
+	dir_test(source, destination, TABLE_NAME_PIVOT);
+	dir_test(source, destination, TABLE_NAME_SOURCES);
+	dir_test(source, destination, TABLE_NAME_NOTICES);
+
+	return true;
+}
+
+/**
+ * @brief minr join function. Join the files specified in the job
+ * 
+ * @param job pointer to mnir job
+ */
+void minr_join(struct minr_job *job)
+{
+	minr_join_test(job);
 	char src_path[MAX_PATH_LEN] = "\0";
 	char dst_path[MAX_PATH_LEN] = "\0";
-
+	char *source = job->join_from;
+	char *destination = job->join_to;
 	/* Join urls */
 	sprintf(src_path, "%s/%s.csv", source, TABLE_NAME_URL);
 	sprintf(dst_path, "%s/%s.csv", destination, TABLE_NAME_URL);

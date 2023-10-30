@@ -41,6 +41,7 @@
 #include "join.h"
 #include "minr_log.h"
 
+
 int (*decode) (int op, unsigned char *key, unsigned char *nonce,
 		        const char *buffer_in, int buffer_in_len, unsigned char *buffer_out);
 
@@ -64,10 +65,14 @@ bool reverse_memcmp(uint8_t *a, uint8_t *b, int bytes)
 
 bool check_file_extension(char * path, bool bin_mode)
 {
-	if (bin_mode || (decode && access(path, F_OK) != 0))
+	char test[MAX_PATH_LEN] = "\0";
+	sprintf(test, "%s.enc", path);
+	if (bin_mode || (decode && access(test, F_OK) == 0))
+	{
 		strcat(path, ".enc");
-	
-	return true;
+		return true;
+	}
+	return false;
 }
 
 /**
