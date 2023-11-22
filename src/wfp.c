@@ -91,7 +91,7 @@ void extract_wfp(uint8_t *md5, char *src, uint32_t length, bool check_mz)
 
 	uint8_t *grams =  calloc(mem_alloc,1);
 	uint32_t *windows = calloc (mem_alloc*4,1);
-	uint8_t *buffer = malloc(mem_alloc * 256);
+	uint8_t *buffer = malloc(BUFFER_SIZE * 256);
 	uint32_t *hashes = malloc(mem_alloc);
 	uint32_t *lines = malloc(mem_alloc);
 
