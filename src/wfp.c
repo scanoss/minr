@@ -41,32 +41,16 @@
 #include "file.h"
 #include "mz.h"
 
-uint8_t *grams;
-uint32_t *windows;
-uint8_t *buffer;
-uint32_t *hashes, *lines;
 int *out_snippet;
-
 
 void wfp_init(char * base_path)
 {
-	buffer = malloc(BUFFER_SIZE * 256);
-	hashes = malloc(MAX_FILE_SIZE);
-	lines  = malloc(MAX_FILE_SIZE);
-	grams = calloc(MAX_FILE_SIZE,1);
-	windows = calloc (MAX_FILE_SIZE*4,1);
 	if (base_path)
 		out_snippet = open_snippet(base_path);
 }
 
 void wfp_free(void)
 {
-	free (grams);
-	free (windows);
-	free (buffer);
-	free (hashes);
-	free (lines);
-
 	if (out_snippet)
 	{
 		/* Close files */
@@ -83,7 +67,7 @@ void wfp_free(void)
  * @param src data source
  * @param length data lenght
  */
-void extract_wfp(uint8_t *md5, char *src, int length, bool check_mz)
+void extract_wfp(uint8_t *md5, char *src, uint32_t length, bool check_mz)
 {
 	/* File discrimination check: Unwanted header? */
 	if (unwanted_header(src)) return;
@@ -95,15 +79,24 @@ void extract_wfp(uint8_t *md5, char *src, int length, bool check_mz)
 	if (unwanted_header(src)) return;
 
 	/* File discrimination check: Binary? */
-	int src_ln = strlen(src);
+	uint32_t src_ln = strlen(src);
 	if (length != src_ln) return;
 
 	/* Store buffer lengths */
 	long buffer_ln[256];
-	for (int i = 0; i < 256; i++) buffer_ln[i]=0;
+	for (int i = 0; i < 256; i++) 
+		buffer_ln[i]=0;
+	
+	uint32_t mem_alloc =  src_ln > MAX_FILE_SIZE ? src_ln : MAX_FILE_SIZE;
+
+	uint8_t *grams =  calloc(mem_alloc,1);
+	uint32_t *windows = calloc (mem_alloc*4,1);
+	uint8_t *buffer = malloc(mem_alloc * 256);
+	uint32_t *hashes = malloc(mem_alloc);
+	uint32_t *lines = malloc(mem_alloc);
 
 	/* Capture hashes (Winnowing) */
-	uint32_t size = winnowing(src, hashes, lines, MAX_FILE_SIZE, grams, windows);
+	uint32_t size = winnowing(src, hashes, lines, mem_alloc, grams, windows);
 
 	uint8_t n = 0;
 	uint16_t line = 0;
@@ -139,6 +132,13 @@ void extract_wfp(uint8_t *md5, char *src, int length, bool check_mz)
 	for (int i = 0; i < 256; i++)
 		if (buffer_ln[i]) if (!write(out_snippet[i], buffer + (BUFFER_SIZE * i), buffer_ln[i]))
 				printf("Warning: error writing snippet sector\n");
+	
+	free (grams);
+	free (windows);
+	free (buffer);
+	free (hashes);
+	free (lines);
+	
 }
 
 /**

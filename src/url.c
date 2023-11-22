@@ -138,7 +138,7 @@ void url_download(struct minr_job *job)
 	/* Reserve memory for snippet fingerprinting */
 	if (!job->exclude_mz)
 	{
-		wfp_init(NULL);
+//		wfp_init(NULL);
 		/* Reserve memory for mz_cache for mined/sources (65536 files) */
 		job->mz_cache = malloc(MZ_FILES * sizeof(struct mz_cache_item));
 		job->mz_cache_extra = malloc(MZ_FILES * sizeof(struct mz_cache_item));
