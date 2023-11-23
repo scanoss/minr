@@ -32,7 +32,6 @@
 uint8_t GRAM  = 30;   // Winnowing gram size in bytes
 uint8_t WINDOW = 64;  // Winnowing window size in bytes
 uint32_t MAX_UINT32 = 4294967295;
-int MAX_FILE_SIZE = 4 * 1048576;
 
 /* Convert case to lowercase, and return zero if it isn't a letter or number
    Do it fast and independent from the locale configuration (avoid string.h) */
@@ -98,6 +97,11 @@ uint32_t winnowing(char *src, uint32_t *hashes, uint32_t *lines, uint32_t limit,
 	while (*src)
 	{
 		if (*src == '\n') line++;
+
+		if (line > 16384)
+		{
+			break;
+		}
 
 		uint8_t byte = normalize(*(src++));
 		if (!byte) continue;
