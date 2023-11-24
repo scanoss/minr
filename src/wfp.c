@@ -60,6 +60,8 @@ void wfp_free(void)
 	free(out_snippet);
 }
 
+#define WFP_BUFFER_SIZE 1048576
+
 /**
  * @brief Extrac wfp from a surce
  * 
@@ -91,7 +93,7 @@ void extract_wfp(uint8_t *md5, char *src, uint32_t length, bool check_mz)
 
 	uint8_t *grams =  calloc(mem_alloc,1);
 	uint32_t *windows = calloc (mem_alloc*4,1);
-	uint8_t *buffer = malloc(BUFFER_SIZE * 256);
+	uint8_t *buffer = malloc(WFP_BUFFER_SIZE * 256);
 	uint32_t *hashes = malloc(mem_alloc);
 	uint32_t *lines = malloc(mem_alloc);
 
@@ -107,22 +109,22 @@ void extract_wfp(uint8_t *md5, char *src, uint32_t length, bool check_mz)
 		uint32_reverse((uint8_t *)&hashes[i]);
 		n = *(uint8_t *)(&hashes[i]);
 
-		memcpy(buffer + (BUFFER_SIZE * n) + buffer_ln[n], (char *) &hashes[i] + 1, 3);
+		memcpy(buffer + (WFP_BUFFER_SIZE * n) + buffer_ln[n], (char *) &hashes[i] + 1, 3);
 		buffer_ln[n] += 3;
 
 		/* Copy md5 hash (16 bytes) */
-		memcpy(buffer + (BUFFER_SIZE * n) + buffer_ln[n], (char *) md5, 16);
+		memcpy(buffer + (WFP_BUFFER_SIZE * n) + buffer_ln[n], (char *) md5, 16);
 		buffer_ln[n] += 16;
 
 		/* Copy originating line number */
 		line = (lines[i] > 65535) ? 65535 : lines[i];
-		memcpy(buffer + (BUFFER_SIZE * n) + buffer_ln[n], (char *)&line, 2);
+		memcpy(buffer + (WFP_BUFFER_SIZE * n) + buffer_ln[n], (char *)&line, 2);
 		buffer_ln[n] += 2;
 
 		/* Flush buffer */
-		if (buffer_ln[n] + 21 >= BUFFER_SIZE)
+		if (buffer_ln[n] + 21 >= WFP_BUFFER_SIZE)
 		{
-			if (!write(out_snippet[n], buffer + (n * BUFFER_SIZE), buffer_ln[n]))
+			if (!write(out_snippet[n], buffer + (n * WFP_BUFFER_SIZE), buffer_ln[n]))
 				printf("Warning: error writing snippet sector\n");
 			buffer_ln[n] = 0;
 		}
@@ -130,15 +132,14 @@ void extract_wfp(uint8_t *md5, char *src, uint32_t length, bool check_mz)
 
 	/* Flush buffer */
 	for (int i = 0; i < 256; i++)
-		if (buffer_ln[i]) if (!write(out_snippet[i], buffer + (BUFFER_SIZE * i), buffer_ln[i]))
+		if (buffer_ln[i]) if (!write(out_snippet[i], buffer + (WFP_BUFFER_SIZE * i), buffer_ln[i]))
 				printf("Warning: error writing snippet sector\n");
 	
-	free (grams);
 	free (windows);
 	free (buffer);
 	free (hashes);
 	free (lines);
-	
+	free (grams);
 }
 
 /**
@@ -155,7 +156,6 @@ bool mz_wfp_extract_handler(struct mz_job *job)
 	/* Decompress */
 	MZ_DEFLATE(job);
 	job->data[job->data_ln] = 0;
-	
 	extract_wfp(job->ptr, job->data, job->data_ln, true);
 	free(job->data);
 

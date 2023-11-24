@@ -40,6 +40,8 @@
  * @param path string path
  * @return uint8_t* pointer to md5
  */
+#define BUFFER_SIZE 1048576
+
 uint8_t *file_md5 (char *path)
 {
 	uint8_t *c = calloc(16,1);
