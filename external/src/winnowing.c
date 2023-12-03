@@ -82,23 +82,44 @@ static uint32_t add_hash(uint32_t hash, uint32_t line, uint32_t *hashes, uint32_
    "hashes" is filled with hashes and "lines" is filled with the respective line numbers.
    The function returns the number of hashes found */
 
-uint32_t winnowing(char *src, uint32_t *hashes, uint32_t *lines, uint32_t limit, uint8_t *grams, uint32_t *windows)
+uint32_t winnowing(char *src, uint32_t *hashes, uint32_t *lines, uint32_t limit)
 {
 	uint32_t hash = MAX_UINT32;
 	uint32_t last = 0;
+
+	uint8_t *grams =  calloc(limit, 1);
+	uint32_t *windows = calloc (limit * 4,1);
+
+	if (!grams || !windows)
+	{
+		free(grams);
+		free(windows);
+		return 0;
+	}
+	
 	uint8_t *gram = grams;
 	uint32_t *window = windows;
+	
 	uint32_t gram_ptr = 0;
 	uint32_t window_ptr = 0;
 
 	/* Process one byte at a time */
 	uint32_t line = 1;
 	uint32_t counter = 0;
+	uint32_t line_char = 0;
 	while (*src)
 	{
-		if (*src == '\n') line++;
+		if (*src == '\n') 
+		{
+			line++;
+			line_char = 0;
+		}
+		else
+		{
+			line_char++;
+		}
 
-		if (line > 16384)
+		if (line > 65384 || line_char > 16384)
 		{
 			break;
 		}
@@ -122,14 +143,23 @@ uint32_t winnowing(char *src, uint32_t *hashes, uint32_t *lines, uint32_t limit,
 				hash = smaller_hash(window);
 				last = add_hash(hash, line, hashes, lines, last, &counter);
 
-				if (counter >= limit) break;
+				if (counter >= limit) 
+					break;
 
 				window++;
+				if (window - windows >= limit * 4)
+					break;
+				
 				window_ptr = WINDOW - 1;
 			}
 			gram++;
+			if (gram - grams >= limit)
+				break;
 			gram_ptr = GRAM - 1;
 		}
 	}
+
+	free (windows);
+	free (grams);
 	return counter;
 }
