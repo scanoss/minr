@@ -82,7 +82,8 @@ void extract_wfp(uint8_t *md5, char *src, uint32_t length, bool check_mz)
 
 	/* File discrimination check: Binary? */
 	uint32_t src_ln = strlen(src);
-	if (length != src_ln) return;
+
+	if (length != src_ln || !strchr(src, '\n')) return;
 
 	/* Store buffer lengths */
 	long buffer_ln[256];
@@ -91,14 +92,20 @@ void extract_wfp(uint8_t *md5, char *src, uint32_t length, bool check_mz)
 	
 	uint32_t mem_alloc =  src_ln > MAX_FILE_SIZE ? src_ln : MAX_FILE_SIZE;
 
-	uint8_t *grams =  calloc(mem_alloc,1);
-	uint32_t *windows = calloc (mem_alloc*4,1);
 	uint8_t *buffer = malloc(WFP_BUFFER_SIZE * 256);
 	uint32_t *hashes = malloc(mem_alloc);
 	uint32_t *lines = malloc(mem_alloc);
 
+	if (!buffer || !hashes || !lines)
+	{
+		free(buffer);
+		free(hashes);
+		free(lines);
+		return;
+	}
+
 	/* Capture hashes (Winnowing) */
-	uint32_t size = winnowing(src, hashes, lines, mem_alloc, grams, windows);
+	uint32_t size = winnowing(src, hashes, lines, mem_alloc);
 
 	uint8_t n = 0;
 	uint16_t line = 0;
@@ -135,11 +142,9 @@ void extract_wfp(uint8_t *md5, char *src, uint32_t length, bool check_mz)
 		if (buffer_ln[i]) if (!write(out_snippet[i], buffer + (WFP_BUFFER_SIZE * i), buffer_ln[i]))
 				printf("Warning: error writing snippet sector\n");
 	
-	free (windows);
 	free (buffer);
 	free (hashes);
 	free (lines);
-	free (grams);
 }
 
 /**
@@ -174,6 +179,7 @@ void mz_wfp_extract(char *path)
 
 	/* Create job structure */
 	struct mz_job job;
+	memset(&job, 0, sizeof(job));
 	strcpy(job.path, path);
 	memset(job.mz_id, 0, 2);
 	job.mz = NULL;
