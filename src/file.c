@@ -257,8 +257,6 @@ bool check_disk_free(char *file, uint64_t needed)
 }
 
 
-//#define _XOPEN_SOURCE 500  // Para nftw en algunos sistemas
-
 int remove_callback(const char *fpath, const struct stat *sb, int typeflag, struct FTW *ftwbuf) {
     int rv = remove(fpath);
 
@@ -266,7 +264,6 @@ int remove_callback(const char *fpath, const struct stat *sb, int typeflag, stru
         perror("Error removing file or directory");
     }
 
-	  // Cerrar explícitamente el descriptor de archivo
     close(ftwbuf->base);
     return rv;
 }
