@@ -110,22 +110,6 @@ void url_add(struct minr_job *job)
 }
 
 /**
- * @brief Removes temporary files and directories
- * 
- * @param path string path to be deleted
- */
-void rm_tmpdir(char * path)
-{
-	/* Assemble command */
-	char command[MAX_PATH_LEN] = "\0";
-	sprintf(command, "rm -rf %s", path);
-
-	/* Execute command */
-	FILE *fp = popen(command, "r");
-	pclose(fp);
-}
-
-/**
  * @brief Download a URL for a job
  * 
  * @param job pointer to minr job
@@ -241,7 +225,7 @@ void url_download(struct minr_job *job)
 	}
 	else
 	{
-		rm_tmpdir(aux_root_dir);
+		rm_dir(aux_root_dir);
 	}
 
 	free(aux_root_dir);

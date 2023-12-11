@@ -30,7 +30,7 @@
 
 #include "license.h"
 #include "scancode.h"
-
+#include "file.h"
 #define TMP_DIR "/tmp/minr"
 
 /**
@@ -57,13 +57,10 @@ bool scancode_prepare_tmp_dir(char *id)
  */
 bool scancode_remove_tmp_dir(char *id)
 {
-    FILE *sc_file;
-    char *command;
-    asprintf(&command, "rm -r -f %s/%s", TMP_DIR, id); // create tmp or erase content
-    sc_file = popen(command, "r");
-
-    fclose(sc_file);
-    free(command);
+    char *path;
+    asprintf(&path, "%s/%s", TMP_DIR, id); // create tmp or erase content
+    rm_dir(path);
+    free(path);
     return true;
 }
 

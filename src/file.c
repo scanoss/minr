@@ -29,6 +29,7 @@
 #include <sys/stat.h>
 #include <openssl/md5.h>
 #include <stdlib.h>
+#include <ftw.h>
 #include <string.h>
 #include <fcntl.h>
 #include <sys/stat.h>
@@ -253,4 +254,31 @@ bool check_disk_free(char *file, uint64_t needed)
 		return false;
 	}
 	return true;
+}
+
+
+//#define _XOPEN_SOURCE 500  // Para nftw en algunos sistemas
+
+int remove_callback(const char *fpath, const struct stat *sb, int typeflag, struct FTW *ftwbuf) {
+    int rv = remove(fpath);
+
+    if (rv == -1) {
+        perror("Error removing file or directory");
+    }
+
+	  // Cerrar explícitamente el descriptor de archivo
+    close(ftwbuf->base);
+    return rv;
+}
+
+void rm_dir(char *path) {
+
+    if (path == NULL || path[0] == '\0') {
+        return;
+    }
+
+    // Execute command using nftw
+    if (nftw(path, remove_callback, 1, FTW_DEPTH | FTW_PHYS) == -1) {
+        perror("Error removing a directory");
+    }
 }

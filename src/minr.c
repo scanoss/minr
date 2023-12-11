@@ -316,30 +316,27 @@ int load_file(struct minr_job *job, char *path)
 		}
 	}
 
-	/* Read file contents into src and close it */
-	fseeko64(fp, 0, SEEK_SET);
-
 	/* File discrimination check #3: Is it under/over the threshold */
 	if (job->src_ln < min_file_size)
 	{
 		result = FILE_IGNORED;
 	}
-
-			
+		
 	if (!fread(job->src, 1, job->src_ln, fp))
 	{
 		fclose(fp);
 		return result;
 	}
 
+	/* Read file contents into src and close it */
+	job->src[job->src_ln] = 0;
+	fclose(fp);
+
 	/* Calculate file MD5 */
 	uint8_t * md5 = file_md5(path);
 	memcpy(job->md5, md5, sizeof(job->md5));
 	free(md5);
 	ldb_bin_to_hex(job->md5, MD5_LEN, job->fileid);
-
-	job->src[job->src_ln] = 0;
-	fclose(fp);
 
 	if (ignored_file(job->fileid))
 	{
