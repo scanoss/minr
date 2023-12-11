@@ -208,8 +208,18 @@ void bin_join(char *source, char *destination, bool snippets, bool skip_delete)
  */
 void csv_join(char *source, char *destination, bool skip_delete)
 {
+	/* check if the file is encoded*/
+	if (check_file_extension(source, false))
+	{
+		strcat(destination, ".enc");
+	}
+
 	/* If source does not exist, no need to join */
-	if (is_file(source)) truncate_csv(source); else return;
+	if (is_file(source)) 
+		truncate_csv(source); 
+	
+	else 
+		return;
 
 	if (is_file(destination))
 	{	
@@ -289,8 +299,8 @@ char * dir_test(char *source, char *destination, char * table)
 	sprintf(src_dir_path, "%s/%s", source, table);	
 	if (!is_dir(src_dir_path))
 	{
-		fprintf(stderr, "Aborted: %s directory could not be open\n", src_dir_path);
-		exit(EXIT_FAILURE);
+		minr_log("Skipped: %s directory could not be open\n", src_dir_path);
+		return NULL;
 	}
 	
 	minr_log("Checking extensions from: %s\n", src_dir_path);
@@ -350,9 +360,9 @@ void minr_join_mz(char * table, char *source, char *destination, bool skip_delet
 	sprintf(src_dir_path, "%s/%s", source, table);	
 	if (!is_dir(src_dir_path))
 	{
-		fprintf(stderr, "Aborted: Source %s directory could not be open\n", src_dir_path);
-		exit(EXIT_FAILURE);
-	}
+		minr_log("Warning: Source %s directory could not be open\n", src_dir_path);
+		return;
+ 	}
 	
 	minr_log("Checking extensions from: %s\n", src_dir_path);
 
@@ -401,9 +411,15 @@ static bool minr_join_test(struct minr_job *job)
 	char *source = job->join_from;
 	char *destination = job->join_to;
 
-	if (!is_dir(source) || !is_dir(destination))
+	if (!is_dir(source))
 	{
-		printf("Source and destination must be mined/ directories\n");
+		printf("Could not open directory %s, skipping", source);
+		return true;
+	}
+
+	if (!is_dir(destination))
+	{
+		printf("destination %s must be a directory\n", destination);
 		exit(EXIT_FAILURE);
 	}
 
@@ -412,7 +428,7 @@ static bool minr_join_test(struct minr_job *job)
 		printf("Source and destination cannot be the same\n");
 		exit(EXIT_FAILURE);
 	}
-	dir_test(source, destination, "\0");
+	//dir_test(source, destination, "\0");
 
 	dir_test(source, destination, TABLE_NAME_FILE);	
 	dir_test(source, destination, TABLE_NAME_PIVOT);
@@ -434,6 +450,7 @@ void minr_join(struct minr_job *job)
 	char dst_path[MAX_PATH_LEN] = "\0";
 	char *source = job->join_from;
 	char *destination = job->join_to;
+
 	/* Join urls */
 	sprintf(src_path, "%s/%s.csv", source, TABLE_NAME_URL);
 	sprintf(dst_path, "%s/%s.csv", destination, TABLE_NAME_URL);
@@ -484,11 +501,6 @@ void minr_join(struct minr_job *job)
 	/* Join copyright */
 	sprintf(src_path, "%s/%s.csv", source, TABLE_NAME_COPYRIGHT);
 	sprintf(dst_path, "%s/%s.csv", destination, TABLE_NAME_COPYRIGHT);
-	csv_join(src_path, dst_path, job->skip_delete);
-
-	/* Join quality */
-	sprintf(src_path, "%s/%s.csv", source, TABLE_NAME_QUALITY);
-	sprintf(dst_path, "%s/%s.csv", destination, TABLE_NAME_QUALITY);
 	csv_join(src_path, dst_path, job->skip_delete);
 
 	/* Join vulnerabilities */
