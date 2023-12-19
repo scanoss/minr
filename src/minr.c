@@ -57,7 +57,7 @@ bool is_binary(char *data, long len)
 	/* Is it a zip? */
 	if (*data == 'P' && data[1] == 'K' && data[2] < 9)
 		return true;
-
+		
 	/* Does it contain a chr(0)? */
 	return (len != strlen(data));
 }
@@ -298,6 +298,7 @@ int load_file(struct minr_job *job, char *path)
 
 	fseeko64(fp, 0, SEEK_END);
 	job->src_ln = ftello64(fp);
+	fseeko64(fp, 0, SEEK_SET);
 
 	if (job->src_ln <= 0)
 		return FILE_IGNORED;
