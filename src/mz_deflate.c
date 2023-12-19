@@ -305,7 +305,7 @@ bool mz_extract_handler(struct mz_job *job)
 	}
 
 	free(actual);
-	free(job->mz);
+	//free(job->mz);
 	free(job->data);
 
 	return true;
@@ -326,4 +326,5 @@ void mz_extract(struct mz_job *job)
 
 	/* Launch extraction */
 	mz_parse(job, mz_extract_handler);
+	free(job->mz);
 }
