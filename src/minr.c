@@ -417,12 +417,6 @@ void mine(struct minr_job *job, char *path)
 				return;
 		}
 
-	//Ignore path with ',' inside
-	if (strchr(path, ','))
-	{
-		minr_log("Ignored due to: comma inside path\n");
-		return;
-	}
 
 	if (unwanted_path(path))
 	{
@@ -444,6 +438,10 @@ void mine(struct minr_job *job, char *path)
 		else
 			extra_table = true;
 	}
+	//Replace comma in path for '-'
+	char * comma = strchr(path, ',');
+	if (comma)
+		*comma = '-';
 
 	/* Add to .mz */
 	if (!job->exclude_mz)
