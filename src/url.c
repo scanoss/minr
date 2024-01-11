@@ -164,7 +164,7 @@ void url_download(struct minr_job *job)
 	/*Pivot table will have only one file*/
 	char pivot_path[MAX_PATH_LEN];
 	sprintf(pivot_path, "%s/%s/", job->mined_path, TABLE_NAME_PIVOT);
-	if (create_dir(pivot_path))
+	if (create_dir(pivot_path) && *job->urlid)
 	{
 		strncat(pivot_path, job->urlid, 2);
 		strcat(pivot_path, ".csv");
