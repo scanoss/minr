@@ -177,6 +177,19 @@ FILE **open_file (char *mined_path, char * set_name)
 	return out;
 }
 
+int append_to_csv_file(char *mined_path, char * set_name, int sector, char * line)
+{
+	if (!line)
+		return 0;
+	char path[MAX_PATH_LEN] = "\0";
+	snprintf(path, MAX_PATH_LEN, "%s/%s/%02x.csv", mined_path, set_name, sector);
+	FILE * f = fopen(path, "a");
+	fputs(line, f);
+	fclose(f);
+	return 0;
+
+}
+
 
 /**
  * @brief Open 256 "snippet" descriptors

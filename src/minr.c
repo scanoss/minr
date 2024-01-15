@@ -503,7 +503,7 @@ void mine(struct minr_job *job, char *path)
 	{
 		minr_log("File %s proceesed as \"Extra\"\n", path);
 		fprintf(job->out_file_extra[*job->md5], "%s,%s,%s\n", job->fileid + 2, job->urlid, path + strlen(job->tmp_dir) + 1);
-	
+		fflush(job->out_file_extra[*job->md5]);
 		if (job->out_pivot_extra)
 			fprintf(job->out_pivot_extra, "%s,%s\n", job->urlid + 2, job->fileid);
 	}
@@ -513,6 +513,7 @@ void mine(struct minr_job *job, char *path)
 		uint8_t url_md5_byte;
 		ldb_hex_to_bin(job->urlid, 2, &url_md5_byte);
 		fprintf(job->out_file[*job->md5], "%s,%s,%s\n", job->fileid + 2, job->urlid, path + strlen(job->tmp_dir) + 1);
+		fflush(job->out_file[*job->md5]);
 		ldb_hex_to_bin(job->urlid, 2, &url_md5_byte);
 		if (job->out_pivot)
 			fprintf(job->out_pivot, "%s,%s\n", job->urlid + 2, job->fileid);

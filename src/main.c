@@ -131,6 +131,8 @@ int main(int argc, char *argv[])
 
 	job.src = NULL;
 	job.zsrc = NULL;
+	job.out_pivot = NULL;
+	job.out_pivot_extra = NULL;
 
 	/* Parse arguments */
 	int option;
