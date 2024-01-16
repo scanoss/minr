@@ -93,7 +93,7 @@ bool scancode_run(char *id, char *csv_file)
     /* execute scancode, process the json output, and erase tmp */
     if (csv_file)
         asprintf(&command, "scancode -cl --quiet -n 6 --timeout 2 --json %s/%s/scancode.json %s/%s  2> scancode_error.txt &&\
-	 	    				jq -r '.files[] | \"\\(.path),5,\\(.licenses[].spdx_license_key)\"' %s/%s/scancode.json | sort -u | grep -v ',null$' | sed 's/\\/[^:/:,]*,/,/g' 1>> %s",
+	 	    				jq -r '.files[] | \"\\(.path),5,\\(.detected_license_expression_spdx)\"' %s/%s/scancode.json | sort -u | grep -v ',null$' | sed 's/\\/[^:/:,]*,/,/g' 1>> %s",
                  TMP_DIR, id, TMP_DIR, id, TMP_DIR, id, csv_file);
 
     FILE *sc_file = popen(command, "r");
