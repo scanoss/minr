@@ -575,6 +575,7 @@ void mine_local_file(struct minr_job *job, char *path)
 		}
 	}
 	free(job->src);
+	job->src = NULL;
 }
 
 /**
