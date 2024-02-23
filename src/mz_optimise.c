@@ -108,17 +108,9 @@ bool mz_md5_match(uint8_t *mz1, uint8_t *mz2)
  * @param job pointer to mz job
  * @return true 
  */
-bool mz_optimise_handler(struct mz_job *job)
+static bool mz_optimise_handler(struct mz_job *job)
 {
 	/* Uncompress */
-	/*uint64_t src_ln = MAX_FILE_SIZE;
-	if (Z_OK != uncompress((uint8_t *)job->data, &src_ln, job->zdata, job->zdata_ln))
-	{
-		printf("[DECOMPRESS FAILED] ");
-		ldb_hexprint(job->id, 14, 14);
-		return true;
-	}
-	job->data_ln = src_ln - 1;*/
 	MZ_DEFLATE(job);
 	job->data[job->data_ln] = 0;
 
@@ -176,17 +168,9 @@ bool mz_optimise_handler(struct mz_job *job)
 	return true;
 }
 
-bool mz_optimise_dup_handler(struct mz_job *job)
+static bool mz_optimise_dup_handler(struct mz_job *job)
 {
 	/* Uncompress */
-/*	uint64_t src_ln = MAX_FILE_SIZE;
-	if (Z_OK != uncompress((uint8_t *)job->data, &src_ln, job->zdata, job->zdata_ln))
-	{
-		printf("[DECOMPRESS FAILED] ");
-		ldb_hexprint(job->id, 14, 14);
-		return true;
-	}
-	job->data_ln = src_ln - 1;*/
 	MZ_DEFLATE(job);
 	job->data[job->data_ln] = 0;
 
