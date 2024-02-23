@@ -261,7 +261,7 @@ int main(int argc, char *argv[])
 				strcpy(job.metadata, optarg);
 				break;
 			case 'V':
-				strcpy(log_file, optarg);
+				minr_log_path(optarg);
 				break;
 			case 's':
 				job.skip_sort = true;
