@@ -27,7 +27,6 @@
   */
 
 #include <ctype.h>
-#include <openssl/md5.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>

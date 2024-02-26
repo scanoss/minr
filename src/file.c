@@ -27,7 +27,6 @@
   */
 
 #include <sys/stat.h>
-#include <openssl/md5.h>
 #include <stdlib.h>
 #include <ftw.h>
 #include <string.h>
