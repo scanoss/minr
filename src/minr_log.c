@@ -1,8 +1,14 @@
 #include <sys/time.h>
 #include <stdarg.h>
+#include <string.h>
 #include "minr_log.h"
 
-char log_file[FILENAME_MAX] = "\0";
+static char log_file[FILENAME_MAX] = "\0";
+
+void minr_log_path(char * path)
+{
+	strcpy(log_file, path);
+}
 
 /**
  * @brief Print the logs in stderr

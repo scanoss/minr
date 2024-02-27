@@ -30,7 +30,6 @@
 #include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
-#include <openssl/md5.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -206,7 +205,7 @@ int main(int argc, char *argv[])
 			case 'c':
 				job.check_only = true;
 				argcpy(job.path, optarg);
-				mz_list(&job);
+				mz_list_check(&job);
 				break;
 
 			case 'x':
@@ -217,12 +216,12 @@ int main(int argc, char *argv[])
 			case 'K':
 				job.dump_keys = true;
 				argcpy(job.path, optarg);
-				mz_list(&job);
+				mz_list_check(&job);
 				break;
 
 			case 'l':
 				argcpy(job.path, optarg);
-				mz_list(&job);
+				mz_list_check(&job);
 				break;
 
 			case 'C':

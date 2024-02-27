@@ -14,12 +14,5 @@ typedef enum
 
 void mz_optimise(struct mz_job *job, mz_optimise_mode_t mode);
 void mz_extract(struct mz_job *job);
-void mz_list(struct mz_job *job);
-
-#ifndef MZ_DEFLATE
-#define MZ_DEFLATE_LOCAL
-void mz_deflate2(struct mz_job *job);
-#define MZ_DEFLATE(job) mz_deflate2(job)
-#endif
 
 #endif

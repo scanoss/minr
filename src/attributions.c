@@ -239,7 +239,7 @@ void mine_attribution_notice(struct minr_job *job, char *path)
 
 	/* Compress data */
 	job->zsrc_ln = compressBound(job->src_ln + 1);
-	job->zsrc =calloc((job->zsrc_ln + 1), 1);
+	job->zsrc =calloc((job->zsrc_ln + 128), 1);
 
 	/* Save the first bytes of zsrc to accomodate the MZ header */
 	compress(job->zsrc + MZ_HEAD, &job->zsrc_ln, (uint8_t *)job->src, job->src_ln + 1);

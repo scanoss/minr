@@ -29,7 +29,6 @@
 #include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
-#include <openssl/md5.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -261,7 +260,7 @@ int main(int argc, char *argv[])
 				strcpy(job.metadata, optarg);
 				break;
 			case 'V':
-				strcpy(log_file, optarg);
+				minr_log_path(optarg);
 				break;
 			case 's':
 				job.skip_sort = true;

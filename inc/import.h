@@ -1,5 +1,5 @@
-#ifndef __IMPORT_H
-#define __IMPORT_H
+#ifndef __MINR_IMPORT_H
+#define __MINR_IMPORT_H
 
 #include <stdbool.h>
 

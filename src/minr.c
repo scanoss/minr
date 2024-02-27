@@ -33,11 +33,10 @@
 #include <zlib.h>
 #include "attributions.h"
 #include "file.h"
-#include "md5.h"
 #include "hex.h"
 #include "ignorelist.h"
 #include "ignored_files.h"
-#include "ldb.h"
+#include <ldb.h>
 #include "crypto.h"
 #include "minr_log.h"
 
@@ -171,7 +170,7 @@ char *downloaded_file(char *tmp_dir)
  */
 void load_urlid(struct minr_job *job, char *tmp_file)
 {
-	uint8_t *bin_md5 = file_md5(tmp_file);
+	uint8_t *bin_md5 = md5_file(tmp_file);
 	char *hex_md5 = bin_to_hex(bin_md5, 16);
 	strcpy(job->urlid, hex_md5);
 	free(hex_md5);
@@ -334,7 +333,7 @@ int load_file(struct minr_job *job, char *path)
 	fclose(fp);
 
 	/* Calculate file MD5 */
-	uint8_t * md5 = file_md5(path);
+	uint8_t * md5 = md5_file(path);
 	memcpy(job->md5, md5, sizeof(job->md5));
 	free(md5);
 	ldb_bin_to_hex(job->md5, MD5_LEN, job->fileid);
