@@ -43,7 +43,7 @@ jobs:
         run: echo ${{ steps.version.outputs.version }}
 
       - name: 'Tar files'
-        run: tar czvf minr-${{ steps.version.outputs.version }}-amd64.tar.gz minr mz LICENSE
+        run: tar czvf minr-${{ steps.version.outputs.version }}-amd64.tar.gz minr mz licenses/GPL-2.0-only/GPL-2.0-only.txt
 
       - name: Upload a Build Artifact
         uses: actions/upload-artifact@v3
