@@ -51,6 +51,8 @@
 #include "crypto.h"
 #include "url.h"
 #include "scancode.h"
+#include "attributions.h"
+#include <getopt.h>
 #include "minr_log.h"
 #include <dlfcn.h>
 
@@ -116,6 +118,7 @@ int main(int argc, char *argv[])
 
 	// Snippet mine job
 	*job.mz=0;
+	*job.attribution_path=0;
 	job.mz_cache = NULL;
 	job.mz_cache_extra = NULL;
 
@@ -139,7 +142,13 @@ int main(int argc, char *argv[])
 
 	bool lib_encoder_present = lib_load();
 
-	while ((option = getopt(argc, argv, ":c:C:L:Q:Y:o:m:g:w:t:f:T:i:I:l:z:u:U:d:D:V:SxXsnkeahvOAb")) != -1)
+	static struct option long_options[] = {
+		{"attribution", required_argument, 0, 'P'},
+		{0, 0, 0, 0}
+	};
+	int long_index = 0;
+
+	while ((option = getopt_long(argc, argv, ":c:C:L:Q:Y:o:m:g:w:t:f:T:i:I:l:z:u:U:d:D:V:SxXsnkeahvOAb", long_options, &long_index)) != -1)
 	{
 
 		/* Check valid alpha is entered */
@@ -226,6 +235,10 @@ int main(int argc, char *argv[])
 
 			case 'z':
 				strcpy(job.mz, optarg);
+				break;
+
+			case 'P':
+				strcpy(job.attribution_path, optarg);
 				break;
 
 			case 'u':
@@ -431,6 +444,18 @@ int main(int argc, char *argv[])
 
 		/* Mine URL or folder */
 		url_download(&job);
+
+		/* Process attribution notice file if provided */
+		if (*job.attribution_path)
+		{
+			if (!is_file(job.attribution_path))
+				printf("Cannot access attribution file: %s\n", job.attribution_path);
+			else
+			{
+				mine_attribution_notice(&job, job.attribution_path);
+				printf("Attribution notice processed: %s\n", job.attribution_path);
+			}
+		}
 
 		free(job.licenses);
 
