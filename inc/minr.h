@@ -128,6 +128,9 @@ struct minr_job
 	// minr -z
 	char mz[MAX_PATH_LEN];
 
+	// minr --attribution
+	char attribution_path[MAX_PATH_LEN];
+
 	// Memory allocation
 	char *src; // for uncompressed source
 	uint8_t *zsrc; // for compressed source
